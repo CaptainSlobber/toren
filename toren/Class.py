@@ -1,12 +1,15 @@
+from .TorenObject import TorenObject
 import collections
 
-from .TorenObject import TorenObject
-
-class Project(TorenObject):
+class Class(TorenObject):
+  
   def __init__(self, name: str, description: str, id: str):
     self.Name = name
     self.Description = description
     self.ID = id
-    self.Modules = collections.OrderedDict()
+    self.ParentModule = None
+
+  def setParentModule(self, parentModule):
+    self.ParentModule = parentModule
 
     
