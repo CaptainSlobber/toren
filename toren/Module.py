@@ -3,6 +3,19 @@ import collections
 import json
 
 class Module(TorenObject):
+
+
+  class PropertName():
+    NAME = "Name"
+    DESCRIPTION = "Description"
+    ID = "ID"
+    PARENTPROJECT = "ParentProject"
+
+  class PropertID():
+    NAME = "6ef664d9-bbb7-4867-8ab1-fd34f4776b6b"
+    DESCRIPTION = "b2c2f6e9-e699-4610-97f6-c46fe6c819c1"
+    ID = "b594c4ab-181e-4b4b-9395-e05ca95484f1"
+    PARENTPROJECT = "16f4315e-2c49-4d6a-86c8-deccc97ea009" 
   
   def __init__(self):
     self.Name = ""
@@ -11,7 +24,7 @@ class Module(TorenObject):
     self.ParentProject = None
 
 
-  def initializeModule(self, name: str, description: str, id: str):
+  def initialize(self, name: str, description: str, id: str):
     self.Name = name
     self.Description = description
     self.ID = id
@@ -22,28 +35,46 @@ class Module(TorenObject):
   def setParentProject(self, parentProject):
     self.ParentProject = parentProject
 
+  def getParentProject(self):
+    return self.ParentProject
 
-
-  def todict(self):
+  def to_dict(self):
     _module = {}
-    _module["Name"] = self.Name
-    _module["Description"] = self.Description
-    _module["ID"]  = self.ID
+    _module[self.PropertName.NAME] = self.Name
+    _module[self.PropertName.DESCRIPTION] = self.Description
+    _module[self.PropertName.ID]  = self.ID
     return _module
-
-  def tojson(self):
-    
-    _module_json = json.dumps(self.todict())
-    return _module_json
   
 
-  def fromjson(self, jsonString):
+  def getID(self):
+    return self.ID
+
+  def setID(self, id):
+    self.ID = id
+
+  def getName(self):
+    return self.Name
+
+  def setName(self, name):
+    self.Name = name
+
+  def getDescription(self):
+    return self.Description
+
+  def setDescription(self, description):
+    self.Description = description
+
+  def to_json(self):
+    _module_json = json.dumps(self.to_dict())
+    return _module_json
+
+  def from_json(self, jsonString):
     _module = json.loads(jsonString)
-    self.fromdict(_module)
+    self.from_dict(_module)
     return self
 
-  def fromdict(self, module):
-    self.Name= str(module["Name"])
-    self.Description = str(module["Description"]) 
-    self.ID = str(module["ID"])
+  def from_dict(self, module):
+    self.Name= str(module[self.PropertName.NAME])
+    self.Description = str(module[self.PropertName.DESCRIPTION])
+    self.ID = str(module[self.PropertName.ID])
     return self
