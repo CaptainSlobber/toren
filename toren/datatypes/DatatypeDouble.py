@@ -1,10 +1,11 @@
-from .Datatype import Datatype
+from .DatatypeNumeric import DatatypeNumeric
 import collections
 
-class DatatypeBoolean(Datatype):
+class DatatypeDouble(DatatypeNumeric):
+  
   
   def getType(self):
-    return "toren.datatypes.DatatypeBoolean"
+    return "toren.datatypes.DatatypeUUID"
   
   def __init__(self):
     self.Type = self.getType()

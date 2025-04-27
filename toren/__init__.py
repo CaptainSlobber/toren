@@ -3,6 +3,7 @@ from .tracer import *
 from .parser import *
 from .languages import *
 from .datastores import *
+from .datatypes import *
 
 from .TorenObject import TorenObject
 from .Project import Project

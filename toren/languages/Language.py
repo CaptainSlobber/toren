@@ -5,31 +5,35 @@ import json
 class Language(TorenObject):
   
 
-
   class PropertName():
+    TYPE = "Type"
     NAME = "Name"
     DESCRIPTION = "Description"
     ID = "ID"
 
   class PropertID():
+    TYPE = "02dde63e-599f-4195-96e0-9d5b0584145d"
     NAME = "d22beb80-c25f-4404-8cde-87f281b4effc"
     DESCRIPTION = "01e05ec4-2690-4b21-8083-3cbb6acad7bc"
     ID = "dd879086-f7d0-493c-ad69-7d95cfde4081"
 
   def __init__(self):
+    self.Type = "toren.languages.Language"
     self.Name = "AbstractLanguage"
     self.Description = "Abstract Language"
     self.ID = "e9307c07-c397-4fc0-a472-0c88d8b65cc2"
 
 
-  def from_dict(self, project):
-    self.Name= str(project[self.PropertName.NAME])
-    self.Description = str(project[self.PropertName.DESCRIPTION]) 
-    self.ID = str(project[self.PropertName.ID])
+  def from_dict(self, language):
+    #self.Type = str(language[self.PropertName.TYPE])
+    self.Name= str(language[self.PropertName.NAME])
+    self.Description = str(language[self.PropertName.DESCRIPTION]) 
+    self.ID = str(language[self.PropertName.ID])
     return self
 
   def to_dict(self):
     _langiage = {}
+    _langiage[self.PropertName.TYPE] = self.Type
     _langiage[self.PropertName.NAME] = self.Name
     _langiage[self.PropertName.DESCRIPTION] = self.Description
     _langiage[self.PropertName.ID] = self.ID

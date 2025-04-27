@@ -3,7 +3,32 @@ import collections
 
 class DatatypeBinary(Datatype):
   
-  def __init__(self, name: str, description: str, id: str):
+  def getType(self):
+    return "toren.datatypes.DatatypeBinary"
+  
+  def __init__(self):
+    self.Type = self.getType()
+    self.Name = ""
+    self.Description = ""
+    self.ID = ""
+    self.ParentModule = None
+    self.IsPrimaryKey = False
+    self.IsUnique = False
+    self.DefaultValue = ""
+
+
+  def initialize(self, name: str, 
+                 description: str, 
+                 id: str,
+                 isprimarykey: bool = False,
+                 isunique: bool = False,
+                 defaultvalue: str = ""):
+    self.Type = self.getType()
     self.Name = name
     self.Description = description
     self.ID = id
+    self.ParentModule = None
+    self.IsPrimaryKey = isprimarykey
+    self.IsUnique = isunique
+    self.DefaultValue = defaultvalue
+    return self

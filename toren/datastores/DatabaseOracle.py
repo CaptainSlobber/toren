@@ -4,6 +4,7 @@ import collections
 class DatabaseOracle(Database):
   
   def __init__(self):
+    self.Type = "toren.datastores.DatabaseOracle"
     self.Name = ""
     self.Description = ""
     self.ID = ""
@@ -12,6 +13,7 @@ class DatabaseOracle(Database):
   def initialize(self, name: str, 
                  description: str, 
                  id: str):
+    self.Type = "toren.datastores.DatabaseOracle"
     self.Name = name
     self.Description = description
     self.ID = id

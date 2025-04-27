@@ -4,6 +4,7 @@ import collections
 class DatabasePostgreSQL(Database):
   
   def __init__(self):
+    self.Type = "toren.datastores.DatabasePostgreSQL"
     self.Name = ""
     self.Description = ""
     self.ID = ""
@@ -12,6 +13,7 @@ class DatabasePostgreSQL(Database):
   def initialize(self, name: str, 
                  description: str, 
                  id: str):
+    self.Type = "toren.datastores.DatabasePostgreSQL"
     self.Name = name
     self.Description = description
     self.ID = id

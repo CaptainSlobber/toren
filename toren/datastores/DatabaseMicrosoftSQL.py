@@ -4,6 +4,7 @@ import collections
 class DatabaseMicrosoftSQL(Database):
   
   def __init__(self):
+    self.Type = "toren.datastores.DatabaseMicrosoftSQL"
     self.Name = ""
     self.Description = ""
     self.ID = ""
@@ -12,6 +13,7 @@ class DatabaseMicrosoftSQL(Database):
   def initialize(self, name: str, 
                  description: str, 
                  id: str):
+    self.Type = "toren.datastores.DatabaseMicrosoftSQL"
     self.Name = name
     self.Description = description
     self.ID = id

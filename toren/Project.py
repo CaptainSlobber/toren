@@ -2,8 +2,8 @@ import collections
 import json
 from .TorenObject import TorenObject
 from .Module import Module
-from .languages.Language import Language
-from .datastores.Database import Database
+from .languages import *
+from .datastores import *
 from typing import List
 
 class Project(TorenObject):
@@ -17,6 +17,7 @@ class Project(TorenObject):
     MODULES = "Modules"
     LANGUAGES = "Languages"
     DATASTORES = "Datastores"
+    TYPE = "Type"
 
   class PropertID():
     NAME = "58795c87-1889-4d2c-8e32-6ae2c8da711b"
@@ -26,8 +27,10 @@ class Project(TorenObject):
     MODULES = "bf183016-6d32-4950-87a0-1e246a2ffe99" 
     LANGUAGES = "ab43f94f-c692-4318-b8c6-548ab511c6ff"
     DATASTORES = "d4f82402-26dd-484c-b6b0-e50ae4aff2b7"
+    TYPE = "06402adf-7222-436a-a542-7791eb9d418a"
 
   def __init__(self):
+    self.Type = "toren.Project"
     self.Name = ""
     self.Description = ""
     self.ID = ""
@@ -44,6 +47,7 @@ class Project(TorenObject):
                  modules: list[Module]=None,
                  languages: list[Language] = None,
                  datastores: list[Database] = None):
+    self.Type = "toren.Project"
     self.Name = name
     self.Description = description
     self.ID = id
@@ -60,7 +64,15 @@ class Project(TorenObject):
     _datastores = collections.OrderedDict()
     if not datastores is None:
       for datastore in datastores:
-        if isinstance(datastore, dict): datastore = Database().from_dict(datastore)
+        if isinstance(datastore, dict): 
+          #datastore = Database().from_dict(datastore)
+          datastoreclassname=datastore["Type"].split(".")[-1]
+          match datastoreclassname:
+            case "DatabaseOracle": datastore = DatabaseOracle().from_dict(datastore)
+            case "DatabaseSQLite": datastore = DatabaseSQLite().from_dict(datastore)
+            case "DatabasePostgreSQL": datastore = DatabasePostgreSQL().from_dict(datastore)
+            case "DatabaseMicrosoftSQL": datastore = DatabaseMicrosoftSQL().from_dict(datastore)
+
         _datastores[datastore.ID] = datastore
     return _datastores
 
@@ -71,7 +83,15 @@ class Project(TorenObject):
     _languages = collections.OrderedDict()
     if not languages is None:
       for language in languages:
-        if isinstance(language, dict): language = Language().from_dict(language)
+        if isinstance(language, dict): 
+          langclassname=language["Type"].split(".")[-1]
+
+          match langclassname:
+            case "LanguagePython": language = LanguagePython().from_dict(language)
+            case "LanguageCSharp": language = LanguageCSharp().from_dict(language)
+            case "LanguageGo": language = LanguageGo().from_dict(language)
+            case "LanguageJava": language = LanguageJava().from_dict(language)
+            case "LanguageJavaScript": language = LanguageJavaScript().from_dict(language)
         _languages[language.ID] = language
     return _languages
 
@@ -99,6 +119,7 @@ class Project(TorenObject):
 
   def to_dict(self):
     _project = {}
+    _project[self.PropertName.TYPE] = self.Type
     _project[self.PropertName.NAME] = self.Name
     _project[self.PropertName.DESCRIPTION] = self.Description
     _project[self.PropertName.ID] = self.ID
@@ -118,6 +139,7 @@ class Project(TorenObject):
     return self
 
   def from_dict(self, project):
+    #self.ype = str(project[self.PropertName.TYPE])
     self.Name= str(project[self.PropertName.NAME])
     self.Description = str(project[self.PropertName.DESCRIPTION]) 
     self.ID = str(project[self.PropertName.ID])
