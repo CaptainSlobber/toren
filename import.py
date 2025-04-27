@@ -17,12 +17,17 @@ dbPostgreSQL = toren.DatabaseSQLite().initialize(name="postgresql",
                                description="postgresql", 
                                id="be3f92e2-e2ff-491d-9ca0-eaefb72cc6bf")
 
+cTimeseries = toren.Class().initialize(name="Timeseries", 
+                               description="Timeseries", 
+                               id="5b6bce9f-669d-46f9-b80d-2b7ec4ecc38c")
+
 mForecast= toren.Module().initialize(name="metforecast", 
                                description="Forecast", 
                                id="6a5494c2-fd2e-4d37-bced-2ee1a981d72a")
 mCollect = toren.Module().initialize(name="metcollect", 
                                description="Collect", 
-                               id="7b3bb9d0-afc2-48a1-931f-8cf1498c6a4d")
+                               id="7b3bb9d0-afc2-48a1-931f-8cf1498c6a4d",
+                               classes=[cTimeseries])
 
 
 pMet = toren.Project().initialize(name="met", 
