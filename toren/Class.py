@@ -31,7 +31,7 @@ class Class(TorenObject):
     self.Description = ""
     self.ID = ""
     self.ParentModule = None
-    self.Properties = []
+    self.Properties = DatatypeCollection()
 
 
   def initialize(self, 
@@ -44,40 +44,10 @@ class Class(TorenObject):
     self.Description = description
     self.ID = id
     self.ParentModule = None
-    self.Properties = self.setProperties(properties)
+    self.Properties = DatatypeCollection().initialize(properties, self) #self.setProperties(properties)
     return self
 
-  def setProperties(self, properties):
-    return self.setPropertiesFromList(properties)
-  
-  def setPropertiesFromList(self, properties):
-    _properties = collections.OrderedDict()
-    if not properties is None:
-      for property in properties:
-        if isinstance(property, dict): 
-          #property = Datatype().from_dict(property)
-          propclassname=property["Type"].split(".")[-1]
 
-          match propclassname:
-
-            case "DatatypeNumeric": property = DatatypeNumeric().from_dict(property)
-            case "DatatypeCharacter": property = DatatypeCharacter().from_dict(property)
-            case "DatatypeString": property = DatatypeString().from_dict(property)
-            case "DatatypeUUID": property = DatatypeUUID().from_dict(property)
-            case "DatatypeBigInt": property = DatatypeBigInt().from_dict(property)
-            case "DatatypeInt": property = DatatypeInt().from_dict(property)
-            case "DatatypeBinary": property = DatatypeBinary().from_dict(property)
-            case "DatatypeSmallInt": property = DatatypeSmallInt().from_dict(property)
-            case "DatatypeDecimal": property = DatatypeDecimal().from_dict(property)
-            case "DatatypeBoolean": property = DatatypeBoolean().from_dict(property)
-            case "DatatypeFloat": property = DatatypeFloat().from_dict(property)
-            case "DatatypeDouble": property = DatatypeDouble().from_dict(property)
-            case "DatatypeNetworkAddress": property = DatatypeNetworkAddress().from_dict(property)
-            case "DatatypeDatetime": property = DatatypeDatetime().from_dict(property)
-                            
-        property.setParentClass(self)
-        _properties[property.ID] = property
-    return _properties
 
   def setParentModule(self, parentModule):
     self.ParentModule = parentModule
@@ -97,7 +67,7 @@ class Class(TorenObject):
     _class[self.PropertName.NAME] = self.Name
     _class[self.PropertName.DESCRIPTION] = self.Description
     _class[self.PropertName.ID]  = self.ID
-    _class[self.PropertName.PROPERTIES] = [p.to_dict() for p in list(self.Properties.values())]
+    _class[self.PropertName.PROPERTIES] = self.Properties.to_list_of_dict()
 
     return _class
   
@@ -106,5 +76,5 @@ class Class(TorenObject):
     self.Name = str(_class[self.PropertName.NAME])
     self.Description = str(_class[self.PropertName.DESCRIPTION])
     self.ID = str(_class[self.PropertName.ID])
-    self.Properties = self.setProperties(_class[self.PropertName.PROPERTIES])
+    self.Properties = DatatypeCollection().initialize(_class[self.PropertName.PROPERTIES], self)
     return self

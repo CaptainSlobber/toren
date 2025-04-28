@@ -5,3 +5,4 @@ from .LanguageCSharp import LanguageCSharp
 from .LanguageGo import LanguageGo
 from .LanguageJava import LanguageJava
 from .LanguageJavaScript import LanguageJavaScript
+from .LanguageCollection import LanguageCollection

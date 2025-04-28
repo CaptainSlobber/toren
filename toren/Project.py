@@ -2,6 +2,7 @@ import collections
 import json
 from .TorenObject import TorenObject
 from .Module import Module
+from .ModuleCollection import ModuleCollection
 from .languages import *
 from .datastores import *
 from typing import List
@@ -36,8 +37,8 @@ class Project(TorenObject):
     self.ID = ""
     self.Version = ""
     self.Modules = []
-    self.Languages = []
-    self.Datastores = []
+    self.Languages = LanguageCollection()
+    self.Datastores = DatabaseCollection()
 
 
   def initialize(self, name: str, 
@@ -52,70 +53,70 @@ class Project(TorenObject):
     self.Description = description
     self.ID = id
     self.Version = version
-    self.Modules = self.setModules(modules)
-    self.Languages = self.setLanguages(languages)
-    self.Datastores = self.setDatastores(datastores)
+    self.Modules = ModuleCollection().initialize(modules, self)
+    self.Languages = LanguageCollection().initialize(languages, self)
+    self.Datastores = DatabaseCollection().initialize(datastores, self)
     return self
 
-  def setDatastores(self, datastores):
-    return self.setDatastoresFromList(datastores)
+  # def setDatastores(self, datastores):
+  #   return self.setDatastoresFromList(datastores)
   
-  def setDatastoresFromList(self, datastores):
-    _datastores = collections.OrderedDict()
-    if not datastores is None:
-      for datastore in datastores:
-        if isinstance(datastore, dict): 
-          #datastore = Database().from_dict(datastore)
-          datastoreclassname=datastore["Type"].split(".")[-1]
-          match datastoreclassname:
-            case "DatabaseOracle": datastore = DatabaseOracle().from_dict(datastore)
-            case "DatabaseSQLite": datastore = DatabaseSQLite().from_dict(datastore)
-            case "DatabasePostgreSQL": datastore = DatabasePostgreSQL().from_dict(datastore)
-            case "DatabaseMicrosoftSQL": datastore = DatabaseMicrosoftSQL().from_dict(datastore)
+  # def setDatastoresFromList(self, datastores):
+  #   _datastores = collections.OrderedDict()
+  #   if not datastores is None:
+  #     for datastore in datastores:
+  #       if isinstance(datastore, dict): 
+  #         #datastore = Database().from_dict(datastore)
+  #         datastoreclassname=datastore["Type"].split(".")[-1]
+  #         match datastoreclassname:
+  #           case "DatabaseOracle": datastore = DatabaseOracle().from_dict(datastore)
+  #           case "DatabaseSQLite": datastore = DatabaseSQLite().from_dict(datastore)
+  #           case "DatabasePostgreSQL": datastore = DatabasePostgreSQL().from_dict(datastore)
+  #           case "DatabaseMicrosoftSQL": datastore = DatabaseMicrosoftSQL().from_dict(datastore)
 
-        _datastores[datastore.ID] = datastore
-    return _datastores
+  #       _datastores[datastore.ID] = datastore
+  #   return _datastores
 
-  def setLanguages(self, languages):
-    return self.setLanguagesFromList(languages)
+  # def setLanguages(self, languages):
+  #   return self.setLanguagesFromList(languages)
   
-  def setLanguagesFromList(self, languages):
-    _languages = collections.OrderedDict()
-    if not languages is None:
-      for language in languages:
-        if isinstance(language, dict): 
-          langclassname=language["Type"].split(".")[-1]
+  # def setLanguagesFromList(self, languages):
+  #   _languages = collections.OrderedDict()
+  #   if not languages is None:
+  #     for language in languages:
+  #       if isinstance(language, dict): 
+  #         langclassname=language["Type"].split(".")[-1]
 
-          match langclassname:
-            case "LanguagePython": language = LanguagePython().from_dict(language)
-            case "LanguageCSharp": language = LanguageCSharp().from_dict(language)
-            case "LanguageGo": language = LanguageGo().from_dict(language)
-            case "LanguageJava": language = LanguageJava().from_dict(language)
-            case "LanguageJavaScript": language = LanguageJavaScript().from_dict(language)
-        _languages[language.ID] = language
-    return _languages
+  #         match langclassname:
+  #           case "LanguagePython": language = LanguagePython().from_dict(language)
+  #           case "LanguageCSharp": language = LanguageCSharp().from_dict(language)
+  #           case "LanguageGo": language = LanguageGo().from_dict(language)
+  #           case "LanguageJava": language = LanguageJava().from_dict(language)
+  #           case "LanguageJavaScript": language = LanguageJavaScript().from_dict(language)
+  #       _languages[language.ID] = language
+  #   return _languages
 
-  def setModulesFromList(self, modules):
+  # def setModulesFromList(self, modules):
 
-    _modules =collections.OrderedDict()
-    if not modules is None:
-      for module in modules:
-        if isinstance(module, dict): module = Module().from_dict(module)
-        module.setParentProject(self)
-        _modules[module.ID] = module
-    return _modules
+  #   _modules =collections.OrderedDict()
+  #   if not modules is None:
+  #     for module in modules:
+  #       if isinstance(module, dict): module = Module().from_dict(module)
+  #       module.setParentProject(self)
+  #       _modules[module.ID] = module
+  #   return _modules
 
-  def setModules(self, modules):
-    return self.setModulesFromList(modules)
+  # def setModules(self, modules):
+  #   return self.setModulesFromList(modules)
 
-  def setModulesFromDict(self, modules):
+  # def setModulesFromDict(self, modules):
 
-    _modules =collections.OrderedDict()
-    for key, module in modules.items():
-      if isinstance(module, dict): module = Module().from_dict(module)
-      module.setParentProject(self)
-      _modules[key] = module
-    return _modules
+  #   _modules =collections.OrderedDict()
+  #   for key, module in modules.items():
+  #     if isinstance(module, dict): module = Module().from_dict(module)
+  #     module.setParentProject(self)
+  #     _modules[key] = module
+  #   return _modules
 
   def to_dict(self):
     _project = {}
@@ -124,9 +125,10 @@ class Project(TorenObject):
     _project[self.PropertName.DESCRIPTION] = self.Description
     _project[self.PropertName.ID] = self.ID
     _project[self.PropertName.VERSION] = self.Version
-    _project[self.PropertName.MODULES] = [m.to_dict() for m in list(self.Modules.values())]
-    _project[self.PropertName.LANGUAGES] = [l.to_dict() for l in list(self.Languages.values())]
-    _project[self.PropertName.DATASTORES] = [d.to_dict() for d in list(self.Datastores.values())]
+    _project[self.PropertName.MODULES] = self.Modules.to_list_of_dict()
+    _project[self.PropertName.LANGUAGES] = self.Languages.to_list_of_dict()
+    _project[self.PropertName.DATASTORES] = self.Datastores.to_list_of_dict()
+
     return _project
 
   def to_json(self):
@@ -144,7 +146,7 @@ class Project(TorenObject):
     self.Description = str(project[self.PropertName.DESCRIPTION]) 
     self.ID = str(project[self.PropertName.ID])
     self.Version = str(project[self.PropertName.VERSION])
-    self.Modules = self.setModules(project[self.PropertName.MODULES])
-    self.Languages = self.setLanguages(project[self.PropertName.LANGUAGES])
-    self.Datastores = self.setDatastores(project[self.PropertName.DATASTORES])
+    self.Modules = ModuleCollection().initialize(project[self.PropertName.MODULES], self)
+    self.Languages = LanguageCollection().initialize(project[self.PropertName.LANGUAGES], self)
+    self.Datastores = DatabaseCollection().initialize(project[self.PropertName.DATASTORES], self)
     return self

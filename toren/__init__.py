@@ -9,3 +9,5 @@ from .TorenObject import TorenObject
 from .Project import Project
 from .Module import Module
 from .Class import Class
+from .ClassCollection import ClassCollection
+from .ModuleCollection import ModuleCollection

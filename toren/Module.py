@@ -1,5 +1,6 @@
 from .TorenObject import TorenObject
 from .Class import Class
+from .ClassCollection import ClassCollection
 import collections
 import json
 from typing import List
@@ -30,7 +31,7 @@ class Module(TorenObject):
     self.Description = ""
     self.ID = ""
     self.ParentProject = None
-    self.Classes = []
+    self.Classes = ClassCollection()
 
 
   def initialize(self, 
@@ -43,20 +44,8 @@ class Module(TorenObject):
     self.Description = description
     self.ID = id
     self.ParentProject = None
-    self.Classes = self.setClasses(classes)
+    self.Classes = ClassCollection().initialize(classes, self)
     return self
-
-  def setClasses(self, classes):
-    return self.setClassesFromList(classes)
-  
-  def setClassesFromList(self, classes):
-    _classes = collections.OrderedDict()
-    if not classes is None:
-      for _class in classes:
-        if isinstance(_class, dict): _class = Class().from_dict(_class)
-        _class.setParentModule(self)
-        _classes[_class.ID] = _class
-    return _classes
 
   def setParentProject(self, parentProject):
     self.ParentProject = parentProject
@@ -99,7 +88,7 @@ class Module(TorenObject):
     _module[self.PropertName.NAME] = self.Name
     _module[self.PropertName.DESCRIPTION] = self.Description
     _module[self.PropertName.ID]  = self.ID
-    _module[self.PropertName.CLASSES] = [c.to_dict() for c in list(self.Classes.values())]
+    _module[self.PropertName.CLASSES] = self.Classes.to_list_of_dict()
 
     return _module
   
@@ -108,5 +97,5 @@ class Module(TorenObject):
     self.Name = str(module[self.PropertName.NAME])
     self.Description = str(module[self.PropertName.DESCRIPTION])
     self.ID = str(module[self.PropertName.ID])
-    self.Classes = self.setClasses(module[self.PropertName.CLASSES])
+    self.Classes = ClassCollection().initialize(module[self.PropertName.CLASSES], self)
     return self

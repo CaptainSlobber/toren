@@ -9,12 +9,14 @@ class Database(TorenObject):
     NAME = "Name"
     DESCRIPTION = "Description"
     ID = "ID"
+    PARENTPROJECT = "ParentProject"
 
   class PropertID():
     TYPE = "03f73e15-c4d7-4bbf-baa8-25e18e1d1146"
     NAME = "df68ea31-f003-4c2e-ac30-134aa067d4ff"
     DESCRIPTION = "d2f9dd1d-4e3e-4300-ad34-5aad7b03915a"
     ID = "7672f241-b819-4613-a18b-f9e8e44d2167"
+    PARENTPROJECT = "cee5a52a-b755-4446-a826-633f0d697be7"
 
 
 
@@ -23,6 +25,7 @@ class Database(TorenObject):
     self.Name = ""
     self.Description = ""
     self.ID = ""
+    self.ParentProject = None
 
 
   def initialize(self, name: str, 
@@ -32,7 +35,11 @@ class Database(TorenObject):
     self.Name = name
     self.Description = description
     self.ID = id
+    self.ParentProject = None
     return self
+  
+  def setParentProject(self, parentproject):
+    self.ParentProject = parentproject
 
 
 

@@ -14,3 +14,4 @@ from .DatatypeFloat import DatatypeFloat
 from .DatatypeDouble import DatatypeDouble
 from .DatatypeNetworkAddress import DatatypeNetworkAddress
 from .DatatypeDatetime import DatatypeDatetime
+from .DatatypeCollection import DatatypeCollection
