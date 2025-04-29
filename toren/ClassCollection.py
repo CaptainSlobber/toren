@@ -13,25 +13,26 @@ class ClassCollection():
     def __init__(self):
         self.Data = collections.OrderedDict()
 
-    
     def initialize(self, classlist: List[Class] = [], parentmodule = None):
         self.from_list(classlist, parentmodule)
         return self
-
     
-    def addClass(self, _class, classcollection, parentmodule):
+
+    def removeClass(self, key):
+        if key in self.Data:
+            del self.Data[key]
+
+    def addClass(self, _class, parentmodule):
         if isinstance(_class, dict): 
             _class = Class().from_dict(_class)
         _class.setParentModule(parentmodule)
-        classcollection[_class.ID] = _class
-        return classcollection
+        self.Data[_class.ID] = _class
 
     def from_list(self, classlist: List[Class] = [], parentmodule =None):
-        _classes = collections.OrderedDict()
+        self.Data = collections.OrderedDict()
         if not classlist is None:
             for _class in classlist:
-                _classes = self.addClass(_class, _classes, parentmodule)
-        self.Data = _classes
+                self.addClass(_class, parentmodule)
         return self
     
     def to_list(self):
@@ -45,10 +46,9 @@ class ClassCollection():
         return dict(self.Data)
         
     def from_dict(self, classes: dict, parentmodule =None):
-        _classes = collections.OrderedDict()
+        self.Data = collections.OrderedDict()
         if not classes is None:
             for key, value in classes.items():
-                _classes = self.addClass(value, _classes, parentmodule)
-        self.Data = _classes
+                self.addClass(value, parentmodule)
         return self  
                 

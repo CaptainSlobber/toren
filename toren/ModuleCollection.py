@@ -12,26 +12,26 @@ class ModuleCollection():
     
     def __init__(self):
         self.Data = collections.OrderedDict()
-
     
     def initialize(self, modulelist: List[Module] = [], parentproject = None):
         self.from_list(modulelist, parentproject)
         return self
 
+    def removeModule(self, key):
+        if key in self.Data:
+            del self.Data[key]
     
-    def addModule(self, module, modulecollection, parentproject):
+    def addModule(self, module, parentproject):
         if isinstance(module, dict): 
             module = Module().from_dict(module)
         module.setParentProject(parentproject)
-        modulecollection[module.ID] = module
-        return modulecollection
+        self.Data[module.ID] = module
 
     def from_list(self, modulelist: List[Module] = [], parentproject =None):
-        _modules = collections.OrderedDict()
+        self.Data = collections.OrderedDict()
         if not modulelist is None:
             for module in modulelist:
-                _modules = self.addModule(module, _modules, parentproject)
-        self.Data = _modules
+                self.addModule(module, parentproject)
         return self
     
     def to_list(self):
@@ -45,10 +45,9 @@ class ModuleCollection():
         return dict(self.Data)
         
     def from_dict(self, modules: dict, parentproject =None):
-        _modules = collections.OrderedDict()
+        self.Data = collections.OrderedDict()
         if not modules is None:
             for key, value in modules.items():
-                _modules = self.addModule(value, _modules, parentproject)
-        self.Data = _modules
+                self.addModule(value, parentproject)
         return self  
                 

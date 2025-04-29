@@ -53,6 +53,10 @@ pMet = toren.Project().initialize(name="met",
                                languages=[langPython],
                                datastores=[dbPostgreSQL,dbSQLite])
 
+pMet.Languages.addLanguage(toren.languages.LanguageJava(), pMet)
+pMet.Languages.addLanguage(toren.languages.LanguageJavaScript(), pMet)
+pMet.Languages.removeLanguage(toren.languages.LanguageJava().ID)
+
 pMet.to_file(project_file)
 
 _pMet = toren.Project().from_file(project_file)

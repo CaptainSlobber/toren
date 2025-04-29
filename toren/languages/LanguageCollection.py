@@ -23,8 +23,11 @@ class LanguageCollection():
         self.from_list(languagelist, parentproject)
         return self
 
-    
-    def addLanguage(self, language, languagecollection, parentproject):
+    def removeLanguage(self, key):
+        if key in self.Data:
+            del self.Data[key]
+
+    def addLanguage(self, language, parentproject):
         if isinstance(language, dict): 
 
             languageclassname=language["Type"].split(".")[-1]
@@ -37,15 +40,13 @@ class LanguageCollection():
                 case "LanguageJavaScript": language = LanguageJavaScript().from_dict(language)
 
         language.setParentProject(parentproject)
-        languagecollection[language.ID] = language
-        return languagecollection
+        self.Data[language.ID] = language
 
     def from_list(self, languagelist: List[Language] = [], parentproject =None):
-        _languages = collections.OrderedDict()
+        self.Data = collections.OrderedDict()
         if not languagelist is None:
             for language in languagelist:
-                _languages = self.addLanguage(language, _languages, parentproject)
-        self.Data = _languages
+                self.addLanguage(language, parentproject)
         return self
     
     def to_list(self):
@@ -59,10 +60,9 @@ class LanguageCollection():
         return dict(self.Data)
         
     def from_dict(self, languages: dict, parentproject =None):
-        _languages = collections.OrderedDict()
+        self.Data = collections.OrderedDict()
         if not languages is None:
             for key, value in languages.items():
-                _languages = self.addLanguage(value, _languages, parentproject)
-        self.Data = _languages
+                self.addLanguage(value, parentproject)
         return self  
                 

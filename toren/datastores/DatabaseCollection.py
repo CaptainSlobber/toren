@@ -23,7 +23,11 @@ class DatabaseCollection():
         return self
 
     
-    def addDatabase(self, database, databasecollection, parentproject):
+    def removeDatabase(self, key):
+        if key in self.Data:
+            del self.Data[key]
+
+    def addDatabase(self, database, parentproject):
         if isinstance(database, dict): 
 
             databaseclassname=database["Type"].split(".")[-1]
@@ -35,15 +39,13 @@ class DatabaseCollection():
                 case "DatabaseMicrosoftSQL": database = DatabaseMicrosoftSQL().from_dict(database)
 
         database.setParentProject(parentproject)
-        databasecollection[database.ID] = database
-        return databasecollection
+        self.Data[database.ID] = database
 
     def from_list(self, databaselist: List[Database] = [], parentproject =None):
-        _databases = collections.OrderedDict()
+        self.Data = collections.OrderedDict()
         if not databaselist is None:
             for database in databaselist:
-                _databases = self.addDatabase(database, _databases, parentproject)
-        self.Data = _databases
+                self.addDatabase(database, parentproject)
         return self
     
     def to_list(self):
@@ -57,10 +59,9 @@ class DatabaseCollection():
         return dict(self.Data)
         
     def from_dict(self, databases: dict, parentproject =None):
-        _databases = collections.OrderedDict()
+        self.Data = collections.OrderedDict()
         if not databases is None:
             for key, value in databases.items():
-                _databases = self.addDatabase(value, _databases, parentproject)
-        self.Data = _databases
+                self.addDatabase(value, parentproject)
         return self  
                 

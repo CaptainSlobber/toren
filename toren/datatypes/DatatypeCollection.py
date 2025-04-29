@@ -32,10 +32,12 @@ class DatatypeCollection():
         self.from_list(datatypelist, parentclass)
         return self
 
-    
-    def addDatatype(self, datatype, datatypecollection, parentclass):
+    def removeDatatype(self, key):
+        if key in self.Data:
+            del self.Data[key]
+
+    def addDatatype(self, datatype, parentclass):
         if isinstance(datatype, dict): 
-            # property = Datatype().from_dict(property)
             datatypeclassname=datatype["Type"].split(".")[-1]
 
             match datatypeclassname:
@@ -55,15 +57,13 @@ class DatatypeCollection():
                 case "DatatypeDatetime": datatype = DatatypeDatetime().from_dict(datatype)
                             
         datatype.setParentClass(parentclass)
-        datatypecollection[datatype.ID] = datatype
-        return datatypecollection
+        self.Data[datatype.ID] = datatype
 
     def from_list(self, datatypelist: List[Datatype] = [], parentclass =None):
-        _datatypes = collections.OrderedDict()
+        self.Data = collections.OrderedDict()
         if not datatypelist is None:
             for datatype in datatypelist:
-                _datatypes = self.addDatatype(datatype, _datatypes, parentclass)
-        self.Data = _datatypes
+                self.addDatatype(datatype, parentclass)
         return self
     
     def to_list(self):
@@ -77,10 +77,9 @@ class DatatypeCollection():
         return dict(self.Data)
         
     def from_dict(self, datatypes: dict, parentclass =None):
-        _datatypes = collections.OrderedDict()
+        self.Data = collections.OrderedDict()
         if not datatypes is None:
             for key, value in datatypes.items():
-                _datatypes = self.addDatatype(value, _datatypes, parentclass)
-        self.Data = _datatypes
+                self.addDatatype(value, parentclass)
         return self  
                 
