@@ -1,11 +1,12 @@
+import sys 
+import os      
+main_dir = os.pardir
+toren_dir = os.path.join(main_dir, "toren")
+output_dir = os.path.join(toren_dir,"schema", "met")
+project_file = os.path.join(output_dir, "project.json")
+sys.path.append(toren_dir)        
 import toren
-import os
-import json
 
-
-user_dir = os.path.expanduser("~")
-proj_dir = os.path.join(os.getcwd(), "schema", "met")
-project_file = os.path.join(proj_dir, "project.json")
 
 
 langPython = toren.LanguagePython()
@@ -52,13 +53,8 @@ pMet = toren.Project().initialize(name="met",
                                languages=[langPython],
                                datastores=[dbPostgreSQL,dbSQLite])
 
-with open(project_file, "w") as projectfile:
-    json.dump(pMet.to_dict(), projectfile, indent=2)
+pMet.to_file(project_file)
 
-pjson = ""
-with open(project_file, 'r') as projectfile:
-    #pjson = json.load(projectfile)
-    pjson = projectfile.read()
-_pMet = toren.Project().from_json(pjson)
+_pMet = toren.Project().from_file(project_file)
 
 print(_pMet.Name)

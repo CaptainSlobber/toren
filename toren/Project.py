@@ -90,3 +90,13 @@ class Project(TorenObject):
     self.Languages = LanguageCollection().initialize(project[self.PropertName.LANGUAGES], self)
     self.Datastores = DatabaseCollection().initialize(project[self.PropertName.DATASTORES], self)
     return self
+  
+  def to_file(self, path:str):
+    with open(path, "w") as projectfile:
+      json.dump(self.to_dict(), projectfile, indent=2)
+
+  def from_file(self, path:str):
+    with open(path, 'r') as projectfile:
+      projectjson = projectfile.read()
+      self.from_json(projectjson)
+    return self
