@@ -1,6 +1,7 @@
 
 from .tracer import *
 from .parser import *
+from .writer import *
 from .languages import *
 from .datastores import *
 from .datatypes import *

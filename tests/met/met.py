@@ -1,15 +1,19 @@
 import sys 
 import os      
-main_dir = os.pardir
+import pathlib
+
+
+main_dir = pathlib.Path(os.getcwd()).parent
+#main_dir = par_dir.parent
 toren_dir = os.path.join(main_dir, "toren")
 output_dir = os.path.join(toren_dir,"schema", "met")
 project_file = os.path.join(output_dir, "project.json")
 sys.path.append(toren_dir)        
 import toren
 
+py_dir = str(main_dir)
+java_dir = str(main_dir)
 
-
-langPython = toren.LanguagePython()
 
 dbSQLite= toren.DatabaseSQLite().initialize(name="sqlite", 
                                description="sqlite", 
@@ -50,15 +54,16 @@ pMet = toren.Project().initialize(name="met",
                                id="250425ed-c32b-4c89-b427-62a2a1d636a5", 
                                version="1.0.0", 
                                modules=[mCore, mForecast,mCollect],
-                               languages=[langPython],
+                               languages=[toren.languages.LanguagePython().initialize(py_dir)],
                                datastores=[dbPostgreSQL,dbSQLite])
 
-pMet.Languages.addLanguage(toren.languages.LanguageJava(), pMet)
-pMet.Languages.addLanguage(toren.languages.LanguageJavaScript(), pMet)
-pMet.Languages.removeLanguage(toren.languages.LanguageJava().ID)
+#pMet.Languages.addLanguage(toren.languages.LanguageJava().initialize(java_dir), pMet)
+#pMet.Languages.addLanguage(toren.languages.LanguagePython().initialize(py_dir), pMet)
+
 
 pMet.to_file(project_file)
 
 _pMet = toren.Project().from_file(project_file)
+writer = toren.writer.Writer(_pMet)
+writer.write()
 
-print(_pMet.Name)

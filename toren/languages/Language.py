@@ -11,6 +11,7 @@ class Language(TorenObject):
     DESCRIPTION = "Description"
     ID = "ID"
     PARENTPROJECT = "ParentProject"
+    OUTPUTDIRECTORY = "OutputDirectory"
 
   class PropertID():
     TYPE = "02dde63e-599f-4195-96e0-9d5b0584145d"
@@ -18,16 +19,19 @@ class Language(TorenObject):
     DESCRIPTION = "01e05ec4-2690-4b21-8083-3cbb6acad7bc"
     ID = "dd879086-f7d0-493c-ad69-7d95cfde4081"
     PARENTPROJECT = "dcf42e1a-014a-43a7-b516-0d6f423b7f77"
+    OUTPUTDIRECTORY = "e4640152-7b91-4096-93d2-4c260809460b"
 
   def __init__(self):
     self.initialize()
 
-  def initialize(self):
+  def initialize(self, outputdirectory=""):
     self.Type = "toren.languages.Language"
     self.Name = "AbstractLanguage"
     self.Description = "Abstract Language"
     self.ID = "e9307c07-c397-4fc0-a472-0c88d8b65cc2"
     self.ParentProject = None
+    self.OutputDirectory = outputdirectory
+    return self
 
   def setParentProject(self, parentproject):
     self.ParentProject = parentproject
@@ -37,21 +41,23 @@ class Language(TorenObject):
     self.Name= str(language[self.PropertName.NAME])
     self.Description = str(language[self.PropertName.DESCRIPTION]) 
     self.ID = str(language[self.PropertName.ID])
+    self.OutputDirectory = str(language[self.PropertName.OUTPUTDIRECTORY])
     return self
 
   def to_dict(self):
-    _langiage = {}
-    _langiage[self.PropertName.TYPE] = self.Type
-    _langiage[self.PropertName.NAME] = self.Name
-    _langiage[self.PropertName.DESCRIPTION] = self.Description
-    _langiage[self.PropertName.ID] = self.ID
-    return _langiage
+    _language = {}
+    _language[self.PropertName.TYPE] = self.Type
+    _language[self.PropertName.NAME] = self.Name
+    _language[self.PropertName.DESCRIPTION] = self.Description
+    _language[self.PropertName.ID] = self.ID
+    _language[self.PropertName.OUTPUTDIRECTORY] = self.OutputDirectory
+    return _language
   
   def to_json(self):
-    _langiage_json = json.dumps(self.to_dict())
-    return _langiage_json
+    _language_json = json.dumps(self.to_dict())
+    return _language_json
 
   def from_json(self, jsonString):
-    _langiage = json.loads(jsonString)
-    self.from_dict(_langiage)
+    _language = json.loads(jsonString)
+    self.from_dict(_language)
     return self

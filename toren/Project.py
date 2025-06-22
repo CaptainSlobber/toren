@@ -5,7 +5,9 @@ from .Module import Module
 from .ModuleCollection import ModuleCollection
 from .languages import *
 from .datastores import *
+#from .writer import *
 from typing import List
+
 
 class Project(TorenObject):
 
@@ -100,3 +102,10 @@ class Project(TorenObject):
       projectjson = projectfile.read()
       self.from_json(projectjson)
     return self
+  
+  # def deploy(self):
+  #   w = Writer(self)
+  #   w.write()
+
+
+
