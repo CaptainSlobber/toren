@@ -6,12 +6,21 @@ from pathlib import Path
 from typing import List
 from ..Project import Project
 from ..Module import Module
+from ..Class import Class
 from ..languages import *
 from ..tracer.Logger import Logger
+from .WriterObject import WriterObject
+from .ProjectWriter import ProjectWriter
+from .pythonwriters.PythonProjectWriter import PythonProjectWriter
+from .csharpwriters.CSharpProjectWriter import CSharpProjectWriter
+from .javascriptwriters.JavaScriptProjectWriter import JavaScriptProjectWriter
+from .javawriters.JavaProjectWriter import JavaProjectWriter
+from .gowriters.GoProjectWriter import GoProjectWriter
 
-class Writer():
+class Writer(WriterObject):
 
     def __init__(self, project):
+        super().__init__()
         self.Project = project
         self.Logger = Logger()
 
@@ -19,32 +28,28 @@ class Writer():
         n =  self.Project.Name 
         v = str(self.Project.Version)
         self.Logger.Log(f"Writing Project: {n} ({v})")
-        self.writeProjectDirectory(project=self.Project)
-        self.writeModules(project=self.Project)
+        for languageid, language in self.Project.Languages.Data.items():
+            if language.ID == LanguagePython().getID():
+                w = PythonProjectWriter(project=self.Project, language=language, logger=self.Logger)
+                w.write()
+            elif language.ID == LanguageCSharp().getID():
+                w = CSharpProjectWriter(roject=self.Project, language=language, logger=self.Logger)
+                w.write()
+            elif language.ID == LanguageJavaScript().getID():
+                w = JavaScriptProjectWriter(roject=self.Project, language=language, logger=self.Logger)
+                w.write()
+            elif language.ID == LanguageJava().getID():
+                w = JavaProjectWriter(roject=self.Project, language=language, logger=self.Logger)
+                w.write()
+            elif language.ID == LanguageGo().getID():
+                w = GoProjectWriter(roject=self.Project, language=language, logger=self.Logger)
+                w.write()
+            else:
+                w = ProjectWriter(project=self.Project, language=language, logger=self.Logger)
+                w.write()
 
-    def writeProjectDirectory(self, project:Project):
-        for languageid, language in project.Languages.Data.items():
-            self.writeDirectory(language.OutputDirectory, project.Name, False)
-            self.writeDirectory(os.path.join(language.OutputDirectory, project.Name), project.Name, True)
-
-    def writeDirectory(self, path, dirname, writeinit=False):
-        directory = os.path.join(path, dirname)
-        if not os.path.exists(directory):
-            os.makedirs(directory)
 
 
-    def writeModules(self, project:Project):
-        for languageid, language in project.Languages.Data.items():
-            for moduleid, module in project.Modules.Data.items():
-                self.writeModule(module=module, language=language)
-    
-
-    def getParentProjectPath(self, language: Language):
-        return os.path.join(language.OutputDirectory, self.Project.Name, self.Project.Name)
-
-    def writeModule(self, module: Module, language: Language):
-        self.Logger.Log(f"Writing Module: {module.Name}")
-        self.writeDirectory(self.getParentProjectPath(language), module.Name, True)
 
             
 
