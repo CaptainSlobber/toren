@@ -28,7 +28,4 @@ class PythonModuleWriter(ModuleWriter):
         self.Module = module
         self.Language = language
         self.ClassWriterClass = PythonClassWriter
-        if logger is not None:
-            self.Logger = logger
-        else:
-            self.Logger = Logger()
+        self.setLogger(logger)

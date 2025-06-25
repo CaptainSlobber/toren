@@ -4,6 +4,7 @@ import os
 from pathlib import Path
 
 from typing import List
+from ..StringWriter import StringWriter
 from ..WriterObject import WriterObject
 from ..PropertyWriter import PropertyWriter
 from ...Project import Project
@@ -20,6 +21,7 @@ class PythonPropertyWriter(PropertyWriter):
                  class_: Class,
                  property: Datatype,
                  language: Language, 
+                 stringWriter: StringWriter = None,
                  logger:Logger=None):
         super().__init__(project=project, 
                          module=module, 
@@ -32,10 +34,13 @@ class PythonPropertyWriter(PropertyWriter):
         self.Class = class_
         self.Property = property
         self.Language = language
-        if logger is not None:
-            self.Logger = logger
-        else:
-            self.Logger = Logger()
+        self.S = stringWriter
+        self.setLogger(logger)
 
     def write(self):
-        self.Logger.Log(f"   - Writing {self.Language.Name} Property: {self.Property.Name} [{self.Property.Type}]")
+        self.Logger.Log(f"   - Writing Property: {self.Property.Name} [{self.Property.Type}]")
+        s = self.S
+        s.wln(f"// property {self.Property.Name} : {self.Property.Type}")
+        s.wln(f"property {self.Property.Name} : {self.Property.Type}")
+        s.ret()
+        return s

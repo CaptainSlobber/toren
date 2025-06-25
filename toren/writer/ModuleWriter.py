@@ -23,10 +23,14 @@ class ModuleWriter(WriterObject):
         self.Module = module
         self.Language = language
         self.ClassWriterClass = ClassWriter
+        self.setLogger(logger)
+        
+    def setLogger(self, logger: Logger):
         if logger is not None:
             self.Logger = logger
         else:
             self.Logger = Logger()
+        return self.Logger
 
     def write(self):
         self.Logger.Log(f"=> Writing Module: {self.Module.Name}")

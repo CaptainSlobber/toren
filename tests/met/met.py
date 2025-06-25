@@ -12,8 +12,10 @@ sys.path.append(toren_dir)
 import toren
 
 py_dir = str(main_dir)
-java_dir = str(main_dir)
-
+java_dir = str(os.path.join(main_dir.parent, "java"))
+javascript_dir = str(os.path.join(main_dir.parent, "javascript"))
+go_dir = str(os.path.join(main_dir.parent, "go"))
+csharp_dir = str(os.path.join(main_dir.parent, "dotnet"))
 
 dbSQLite= toren.DatabaseSQLite().initialize(name="sqlite", 
                                description="sqlite", 
@@ -49,16 +51,18 @@ mCollect = toren.Module().initialize(name="metcollect",
                                description="Collect", 
                                id="7b3bb9d0-afc2-48a1-931f-8cf1498c6a4d",
                                classes=[cTimeseries])
+
+langpy = toren.languages.LanguagePython().initialize(py_dir)
+langcsharp = toren.languages.LanguageCSharp().initialize(csharp_dir)
+langjava = toren.languages.LanguageJava().initialize(java_dir)
 pMet = toren.Project().initialize(name="met", 
                                description="Met", 
                                id="250425ed-c32b-4c89-b427-62a2a1d636a5", 
                                version="1.0.0", 
                                modules=[mCore, mForecast,mCollect],
-                               languages=[toren.languages.LanguagePython().initialize(py_dir)],
+                               languages=[langpy, langjava, langcsharp],
                                datastores=[dbPostgreSQL,dbSQLite])
 
-#pMet.Languages.addLanguage(toren.languages.LanguageJava().initialize(java_dir), pMet)
-#pMet.Languages.addLanguage(toren.languages.LanguagePython().initialize(py_dir), pMet)
 
 
 pMet.to_file(project_file)

@@ -33,16 +33,16 @@ class Writer(WriterObject):
                 w = PythonProjectWriter(project=self.Project, language=language, logger=self.Logger)
                 w.write()
             elif language.ID == LanguageCSharp().getID():
-                w = CSharpProjectWriter(roject=self.Project, language=language, logger=self.Logger)
+                w = CSharpProjectWriter(project=self.Project, language=language, logger=self.Logger)
                 w.write()
             elif language.ID == LanguageJavaScript().getID():
-                w = JavaScriptProjectWriter(roject=self.Project, language=language, logger=self.Logger)
+                w = JavaScriptProjectWriter(project=self.Project, language=language, logger=self.Logger)
                 w.write()
             elif language.ID == LanguageJava().getID():
-                w = JavaProjectWriter(roject=self.Project, language=language, logger=self.Logger)
+                w = JavaProjectWriter(project=self.Project, language=language, logger=self.Logger)
                 w.write()
             elif language.ID == LanguageGo().getID():
-                w = GoProjectWriter(roject=self.Project, language=language, logger=self.Logger)
+                w = GoProjectWriter(project=self.Project, language=language, logger=self.Logger)
                 w.write()
             else:
                 w = ProjectWriter(project=self.Project, language=language, logger=self.Logger)

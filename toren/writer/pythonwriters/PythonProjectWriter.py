@@ -21,8 +21,5 @@ class PythonProjectWriter(ProjectWriter):
         self.Project = project
         self.Language = language
         self.ModuleWriterClass = PythonModuleWriter
-        if logger is not None:
-            self.Logger = logger
-        else:
-            self.Logger = Logger()
+        self.setLogger(logger)
 

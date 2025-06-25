@@ -5,6 +5,7 @@ from pathlib import Path
 
 from typing import List
 from .PythonPropertyWriter import PythonPropertyWriter
+from .PythonStringWriter import PythonStringWriter
 from ..WriterObject import WriterObject
 from ..ClassWriter import ClassWriter
 from ..PropertyWriter import PropertyWriter
@@ -28,10 +29,8 @@ class PythonClassWriter(ClassWriter):
                          logger=logger)
         self.Project = project
         self.Module = module
+        self.StringWriterClass = PythonStringWriter
         self.Class = class_
         self.PropertyWritersClass = PythonPropertyWriter
         self.Language = language
-        if logger is not None:
-            self.Logger = logger
-        else:
-            self.Logger = Logger()
+        self.setLogger(logger)

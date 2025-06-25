@@ -19,10 +19,15 @@ class ProjectWriter(WriterObject):
         self.Project = project
         self.Language = language
         self.ModuleWriterClass = ModuleWriter
+        self.setLogger(logger)
+
+    def setLogger(self, logger: Logger):
         if logger is not None:
             self.Logger = logger
         else:
             self.Logger = Logger()
+        return self.Logger
+
 
     def write(self):
         self.Logger.Log(f"Writing {self.Language.Name} Project: {self.Project.Name}")
