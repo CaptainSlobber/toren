@@ -15,7 +15,7 @@ class DatatypeDecimal(DatatypeNumeric):
     self.IsPrimaryKey = False
     self.IsUnique = False
     self.DefaultValue = ""
-
+    self.Dimensinality = None
 
   def initialize(self, name: str, 
                  description: str, 

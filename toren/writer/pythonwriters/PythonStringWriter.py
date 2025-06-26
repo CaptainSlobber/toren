@@ -14,5 +14,14 @@ class PythonStringWriter(StringWriter):
         self.Language = language
         self.I = ' ' * indent
 
+    def o(self):
+        self.Inc()
+        return self
+
+    
+    def c(self):
+        self.Dec()
+        self.write(self.newline())
+        return self
         
 

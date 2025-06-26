@@ -11,80 +11,80 @@ class StringWriter:
     def newline(self) -> str:
         return "\n"
 
-    def o(self) -> StringIO:
+    def o(self):
         """Open."""
         
         self.write("{")
         self.Inc()
         return self
     
-    def n(self) -> StringIO:
+    def n(self):
         self.write(self.newline())
         return self
     
 
-    def Inc(self, n=1) -> StringIO:
+    def Inc(self, n=1):
         self.N = self.N + n 
 
-    def Dec(self, n = 1) -> StringIO:
+    def Dec(self, n = 1):
         self.N = self.N - n 
     
-    def c(self) -> StringIO:
+    def c(self):
         """Close."""
         self.Dec()
         self.write("}")
         self.write(self.newline())
         return self
     
-    def f(self) -> StringIO:
+    def f(self):
         """Open Function."""
         self.write("function")
         return self
 
-    def write(self, text: str) -> None:
+    def write(self, text: str):
         """Write text to the buffer."""
         self._buffer.write(self.I * self.N)
         self._buffer.write(text)
         return self
     
-    def w(self, text: str) -> None: 
+    def w(self, text: str): 
         return self.write(text)
     
-    def writeline(self, text: str) -> None:
+    def writeline(self, text: str):
         """Write text to the buffer."""
         self.write(text)
         self.write(self.newline())
         return self
     
-    def ret(self) -> None:
+    def ret(self):
         return self.writeline("")
     
-    def wln(self, text: str) -> None:
+    def wln(self, text: str):
         return self.writeline(text)
 
-    def flush(self) -> None:
+    def flush(self):
         """Flush the buffer."""
         self._buffer.flush()
         return self
 
-    def seek(self, offset: int, whence: int = 0) -> None:
+    def seek(self, offset: int, whence: int = 0):
         """Move the cursor to a specific position in the buffer."""
         self._buffer.seek(offset, whence)
         return self
 
-    def read(self, size: int = -1) -> str:
+    def read(self, size: int = -1):
         """Read a specified number of characters from the buffer."""
         return self._buffer.read(size)
     
-    def readline(self) -> str:
+    def readline(self):
         """Read a single line from the buffer."""
         return self._buffer.readline()
     
-    def readlines(self) -> list:
+    def readlines(self):
         """Read all lines from the buffer."""
         return self._buffer.readlines()
     
-    def truncate(self, size: int = None) -> None:
+    def truncate(self, size: int = None):
         """Truncate the buffer to a specified size."""
         if size is None:
             size = self.tell()
@@ -102,7 +102,7 @@ class StringWriter:
         """Get the current value of the buffer as a string."""
         return str(self._buffer.getvalue())
 
-    def clear(self) -> None:
+    def clear(self):
         """Clear the buffer."""
         self._buffer.truncate(0)
         self._buffer.seek(0)

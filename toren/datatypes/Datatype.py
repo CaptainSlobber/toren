@@ -14,17 +14,19 @@ class Datatype(TorenObject):
     ISPRIMARYKEY = "IsPrimaryKey"
     ISUNIQUE = "IsUnique"
     DEFAULTVALUE = "DefaultValue"
+    DIMENSIONALITY = "Dimensionality"
 
 
   class PropertID():
-    TYPE = ""
-    NAME = ""
-    DESCRIPTION = ""
-    ID = ""
-    PARENTMODULE = ""
-    ISPRIMARYKEY = ""
-    ISUNIQUE = ""
-    DEFAULTVALUE = ""
+    TYPE = "3b44d998-ef93-4d3c-b01f-fea888f7ad8d"
+    NAME = "4310715d-f631-44f4-b0b8-8e56c90547d9"
+    DESCRIPTION = "e75bc526-8ae7-4f23-943a-73bc9448edc4"
+    ID = "a066d0fc-392f-44ea-bbd6-da6e71bf7002"
+    PARENTMODULE = "ea08aad9-b34b-4990-9b85-572841672f62"
+    ISPRIMARYKEY = "ea0ebb8c-57e7-4c36-b834-132dd1329690"
+    ISUNIQUE = "01a9e2b8-3a64-4832-bb01-ce05120fb9f8"
+    DEFAULTVALUE = "e9009d06-73ed-4e73-a5bb-4836badf4037"
+    DIMENSIONALITY = "aa74f0c8-5d31-4622-9844-c0739afb94e5"
 
   def getType(self):
     return "toren.datatypes.Datatype"
@@ -38,6 +40,7 @@ class Datatype(TorenObject):
     self.IsPrimaryKey = False
     self.IsUnique = False
     self.DefaultValue = ""
+    self.Dimensinality = []
 
 
   def initialize(self, name: str, 
@@ -45,7 +48,8 @@ class Datatype(TorenObject):
                  id: str,
                  isprimarykey: bool = False,
                  isunique: bool = False,
-                 defaultvalue: str = ""):
+                 defaultvalue: str = "",
+                 dimensionality: list = []):
     self.Type = self.getType()
     self.Name = name
     self.Description = description
@@ -54,6 +58,7 @@ class Datatype(TorenObject):
     self.IsPrimaryKey = isprimarykey
     self.IsUnique = isunique
     self.DefaultValue = defaultvalue
+    self.Dimensinality = dimensionality
     return self
   
   def setParentClass(self, parentclass):
@@ -61,12 +66,15 @@ class Datatype(TorenObject):
 
 
   def from_dict(self, datatype):
-    #self.Type = str(datatype[self.PropertName.TYPE])
+    self.Type = self.getType()
     self.Name= str(datatype[self.PropertName.NAME])
     self.Description = str(datatype[self.PropertName.DESCRIPTION]) 
     self.ID = str(datatype[self.PropertName.ID])
     self.IsPrimaryKey = bool(datatype[self.PropertName.ISPRIMARYKEY])
     self.IsUnique = bool(datatype[self.PropertName.ISUNIQUE])
+    self.DefaultValue = str(datatype[self.PropertName.DEFAULTVALUE])
+    self.Dimensinality = datatype[self.PropertName.DIMENSIONALITY]
+
     return self
 
   def to_dict(self):
@@ -77,6 +85,8 @@ class Datatype(TorenObject):
     _datatype[self.PropertName.ID] = self.ID
     _datatype[self.PropertName.ISPRIMARYKEY] = self.IsPrimaryKey
     _datatype[self.PropertName.ISUNIQUE] = self.IsUnique
+    _datatype[self.PropertName.DEFAULTVALUE] = self.DefaultValue
+    _datatype[self.PropertName.DIMENSIONALITY] = self.Dimensinality
     return _datatype
   
   def to_json(self):
@@ -87,3 +97,161 @@ class Datatype(TorenObject):
     _datatype = json.loads(jsonString)
     self.from_dict(_datatype)
     return self
+  
+  ##########################################################################
+  # Python methods for converting to and from various database types
+  ##########################################################################
+  def Python(self, *args) -> str:
+    raise NotImplementedError
+  
+  def Python_Dependencies(self) -> list:
+    return NotImplementedError
+  
+  def Python_DefaultValue(self, *args) -> str:
+    return NotImplementedError
+  
+  def Python_to_Oracle(self, *args) -> str:
+    raise NotImplementedError
+  
+  def Python_to_MicrosftSQL(self, *args) -> str:
+    raise NotImplementedError
+  
+  def Python_to_PostgreSQL(self, *args) -> str:
+    raise NotImplementedError
+  
+  def Python_to_SQLite(self, *args) -> str:
+    raise NotImplementedError
+
+  def Python_from_Oracle(self, *args) -> str:
+    raise NotImplementedError
+  
+  def Python_from_MicrosftSQL(self, *args) -> str:
+    raise NotImplementedError
+  
+  def Python_from_PostgreSQL(self, *args) -> str:
+    raise NotImplementedError
+  
+  def Python_from_SQLite(self, *args) -> str:
+    raise NotImplementedError
+
+  ##########################################################################
+  # Java methods for converting to and from various database types
+  ##########################################################################
+  def Java(self, *args) -> str:
+    raise NotImplementedError
+  
+  def Java_to_Oracle(self, *args) -> str:
+    raise NotImplementedError
+  
+  def Java_to_MicrosftSQL(self, *args) -> str:
+    raise NotImplementedError
+  
+  def Java_to_PostgreSQL(self, *args) -> str:
+    raise NotImplementedError
+  
+  def Java_to_SQLite(self, *args) -> str:
+    raise NotImplementedError
+
+  def Java_from_Oracle(self, *args) -> str:
+    raise NotImplementedError
+  
+  def Java_from_MicrosftSQL(self, *args) -> str:
+    raise NotImplementedError
+  
+  def Java_from_PostgreSQL(self, *args) -> str:
+    raise NotImplementedError
+  
+  def Java_from_SQLite(self, *args) -> str:
+    raise NotImplementedError
+  
+  ##########################################################################
+  # C# methods for converting to and from various database types
+  ##########################################################################
+  def CSharp(self, *args) -> str:
+    raise NotImplementedError
+  
+  def CSharp_to_Oracle(self, *args) -> str:
+    raise NotImplementedError
+  
+  def CSharp_to_MicrosftSQL(self, *args) -> str:
+    raise NotImplementedError
+  
+  def CSharp_to_PostgreSQL(self, *args) -> str:
+    raise NotImplementedError
+  
+  def CSharp_to_SQLite(self, *args) -> str:
+    raise NotImplementedError
+
+  def CSharp_from_Oracle(self, *args) -> str:
+    raise NotImplementedError
+  
+  def CSharp_from_MicrosftSQL(self, *args) -> str:
+    raise NotImplementedError
+  
+  def CSharp_from_PostgreSQL(self, *args) -> str:
+    raise NotImplementedError
+  
+  def CSharp_from_SQLite(self, *args) -> str:
+    raise NotImplementedError
+
+  #########################################################################
+  # Go methods for converting to and from various database types
+  ##########################################################################
+  def Go(self, *args) -> str:
+    raise NotImplementedError
+  
+  def Go_to_Oracle(self, *args) -> str:
+    raise NotImplementedError
+  
+  def Go_to_MicrosftSQL(self, *args) -> str:
+    raise NotImplementedError
+  
+  def Go_to_PostgreSQL(self, *args) -> str:
+    raise NotImplementedError
+  
+  def Go_to_SQLite(self, *args) -> str:
+    raise NotImplementedError
+
+  def Go_from_Oracle(self, *args) -> str:
+    raise NotImplementedError
+  
+  def Go_from_MicrosftSQL(self, *args) -> str:
+    raise NotImplementedError
+  
+  def Go_from_PostgreSQL(self, *args) -> str:
+    raise NotImplementedError
+  
+  def Go_from_SQLite(self, *args) -> str:
+    raise NotImplementedError
+
+  #########################################################################
+  # JavaScript methods for converting to and from various database types
+  ##########################################################################
+  def JavaScript(self, *args) -> str:
+    raise NotImplementedError
+  
+  def JavaScript_to_Oracle(self, *args) -> str:
+    raise NotImplementedError
+  
+  def JavaScript_to_MicrosftSQL(self, *args) -> str:
+    raise NotImplementedError
+  
+  def JavaScript_to_PostgreSQL(self, *args) -> str:
+    raise NotImplementedError
+  
+  def JavaScript_to_SQLite(self, *args) -> str:
+    raise NotImplementedError
+
+  def JavaScript_from_Oracle(self, *args) -> str:
+    raise NotImplementedError
+  
+  def JavaScript_from_MicrosftSQL(self, *args) -> str:
+    raise NotImplementedError
+  
+  def JavaScript_from_PostgreSQL(self, *args) -> str:
+    raise NotImplementedError
+  
+  def JavaScript_from_SQLite(self, *args) -> str:
+    raise NotImplementedError
+  
+

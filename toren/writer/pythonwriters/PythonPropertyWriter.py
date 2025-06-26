@@ -40,7 +40,15 @@ class PythonPropertyWriter(PropertyWriter):
     def write(self):
         self.Logger.Log(f"   - Writing Property: {self.Property.Name} [{self.Property.Type}]")
         s = self.S
-        s.wln(f"// property {self.Property.Name} : {self.Property.Type}")
-        s.wln(f"property {self.Property.Name} : {self.Property.Type}")
+        s.wln(f"# property {self.Property.Name} : {self.Property.Type}")
+
+        s.wln(f"def get_{self.Property.Name}(self):")
+        s.o().wln(f"return self._{self.Property.Name.lower()}")
+        s.c()
+        s.ret()
+
+        s.wln(f"def set_{self.Property.Name}(self, {self.Property.Name.lower()}_: {self.Property.Python()})")
+        s.o().wln(f"self._{self.Property.Name.lower()} = {self.Property.Name.lower()}_")
+        s.c()
         s.ret()
         return s

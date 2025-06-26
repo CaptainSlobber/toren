@@ -36,10 +36,15 @@ cUser_Name = toren.DatatypeString().initialize(name="Username",
                                                description="User.Username",
                                                isunique=True,
                                                id="677a796a-9abf-45af-bc62-40095149c4b4")
+
+cUser_FavArr = toren.DatatypeString().initialize(name="FavArr", 
+                               description="FavArr", 
+                               id="a4541b85-69b9-4049-86d4-2cc69c21e2e6",
+                               dimensionality=[2, 2, 2])
 cUser = toren.Class().initialize(name="User", 
                                description="User", 
                                id="eac67693-f31f-46d9-b2e3-ac618eeae574",
-                               properties=[cUser_ID, cUser_Name])
+                               properties=[cUser_ID, cUser_Name, cUser_FavArr])
 mCore = toren.Module().initialize(name="core", 
                                description="Core", 
                                id="9b6b77c3-5b00-4d5d-94f3-5f04006f2747",

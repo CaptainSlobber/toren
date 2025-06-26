@@ -3,16 +3,11 @@ import collections
 
 class DatatypeString(Datatype):
 
-  class PropertName():
-    TYPE = "Type"
-    NAME = "Name"
-    DESCRIPTION = "Description"
-    ID = "ID"
-    PARENTMODULE = "ParentModule"
-    ISPRIMARYKEY = "IsPrimaryKey"
-    ISUNIQUE = "IsUnique"
-    DEFAULTVALUE = "DefaultValue"
+  class PropertName(Datatype.PropertName):
     MAXLENGTH = "MaxLength"
+
+  class PropertID(Datatype.PropertID):
+    MAXLENGTH = "cef913a1-4297-4834-9337-a337ec10ce80"
   
   def getType(self):
     return "toren.datatypes.DatatypeString"
@@ -20,13 +15,6 @@ class DatatypeString(Datatype):
   def __init__(self):
     super().__init__()
     self.Type = self.getType()
-    # self.Name = ""
-    # self.Description = ""
-    # self.ID = ""
-    # self.ParentModule = None
-    # self.IsPrimaryKey = False
-    # self.IsUnique = False
-    # self.DefaultValue = ""
     self.MaxLength = 32
 
 
@@ -36,6 +24,7 @@ class DatatypeString(Datatype):
                  isprimarykey: bool = False,
                  isunique: bool = False,
                  defaultvalue: str = "",
+                 dimensionality: list = [],
                  maxlength: int = 32):
     
     super().initialize(name = name, 
@@ -43,13 +32,15 @@ class DatatypeString(Datatype):
                  id = id,
                  isprimarykey = isprimarykey,
                  isunique=isunique,
-                 defaultvalue=defaultvalue)
+                 defaultvalue=defaultvalue,
+                 dimensionality=dimensionality)
     self.Type = self.getType()
     self.MaxLength = maxlength
     return self
   
   def from_dict(self, datatype):
     super().from_dict(datatype)
+    self.Type = self.getType()
     self.MaxLength = bool(datatype[self.PropertName.MAXLENGTH])
     return self
 
@@ -57,3 +48,16 @@ class DatatypeString(Datatype):
     _datatypeString = super().to_dict()
     _datatypeString[self.PropertName.MAXLENGTH] = self.MaxLength
     return _datatypeString
+  
+  def Python(self, *args) -> str:
+    return "str"
+  
+  def Python_Dependencies(self) -> list:
+    return []
+  
+  def Python_DefaultValue(self, *args) -> str:
+    default_value = """"""
+    if self.DefaultValue:
+      if len(self.DefaultValue) > 0:
+        default_value = f"""{self.DefaultValue}"""
+    return default_value
