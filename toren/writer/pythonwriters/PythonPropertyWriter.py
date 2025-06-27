@@ -37,18 +37,30 @@ class PythonPropertyWriter(PropertyWriter):
         self.S = stringWriter
         self.setLogger(logger)
 
+
     def write(self):
         self.Logger.Log(f"   - Writing Property: {self.Property.Name} [{self.Property.Type}]")
         s = self.S
-        s.wln(f"# property {self.Property.Name} : {self.Property.Type}")
+        
+        s.wln("\"\"\"")
+        s.wln(f" property: {self.Property.Name}")
+        s.wln(f" type: {self.Property.Python()} = {self.Property.Type}")
+        s.wln(f" description: {self.Property.Description}")
+        s.wln("\"\"\"")
 
-        s.wln(f"def get_{self.Property.Name}(self):")
+        
+        s.wln(f"def getPropertyID{self.Property.Name}(self):")
+        s.o().wln(f'return "{self.Property.ID}"')
+        s.c()
+
+        #s.wln(f"@property")
+        s.wln(f"def get{self.Property.Name}(self):")
         s.o().wln(f"return self._{self.Property.Name.lower()}")
         s.c()
-        s.ret()
 
-        s.wln(f"def set_{self.Property.Name}(self, {self.Property.Name.lower()}_: {self.Property.Python()})")
+        #s.wln(f"@{self.Property.Name.lower()}.setter")
+        s.wln(f"def set{self.Property.Name}(self, {self.Property.Name.lower()}_: {self.Property.Python()}):")
         s.o().wln(f"self._{self.Property.Name.lower()} = {self.Property.Name.lower()}_")
         s.c()
-        s.ret()
+        
         return s

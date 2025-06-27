@@ -56,8 +56,8 @@ class DatatypeString(Datatype):
     return []
   
   def Python_DefaultValue(self, *args) -> str:
-    default_value = """"""
+    default_value = "\"\""
     if self.DefaultValue:
       if len(self.DefaultValue) > 0:
-        default_value = f"""{self.DefaultValue}"""
+        default_value = f"\"{self.DefaultValue}\""
     return default_value

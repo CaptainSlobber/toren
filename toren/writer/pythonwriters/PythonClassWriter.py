@@ -34,3 +34,44 @@ class PythonClassWriter(ClassWriter):
         self.PropertyWritersClass = PythonPropertyWriter
         self.Language = language
         self.setLogger(logger)
+
+
+
+    def getDependencies(self):
+        dependency_map = {}
+        for propertyid, property in self.Class.Properties.Data.items():
+            for dependency in property.Python_Dependencies():
+                if dependency not in dependency_map:
+                    dependency_map[dependency] = dependency
+        return dependency_map
+
+
+    
+    def writeClassOpen(self, s: PythonStringWriter):
+        s.write(f"class {self.Class.Name}():").o()
+        s.ret()
+        s.wln("\"\"\"")
+        s.wln(f" Class: {self.Class.Name}")
+        s.wln(f" Class ID: {self.Class.ID}")
+        s.wln(f" Description {self.Class.Description}")
+        s.wln("\"\"\"")
+        s.ret()
+        return s
+    
+
+    def writeClassInitializer(self, s: PythonStringWriter):
+
+        s.wln("def __init__(self,")
+        s.o().o()
+        for propertyid, property in self.Class.Properties.Data.items():
+            s.wln(f"{property.Name.lower()}: {property.Python()} = {property.Python_DefaultValue()},")
+        
+        s.rem(2).c().wln("):").ret()
+
+
+        for propertyid, property in self.Class.Properties.Data.items():
+            s.wln(f"self.{property.Name} = {property.Name.lower()}")
+
+        s.c()
+        s.ret()
+        return s

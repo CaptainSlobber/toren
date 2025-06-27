@@ -48,7 +48,7 @@ class DatatypeUUID(Datatype):
     return "uuid.UUID"
   
   def Python_Dependencies(self) -> list:
-    return ['uuid']
+    return ['import uuid']
   
   def Python_DefaultValue(self, *args) -> str:
     default_value = "uuid.uuid4()"

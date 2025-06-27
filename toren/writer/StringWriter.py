@@ -33,12 +33,17 @@ class StringWriter:
         """Close."""
         self.Dec()
         self.write("}")
-        self.write(self.newline())
+        self.append(self.newline())
         return self
     
     def f(self):
         """Open Function."""
         self.write("function")
+        return self
+    
+
+    def append(self, text: str):
+        self._buffer.write(text)
         return self
 
     def write(self, text: str):
@@ -53,9 +58,17 @@ class StringWriter:
     def writeline(self, text: str):
         """Write text to the buffer."""
         self.write(text)
-        self.write(self.newline())
+        self.append(self.newline())
         return self
     
+    def rem(self, n=1):
+        """Remove the last n characters from the buffer."""
+        current_value = self._buffer.getvalue()
+        self._buffer.truncate(0)
+        self._buffer.seek(0)
+        self._buffer.write(current_value[:-n])
+        return self
+
     def ret(self):
         return self.writeline("")
     
