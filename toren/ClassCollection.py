@@ -15,8 +15,16 @@ class ClassCollection():
 
     def initialize(self, classlist: List[Class] = [], parentmodule = None):
         self.from_list(classlist, parentmodule)
+        
         return self
     
+    def setInheritence(self):
+        for classid, _class in self.Data.items():
+            if _class.InheritsFromID is not None:
+                _class.InheritsFrom = self.Data[_class.InheritsFromID]
+            else:
+                _class.InheritsFrom = None
+
 
     def removeClass(self, key):
         if key in self.Data:
@@ -26,6 +34,10 @@ class ClassCollection():
         if isinstance(_class, dict): 
             _class = Class().from_dict(_class)
         _class.setParentModule(parentmodule)
+
+        if _class.InheritsFromID is not None:
+            if _class.InheritsFromID in self.Data:
+                _class.InheritsFrom = self.Data[_class.InheritsFromID]
         self.Data[_class.ID] = _class
 
     def from_list(self, classlist: List[Class] = [], parentmodule =None):
@@ -33,6 +45,7 @@ class ClassCollection():
         if not classlist is None:
             for _class in classlist:
                 self.addClass(_class, parentmodule)
+        self.setInheritence()
         return self
     
     def to_list(self):
@@ -50,5 +63,7 @@ class ClassCollection():
         if not classes is None:
             for key, value in classes.items():
                 self.addClass(value, parentmodule)
+
+        self.setInheritence()
         return self  
                 

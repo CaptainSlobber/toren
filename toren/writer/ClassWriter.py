@@ -27,6 +27,7 @@ class ClassWriter(WriterObject):
         self.Class = class_
         self.PropertyWritersClass = PropertyWriter
         self.Language = language
+        self.ParentClassName = self.getParentClassName()
         self.setLogger(logger)
         self.S = self.StringWriterClass(self.Language)
 
@@ -37,7 +38,11 @@ class ClassWriter(WriterObject):
         else:
             self.Logger = Logger()
         return self.Logger
-
+    
+    def getParentClassName(self):
+        if self.Class.InheritsFrom is not None:
+            return self.Class.InheritsFrom.Name
+        return ""
 
     def getDependencies(self):
         dependency_map = {}
@@ -50,7 +55,7 @@ class ClassWriter(WriterObject):
         
         for dependencyid, dependency in dependency_map.items():
             s.wln(f"{dependency}")
-
+        
         s.ret()
         return s
     
@@ -61,6 +66,8 @@ class ClassWriter(WriterObject):
         s.wln(f" ")
         return s
     
+    def writeParentClassInitializer(self, s:StringWriter):
+        return s
 
     def writeClassInitializer(self, s:StringWriter):
 

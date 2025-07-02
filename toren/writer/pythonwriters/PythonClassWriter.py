@@ -43,12 +43,21 @@ class PythonClassWriter(ClassWriter):
             for dependency in property.Python_Dependencies():
                 if dependency not in dependency_map:
                     dependency_map[dependency] = dependency
+        if self.Class.InheritsFrom is not None:
+            for propertyid, property in self.Class.InheritsFrom.Properties.Data.items():
+                for dependency in property.Python_Dependencies():
+                    if dependency not in dependency_map:
+                        dependency_map[dependency] = dependency
         return dependency_map
 
 
     
     def writeClassOpen(self, s: PythonStringWriter):
-        s.write(f"class {self.Class.Name}():").o()
+        if self.Class.InheritsFrom is not None:
+            s.wln(f"from .{self.Class.InheritsFrom.Name} import {self.Class.InheritsFrom.Name}")
+            s.ret()
+
+        s.write(f"class {self.Class.Name}({self.ParentClassName}):").o()
         s.ret()
         s.wln("\"\"\"")
         s.wln(f" Class: {self.Class.Name}")
@@ -59,16 +68,33 @@ class PythonClassWriter(ClassWriter):
         return s
     
 
+    def writeParentClassInitializer(self, s:PythonStringWriter):
+        if self.Class.InheritsFrom is not None:
+            s.wln(f"super().__init__(").o()
+            for propertyid, property in self.Class.InheritsFrom.Properties.Data.items():
+                s.wln(f"{property.Name.lower()}={property.Name.lower()},")
+
+            s.rem(2).c().wln(")").ret()
+        return s
+
+
+    def writeParentClassParameters(self, s:PythonStringWriter):
+        if self.Class.InheritsFrom is not None:
+            for propertyid, property in self.Class.InheritsFrom.Properties.Data.items():
+                s.wln(f"{property.Name.lower()}: {property.Python()} = {property.Python_DefaultValue()},")
+        return s
+
     def writeClassInitializer(self, s: PythonStringWriter):
 
         s.wln("def __init__(self,")
         s.o().o()
+        s = self.writeParentClassParameters(s)
         for propertyid, property in self.Class.Properties.Data.items():
             s.wln(f"{property.Name.lower()}: {property.Python()} = {property.Python_DefaultValue()},")
         
         s.rem(2).c().wln("):").ret()
 
-
+        s = self.writeParentClassInitializer(s)
         for propertyid, property in self.Class.Properties.Data.items():
             s.wln(f"self.{property.Name} = {property.Name.lower()}")
 

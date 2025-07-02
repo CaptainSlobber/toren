@@ -28,4 +28,12 @@ class PythonModuleWriter(ModuleWriter):
         self.Module = module
         self.Language = language
         self.ClassWriterClass = PythonClassWriter
+        self.HeaderFileName = f"__init__"
         self.setLogger(logger)
+
+    def writeModuleHeader(self, path, filename):
+        s = self.S
+        for classid, _class in self.Module.Classes.Data.items():
+            s.wln(f"from .{_class.Name} import {_class.Name}")
+        self.writeFile(path, filename, s.toString())
+        

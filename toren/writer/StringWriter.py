@@ -8,6 +8,12 @@ class StringWriter:
         self.I = ' ' * 3
         self.N = 0
 
+    def forceString(self, value) -> str:
+        """Force a value to be a string."""
+        if value is None:
+            return ""
+        return str(value)
+
     def newline(self) -> str:
         return "\n"
 

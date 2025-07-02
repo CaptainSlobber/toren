@@ -88,6 +88,6 @@ class Class(TorenObject):
     self.Name = str(_class[self.PropertName.NAME])
     self.Description = str(_class[self.PropertName.DESCRIPTION])
     self.ID = str(_class[self.PropertName.ID])
-    self.InheritsFromID = str(_class[self.PropertName.INHERITSFROMID]) if self.PropertName.INHERITSFROMID in _class else None
+    self.InheritsFromID = _class[self.PropertName.INHERITSFROMID] if self.PropertName.INHERITSFROMID in _class else None
     self.Properties = DatatypeCollection().initialize(_class[self.PropertName.PROPERTIES], self)
     return self
