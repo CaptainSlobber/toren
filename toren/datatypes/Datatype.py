@@ -1,4 +1,5 @@
 from ..TorenObject import TorenObject
+from .ForeignKey import ForeignKey
 import collections
 import json
 
@@ -15,6 +16,7 @@ class Datatype(TorenObject):
     ISUNIQUE = "IsUnique"
     DEFAULTVALUE = "DefaultValue"
     DIMENSIONALITY = "Dimensionality"
+    FOREIGNKEY = "ForeignKey"
 
 
   class PropertID():
@@ -27,6 +29,7 @@ class Datatype(TorenObject):
     ISUNIQUE = "01a9e2b8-3a64-4832-bb01-ce05120fb9f8"
     DEFAULTVALUE = "e9009d06-73ed-4e73-a5bb-4836badf4037"
     DIMENSIONALITY = "aa74f0c8-5d31-4622-9844-c0739afb94e5"
+    FOREIGNKEY = "f3553d5e-f65f-4a70-b45f-1db6ccb714b1"
 
   def getType(self):
     return "toren.datatypes.Datatype"
@@ -41,6 +44,7 @@ class Datatype(TorenObject):
     self.IsUnique = False
     self.DefaultValue = ""
     self.Dimensinality = []
+    self.ForeignKey = None
 
 
   def initialize(self, name: str, 
@@ -49,21 +53,28 @@ class Datatype(TorenObject):
                  isprimarykey: bool = False,
                  isunique: bool = False,
                  defaultvalue: str = "",
-                 dimensionality: list = []):
+                 dimensionality: list = [],
+                 foreignKey: ForeignKey=None):
     self.Type = self.getType()
     self.Name = name
     self.Description = description
     self.ID = id
     self.ParentModule = None
+    self.ForeignKey = None
     self.IsPrimaryKey = isprimarykey
     self.IsUnique = isunique
     self.DefaultValue = defaultvalue
     self.Dimensinality = dimensionality
+    self.ForeignKey = foreignKey
     return self
   
   def setParentClass(self, parentclass):
     self.ParentClass = parentclass
+    return self
 
+  def setForeignKey(self, fkField, fkclass):
+    self.ForeignKey = ForeignKey().initialize(fkField, fkclass)
+    return self
 
   def from_dict(self, datatype):
     self.Type = self.getType()
@@ -75,6 +86,8 @@ class Datatype(TorenObject):
     self.DefaultValue = str(datatype[self.PropertName.DEFAULTVALUE])
     self.Dimensinality = datatype[self.PropertName.DIMENSIONALITY]
 
+    if self.PropertName.FOREIGNKEY in datatype: 
+      self.ForeignKey = ForeignKey().from_dict(datatype[self.PropertName.FOREIGNKEY])
     return self
 
   def to_dict(self):
@@ -87,6 +100,8 @@ class Datatype(TorenObject):
     _datatype[self.PropertName.ISUNIQUE] = self.IsUnique
     _datatype[self.PropertName.DEFAULTVALUE] = self.DefaultValue
     _datatype[self.PropertName.DIMENSIONALITY] = self.Dimensinality
+    if self.ForeignKey is not None: 
+      _datatype[self.PropertName.FOREIGNKEY] = self.ForeignKey.to_dict()
     return _datatype
   
   def to_json(self):

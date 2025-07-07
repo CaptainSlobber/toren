@@ -1,5 +1,4 @@
 from .Class import Class
-
 import collections
 import json
 from typing import List
@@ -25,10 +24,29 @@ class ClassCollection():
             else:
                 _class.InheritsFrom = None
 
+    def getItem(self, id):
+        if id in self.Data:
+            return self.Data[id]
 
+        return None
+    
     def removeClass(self, key):
         if key in self.Data:
             del self.Data[key]
+
+    def addCollection(self, collection):
+        _colletion = self.Data
+
+        for k,v in collection.Data.items():
+            _colletion[k] = v
+
+        self.Data = _colletion
+        return self   
+
+
+    def show(self):
+        for k, v in self.Data.items():
+            print(f'{k}:{v}({v.Name})')
 
     def addClass(self, _class, parentmodule):
         if isinstance(_class, dict): 

@@ -58,6 +58,7 @@ class Project(TorenObject):
     self.Modules = ModuleCollection().initialize(modules, self)
     self.Languages = LanguageCollection().initialize(languages, self)
     self.Datastores = DatabaseCollection().initialize(datastores, self)
+    #self.setForeignKeys()
     return self
 
   def to_dict(self):
@@ -91,6 +92,7 @@ class Project(TorenObject):
     self.Modules = ModuleCollection().initialize(project[self.PropertName.MODULES], self)
     self.Languages = LanguageCollection().initialize(project[self.PropertName.LANGUAGES], self)
     self.Datastores = DatabaseCollection().initialize(project[self.PropertName.DATASTORES], self)
+    self.setForeignKeys()
     return self
   
   def to_file(self, path:str):
@@ -103,9 +105,29 @@ class Project(TorenObject):
       self.from_json(projectjson)
     return self
   
-  # def deploy(self):
-  #   w = Writer(self)
-  #   w.write()
+
+  def setForeignKeys(self):
+    for moduleid, module in self.Modules.Data.items():
+      for _classid, _class in module.Classes.Data.items():
+        for _propertyid, _property in _class.Properties.Data.items():
+          if _property.ForeignKey is not None:
+            _fkproperty = self.getProperty(_property.ForeignKey.FKFieldID)
+            _fkclass = self.getClass(_property.ForeignKey.FKClassID)
+            _property.setForeignKey(_fkproperty, _fkclass)
 
 
+  def getClass(self, classid):
+    for moduleid, module in self.Modules.Data.items():
+      for _classid, _class in module.Classes.Data.items():
+        if _classid == classid:
+          return _class
+    return None
+
+  def getProperty(self, propertyid):
+    for moduleid, module in self.Modules.Data.items():
+      for _classid, _class in module.Classes.Data.items():
+        for _propertyid, _property in _class.Properties.Data.items():
+          if _propertyid == propertyid:
+            return _property
+    return None
 

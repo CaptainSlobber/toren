@@ -22,6 +22,16 @@ class LanguageCollection():
     def initialize(self, languagelist: List[Language] = [], parentproject = None):
         self.from_list(languagelist, parentproject)
         return self
+    
+    def getItem(self, id):
+        if id in self.Data:
+            return self.Data[id]
+
+        return None
+    
+    def show(self):
+        for k, v in self.Data.items():
+            print(f'{k}:{v}({v.Name})')
 
     def removeLanguage(self, key):
         if key in self.Data:

@@ -59,6 +59,27 @@ class DatatypeCollection():
         datatype.setParentClass(parentclass)
         self.Data[datatype.ID] = datatype
 
+
+    def getItem(self, id):
+        if id in self.Data:
+            return self.Data[id]
+
+        return None
+    
+    def show(self):
+        for k, v in self.Data.items():
+            print(f'{k}:{v}({v.Name})')
+
+    def addCollection(self, collection):
+        _colletion = self.Data
+
+        for k,v in collection.Data.items():
+            _colletion[k] = v
+
+        self.Data = _colletion
+        return self   
+
+
     def from_list(self, datatypelist: List[Datatype] = [], parentclass =None):
         self.Data = collections.OrderedDict()
         if not datatypelist is None:

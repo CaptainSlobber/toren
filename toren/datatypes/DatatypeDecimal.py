@@ -1,4 +1,5 @@
 from .Datatype import Datatype
+from .ForeignKey import ForeignKey
 import collections
 
 class DatatypeDecimal(Datatype):
@@ -23,7 +24,8 @@ class DatatypeDecimal(Datatype):
                  isprimarykey: bool = False,
                  isunique: bool = False,
                  defaultvalue: str = "",
-                 dimensionality: list = []):
+                 dimensionality: list = [],
+                 foreignKey: ForeignKey=None):
     
     super().initialize(name = name, 
                  description = description, 
@@ -31,7 +33,8 @@ class DatatypeDecimal(Datatype):
                  isprimarykey = isprimarykey,
                  isunique=isunique,
                  defaultvalue=defaultvalue,
-                 dimensionality=dimensionality)
+                 dimensionality=dimensionality,
+                 foreignKey=foreignKey)
     self.Type = self.getType()
     return self
   

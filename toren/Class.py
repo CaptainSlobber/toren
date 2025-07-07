@@ -35,33 +35,58 @@ class Class(TorenObject):
     self.Description = ""
     self.ID = ""
     self.ParentModule = None
-    self.InheritsFrom = None  # This can be used to inherit from another class
-    self.InheritsFromID = None  # This can be used to inherit from another class by ID
     self.Properties = DatatypeCollection()
-
+    self.setInheritsFrom(None)
 
   def initialize(self, 
                  name: str, 
                  description: str, 
                  id: str,
                  properties: List[Datatype] = None,
-                 inheritsfromid: str = None):
+                 inheritsfrom = None):
     self.Type = "toren.Class"
     self.Name = name
     self.Description = description
     self.ID = id
     self.ParentModule = None
-    self.InheritsFrom = None  # This can be used to inherit from another class
-    self.InheritsFromID = inheritsfromid
+    self.setInheritsFrom(inheritsfrom)
     self.Properties = DatatypeCollection().initialize(properties, self) #self.setProperties(properties)
     return self
+  
+  def getInheritedProperties(self, _properties):
+    if self.InheritsFrom is not None:
+      _properties = _properties.addCollection(self.InheritsFrom.Properties)
+      _properties = self.InheritsFrom.getInheritedProperties(_properties)
+      return _properties
+
+    return _properties
+    
+
+  
+
+  def getProperties(self, includeInheritance=False):
+    properties = self.Properties
+    if includeInheritance:
+      properties = self.getInheritedProperties(properties)
+    return properties
+  
+
+   
 
   def setInheritsFrom(self, inheritsFromClass):
     self.InheritsFrom = inheritsFromClass
-    self.InheritsFromID = inheritsFromClass.ID
+    if self.InheritsFrom is not None:
+      self.InheritsFromID = inheritsFromClass.ID
+      self.InheritedProperties = self.getInheritedProperties(DatatypeCollection())
+      #self.InheritedProperties = self.getProperties(True)
+    else:
+      self.InheritsFromID = None
+      self.InheritedProperties = DatatypeCollection()
+    return self
 
   def setParentModule(self, parentModule):
     self.ParentModule = parentModule
+    return self
 
   def to_json(self):
     _module_json = json.dumps(self.to_dict())

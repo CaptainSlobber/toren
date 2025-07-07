@@ -1,4 +1,5 @@
 from .Datatype import Datatype
+from .ForeignKey import ForeignKey
 import collections
 
 class DatatypeString(Datatype):
@@ -25,6 +26,7 @@ class DatatypeString(Datatype):
                  isunique: bool = False,
                  defaultvalue: str = "",
                  dimensionality: list = [],
+                 foreignKey: ForeignKey=None,
                  maxlength: int = 32):
     
     super().initialize(name = name, 
@@ -33,7 +35,8 @@ class DatatypeString(Datatype):
                  isprimarykey = isprimarykey,
                  isunique=isunique,
                  defaultvalue=defaultvalue,
-                 dimensionality=dimensionality)
+                 dimensionality=dimensionality,
+                 foreignKey=foreignKey)
     self.Type = self.getType()
     self.MaxLength = maxlength
     return self

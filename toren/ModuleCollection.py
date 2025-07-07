@@ -20,6 +20,12 @@ class ModuleCollection():
     def removeModule(self, key):
         if key in self.Data:
             del self.Data[key]
+
+
+    def getItem(self, id):
+        if id in self.Data:
+            return self.Data[id]
+        return None
     
     def addModule(self, module, parentproject):
         if isinstance(module, dict): 
@@ -50,4 +56,8 @@ class ModuleCollection():
             for key, value in modules.items():
                 self.addModule(value, parentproject)
         return self  
+    
+    def show(self):
+        for k, v in self.Data.items():
+            print(f'{k}:{v}({v.Name})')
                 

@@ -1,4 +1,5 @@
 
+from .ForeignKey import ForeignKey
 from .Datatype import Datatype
 from .DatatypeNumeric import DatatypeNumeric
 from .DatatypeCharacter import DatatypeCharacter
