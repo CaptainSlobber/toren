@@ -62,5 +62,17 @@ class PythonPropertyWriter(PropertyWriter):
         s.wln(f"def set{self.Property.Name}(self, {self.Property.Name.lower()}_: {self.Property.Python()}):")
         s.o().wln(f"self._{self.Property.Name.lower()} = {self.Property.Name.lower()}_")
         s.c()
+
+
+        if self.Property.ForeignKey is not None:
+            s.wln(f"def get{self.Property.ForeignKey.PropertyName}(self):")
+            s.o().wln(f"return self._{self.Property.ForeignKey.PropertyName.lower()}")
+            s.c()
+
+            s.wln(f"def set{self.Property.ForeignKey.PropertyName}(self, {self.Property.ForeignKey.PropertyName.lower()}_: {self.Property.ForeignKey.FKClass.Name}):")
+            s.o().wln(f"self._{self.Property.ForeignKey.PropertyName.lower()} = {self.Property.ForeignKey.PropertyName.lower()}_")
+            s.c()
+
+        
         
         return s

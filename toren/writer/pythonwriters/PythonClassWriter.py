@@ -43,11 +43,17 @@ class PythonClassWriter(ClassWriter):
             for dependency in property.Python_Dependencies():
                 if dependency not in dependency_map:
                     dependency_map[dependency] = dependency
+
         if self.Class.InheritsFrom is not None:
             for propertyid, property in self.Class.InheritsFrom.Properties.Data.items():
                 for dependency in property.Python_Dependencies():
                     if dependency not in dependency_map:
                         dependency_map[dependency] = dependency
+
+        for propertyid, property in self.Class.Properties.Data.items():
+            if property.ForeignKey is not None:
+                fkdep = f"from .{property.ForeignKey.FKClass.Name} import {property.ForeignKey.FKClass.Name}"
+                dependency_map[fkdep] = fkdep
         return dependency_map
 
 

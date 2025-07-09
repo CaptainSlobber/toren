@@ -72,8 +72,8 @@ class Datatype(TorenObject):
     self.ParentClass = parentclass
     return self
 
-  def setForeignKey(self, fkField, fkclass):
-    self.ForeignKey = ForeignKey().initialize(fkField, fkclass)
+  def setForeignKey(self, foreignkeypropertyname, foreignkeyclassproperty, foreignkeyclass=None):
+    self.ForeignKey = ForeignKey().initialize(foreignkeypropertyname, foreignkeyclassproperty, foreignkeyclass)
     return self
 
   def from_dict(self, datatype):

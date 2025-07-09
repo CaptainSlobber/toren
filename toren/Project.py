@@ -42,7 +42,6 @@ class Project(TorenObject):
     self.Languages = LanguageCollection()
     self.Datastores = DatabaseCollection()
 
-
   def initialize(self, name: str, 
                  description: str, 
                  id: str, 
@@ -105,16 +104,15 @@ class Project(TorenObject):
       self.from_json(projectjson)
     return self
   
-
   def setForeignKeys(self):
     for moduleid, module in self.Modules.Data.items():
       for _classid, _class in module.Classes.Data.items():
         for _propertyid, _property in _class.Properties.Data.items():
           if _property.ForeignKey is not None:
-            _fkproperty = self.getProperty(_property.ForeignKey.FKFieldID)
+            _fkproperytname = _property.ForeignKey.PropertyName
+            _fkclassproperty = self.getProperty(_property.ForeignKey.FKClassPropertyID)
             _fkclass = self.getClass(_property.ForeignKey.FKClassID)
-            _property.setForeignKey(_fkproperty, _fkclass)
-
+            _property.setForeignKey(_fkproperytname, _fkclassproperty, _fkclass)
 
   def getClass(self, classid):
     for moduleid, module in self.Modules.Data.items():
