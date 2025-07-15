@@ -107,3 +107,76 @@ class PythonClassWriter(ClassWriter):
         s.c()
         s.ret()
         return s
+    
+
+    def writeClassCollectionOpen(self, s):
+        s.write(f"class {self.Class.Name}{self.SetDescription}:").o()
+        s.ret()
+        s.wln("\"\"\"")
+        s.wln(f" {self.Class.Description} {self.SetDescription}")
+        s.wln("\"\"\"")
+        s.ret()
+
+        return s
+    
+
+
+    def writeClassCollectionInitializer(self, s:PythonStringWriter):
+
+        s.wln("def __init__(self):").o()
+        s.wln("self.Data = collections.OrderedDict()")
+        s.c()
+
+        return s
+
+
+    def writeClassCollectionAddItem(self, s:PythonStringWriter):
+        pkcls = self.getPrimaryKeyClass()
+        s.wln(f"def appendItem(self, _{self.Class.Name.lower()}: {self.Class.Name}):").o()
+        s.wln(f"self.Data[_{self.Class.Name.lower()}.{pkcls.Name}] = _{self.Class.Name.lower()}").c()
+
+        return s
+    
+    def writeClassCollectionRemoveItem(self, s:PythonStringWriter):
+        pkcls = self.getPrimaryKeyClass()
+        s.wln(f"def removeItem(self, {pkcls.Name.lower()}):").o()
+        s.wln(f"if {pkcls.Name.lower()} in self.Data:").o()
+        s.wln(f"del self.Data[{pkcls.Name.lower()}]").c().c()
+
+        return s
+    
+    def writeClassCollectionGetItem(self, s:PythonStringWriter):
+        pkcls = self.getPrimaryKeyClass()
+        s.wln(f"def getItem(self, {pkcls.Name.lower()}):").o()
+        s.wln(f"if {pkcls.Name.lower()} in self.Data:").o()
+        s.wln(f"return self.Data[{pkcls.Name.lower()}]").c()
+        s.wln("return None").c()
+
+        return s
+    
+    def writeClassCollectionGetLength(self, s:PythonStringWriter):
+        s.wln("def count(self):").o()
+        s.wln("return self.length()").c()
+
+        s.wln("def length(self):").o()
+        s.wln("return len(self.Data)").c()
+        return s
+    
+    def writeClassCollectionClose(self, s:PythonStringWriter):
+        s.c()
+        return s  
+
+    def getClassCollectionDependencies(self):
+        dependency_map = {}
+        _collections = "import collections" 
+
+
+        _typing = "from typing import List"
+        _json = "import json"
+        _uuid = "import uuid"
+        cls = f"from .{self.Class.Name} import {self.Class.Name}"
+        dependency_map[_collections] = _collections
+        dependency_map[_json] = _json
+        dependency_map[_uuid] = _uuid
+        dependency_map[cls] = cls
+        return dependency_map

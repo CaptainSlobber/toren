@@ -91,6 +91,8 @@ class Project(TorenObject):
     self.Modules = ModuleCollection().initialize(project[self.PropertName.MODULES], self)
     self.Languages = LanguageCollection().initialize(project[self.PropertName.LANGUAGES], self)
     self.Datastores = DatabaseCollection().initialize(project[self.PropertName.DATASTORES], self)
+    
+    self.setInheritence()
     self.setForeignKeys()
     return self
   
@@ -103,6 +105,14 @@ class Project(TorenObject):
       projectjson = projectfile.read()
       self.from_json(projectjson)
     return self
+  
+  def setInheritence(self):
+    for moduleid, module in self.Modules.Data.items():
+      for _classid, _class in module.Classes.Data.items():
+        if _class.InheritsFromID is not None:
+          inheritsFromClass = self.getClass(_class.InheritsFromID)
+          _class.setInheritsFrom(inheritsFromClass)
+
   
   def setForeignKeys(self):
     for moduleid, module in self.Modules.Data.items():

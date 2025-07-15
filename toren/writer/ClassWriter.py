@@ -28,6 +28,7 @@ class ClassWriter(WriterObject):
         self.PropertyWritersClass = PropertyWriter
         self.Language = language
         self.ParentClassName = self.getParentClassName()
+        self.SetDescription = self.getSetDescription()
         self.setLogger(logger)
         self.S = self.StringWriterClass(self.Language)
 
@@ -38,6 +39,10 @@ class ClassWriter(WriterObject):
         else:
             self.Logger = Logger()
         return self.Logger
+    
+    '''
+        Class
+    '''
     
     def getParentClassName(self):
         if self.Class.InheritsFrom is not None:
@@ -98,7 +103,11 @@ class ClassWriter(WriterObject):
         self.writeFile(module_path, fn, s.toString())
 
     def write(self):
+        self.writeClass()
+        self.writeClassCollection()
 
+
+    def writeClass(self):
         self.Logger.Log(f"  -> Writing Class: {self.Class.Name}")
         self.S = self.StringWriterClass(self.Language)
         s = self.S
@@ -110,5 +119,81 @@ class ClassWriter(WriterObject):
         s = self.writeClassClose(s)
         self.createClassFile(s)
 
+    '''
+        Class Collection
+    '''
 
-        
+    def writeClassCollection(self):
+        self.Logger.Log(f"  -> Writing Class: {self.Class.Name}")
+        self.S = self.StringWriterClass(self.Language)
+        s = self.S
+        dependencies = self.getClassCollectionDependencies()
+        s = self.writeDependencies(dependencies, s)
+        s = self.writeClassCollectionOpen(s)
+        s = self.writeClassCollectionInitializer(s)
+        s = self.writeClassCollectionProperties(s)
+        s = self.writeClassCollectionClose(s)
+        self.createClassCollectionFile(s)
+
+
+    def writeClassCollectionOpen(self, s):
+        s.write(f"class {self.Class.Name}{self.SetDescription}").write(" {").o()
+        s.wln(f" ")
+        s.wln(f"// {self.Class.Description}")
+        s.wln(f" ")
+        return s
+    
+
+
+    def writeClassCollectionInitializer(self, s:StringWriter):
+
+        s.wln("init() {}")
+        return s
+    
+    def writeClassCollectionProperties(self, s:StringWriter):
+        s = self.writeClassCollectionAddItem(s)
+        s = self.writeClassCollectionRemoveItem(s)
+        s = self.writeClassCollectionGetItem(s)
+        s = self.writeClassCollectionGetLength(s)
+        return s
+    
+    def getPrimaryKeyClass(self):
+        for propertyid, property in self.Class.Properties.Data.items():
+            if property.IsPrimaryKey:
+                return property
+        for propertyid, property in self.Class.InheritedProperties.Data.items():
+            if property.IsPrimaryKey:
+                return property
+    
+
+    def writeClassCollectionAddItem(self, s:StringWriter):
+        return s
+    
+    def writeClassCollectionRemoveItem(self, s:StringWriter):
+        return s
+    
+    def writeClassCollectionGetItem(self, s:StringWriter):
+        return s
+    
+    def writeClassCollectionGetLength(self, s:StringWriter):
+        return s
+    
+    def writeClassCollectionClose(self, s:StringWriter):
+        s.c()
+        s.wln("}")
+        return s  
+
+    def getClassCollectionDependencies(self):
+        dependency_map = {}
+        return dependency_map
+
+    def getSetDescription(self):
+
+        # Collection, Array, Set etc
+        return "Collection"
+    
+
+    def createClassCollectionFile(self, s:StringWriter):
+        module_path = self.getParentModulePath(self.Language, self.Project, self.Module)
+        fn = f"{self.Class.Name}{self.SetDescription}.{self.Language.DefaultFileExtension}"
+        self.writeFile(module_path, fn, s.toString())
