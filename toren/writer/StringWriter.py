@@ -1,4 +1,5 @@
 from io import StringIO
+from typing import Self
 from ..languages import Language
  
 class StringWriter:
@@ -17,14 +18,14 @@ class StringWriter:
     def newline(self) -> str:
         return "\n"
 
-    def o(self):
+    def o(self) -> Self:
         """Open."""
         
         self.write("{")
         self.Inc()
         return self
     
-    def n(self):
+    def n(self) -> Self:
         self.write(self.newline())
         return self
     
@@ -35,24 +36,24 @@ class StringWriter:
     def Dec(self, n = 1):
         self.N = self.N - n 
     
-    def c(self):
+    def c(self) -> Self:
         """Close."""
         self.Dec()
         self.write("}")
         self.append(self.newline())
         return self
     
-    def f(self):
+    def f(self) -> Self:
         """Open Function."""
         self.write("function")
         return self
     
 
-    def append(self, text: str):
+    def append(self, text: str) -> Self:
         self._buffer.write(text)
         return self
 
-    def write(self, text: str):
+    def write(self, text: str) -> Self:
         """Write text to the buffer."""
         self._buffer.write(self.I * self.N)
         self._buffer.write(text)
@@ -61,13 +62,13 @@ class StringWriter:
     def w(self, text: str): 
         return self.write(text)
     
-    def writeline(self, text: str):
+    def writeline(self, text: str) -> Self:
         """Write text to the buffer."""
         self.write(text)
         self.append(self.newline())
         return self
     
-    def rem(self, n=1):
+    def rem(self, n=1) -> Self:
         """Remove the last n characters from the buffer."""
         current_value = self._buffer.getvalue()
         self._buffer.truncate(0)
@@ -81,12 +82,12 @@ class StringWriter:
     def wln(self, text: str):
         return self.writeline(text)
 
-    def flush(self):
+    def flush(self) -> Self:
         """Flush the buffer."""
         self._buffer.flush()
         return self
 
-    def seek(self, offset: int, whence: int = 0):
+    def seek(self, offset: int, whence: int = 0) -> Self:
         """Move the cursor to a specific position in the buffer."""
         self._buffer.seek(offset, whence)
         return self
@@ -121,7 +122,7 @@ class StringWriter:
         """Get the current value of the buffer as a string."""
         return str(self._buffer.getvalue())
 
-    def clear(self):
+    def clear(self) -> Self:
         """Clear the buffer."""
         self._buffer.truncate(0)
         self._buffer.seek(0)

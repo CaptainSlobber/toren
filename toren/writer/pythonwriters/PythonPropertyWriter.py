@@ -49,7 +49,7 @@ class PythonPropertyWriter(PropertyWriter):
         s.wln("\"\"\"")
 
         
-        s.wln(f"def getPropertyID{self.Property.Name}(self):")
+        s.wln(f"def get{self.Property.Name}PID(self):")
         s.o().wln(f'return "{self.Property.ID}"')
         s.c()
 

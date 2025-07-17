@@ -57,7 +57,7 @@ class DatatypeFloat(Datatype):
     default_value = "float(0.0)"
     if self.DefaultValue:
       if len(self.DefaultValue) > 0:
-        default_value = f"float('{self.DefaultValue}')"
+        default_value = f"float({self.DefaultValue})"
 
     return default_value
   

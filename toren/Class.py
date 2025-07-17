@@ -4,8 +4,6 @@ import collections
 import json
 from typing import List
 
-
-
 class Class(TorenObject):
 
 
@@ -36,14 +34,17 @@ class Class(TorenObject):
     self.ID = ""
     self.ParentModule = None
     self.Properties = DatatypeCollection()
+    self.Children = {}
     self.setInheritsFrom(None)
 
+  
   def initialize(self, 
                  name: str, 
                  description: str, 
                  id: str,
                  properties: List[Datatype] = None,
-                 inheritsfrom = None):
+                 inheritsfrom = None,
+                 children = {}):
     self.Type = "toren.Class"
     self.Name = name
     self.Description = description
@@ -51,6 +52,7 @@ class Class(TorenObject):
     self.ParentModule = None
     self.setInheritsFrom(inheritsfrom)
     self.Properties = DatatypeCollection().initialize(properties, self) #self.setProperties(properties)
+    self.Children = children
     return self
   
   def getInheritedProperties(self, _properties):
@@ -74,12 +76,15 @@ class Class(TorenObject):
    
 
   def setInheritsFrom(self, inheritsFromClass):
-    self.InheritsFrom = inheritsFromClass
-    if self.InheritsFrom is not None:
+
+    if inheritsFromClass is not None:
+      inheritsFromClass.Children[self.ID] = self
+      self.InheritsFrom = inheritsFromClass
       self.InheritsFromID = inheritsFromClass.ID
       self.InheritedProperties = self.getInheritedProperties(DatatypeCollection())
       #self.InheritedProperties = self.getProperties(True)
     else:
+      self.InheritsFrom = inheritsFromClass
       self.InheritsFromID = None
       self.InheritedProperties = DatatypeCollection()
     return self
