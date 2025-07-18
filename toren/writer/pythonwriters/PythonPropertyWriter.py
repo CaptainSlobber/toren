@@ -39,7 +39,7 @@ class PythonPropertyWriter(PropertyWriter):
 
 
     def write(self):
-        self.Logger.Log(f"   - Writing Property: {self.Property.Name} [{self.Property.Type}]")
+        self.Logger.Log(f"   - Writing {self.Language.Name} Property: {self.Property.Name} [{self.Property.Type}]")
         s = self.S
         
         s.wln("\"\"\"")
@@ -65,14 +65,20 @@ class PythonPropertyWriter(PropertyWriter):
 
 
         if self.Property.ForeignKey is not None:
-            s.wln(f"def get{self.Property.ForeignKey.PropertyName}(self):")
-            s.o().wln(f"return self._{self.Property.ForeignKey.PropertyName.lower()}")
-            s.c()
-
-            s.wln(f"def set{self.Property.ForeignKey.PropertyName}(self, {self.Property.ForeignKey.PropertyName.lower()}_: {self.Property.ForeignKey.FKClass.Name}):")
-            s.o().wln(f"self._{self.Property.ForeignKey.PropertyName.lower()} = {self.Property.ForeignKey.PropertyName.lower()}_")
-            s.c()
-
+            
+            s = self.writeForeignKeyProperty(s)
         
         
         return s
+    
+
+    def writeForeignKeyProperty(self, s):
+        s.wln(f"def get{self.Property.ForeignKey.PropertyName}(self):")
+        s.o().wln(f"return self._{self.Property.ForeignKey.PropertyName.lower()}")
+        s.c()
+
+        s.wln(f"def set{self.Property.ForeignKey.PropertyName}(self, {self.Property.ForeignKey.PropertyName.lower()}_: {self.Property.ForeignKey.FKClass.Name}):")
+        s.o().wln(f"self._{self.Property.ForeignKey.PropertyName.lower()} = {self.Property.ForeignKey.PropertyName.lower()}_")
+        s.c()
+        return s
+

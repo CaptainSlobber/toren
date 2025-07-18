@@ -145,6 +145,9 @@ class PythonClassWriter(ClassWriter):
 
         return s
     
+
+
+    
     def writeClassCollectionGetItem(self, s:PythonStringWriter):
         pkcls = self.getPrimaryKeyClass()
         s.wln(f"def getItem(self, {pkcls.Name.lower()}):").o()
@@ -180,3 +183,23 @@ class PythonClassWriter(ClassWriter):
         dependency_map[_uuid] = _uuid
         dependency_map[cls] = cls
         return dependency_map
+    
+
+    def writeClassReferenceCollection(self, _class, s: PythonStringWriter):
+        s.wln("\"\"\"")
+        s.wln(f" property: {_class.Name} Collection")
+        s.wln("\"\"\"")
+
+        setName = "Set"
+
+
+        s.wln(f"def set{_class.Name}{setName}(self, {_class.Name.lower()}{setName}_: {_class.Name}{self.SetDescription}):")
+        s.o().wln(f"self._{_class.Name.lower()}{setName} = {_class.Name.lower()}{setName}_")
+        s.c()
+
+        s.wln(f"def get{_class.Name}{setName}(self):")
+        s.o().wln(f"return self._{_class.Name.lower()}{setName}")
+        s.c()
+
+
+        return s

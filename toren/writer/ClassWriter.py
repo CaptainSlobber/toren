@@ -106,9 +106,23 @@ class ClassWriter(WriterObject):
         self.writeClass()
         self.writeClassCollection()
 
+    def writeClassReferenceCollections(self, s:StringWriter):
+        s.ret()
+
+        for _classid, _class in self.Module.Classes.Data.items():
+            for _propertyid, _prorperty in _class.Properties.Data.items():
+                pass
+                
+
+
+        return s
+
+    def writeClassReferenceCollection(self, _class, s:StringWriter):
+        return s
+
 
     def writeClass(self):
-        self.Logger.Log(f"  -> Writing Class: {self.Class.Name}")
+        self.Logger.Log(f"  -> Writing {self.Language.Name} Class: {self.Class.Name}")
         self.S = self.StringWriterClass(self.Language)
         s = self.S
         dependencies = self.getDependencies()
@@ -116,6 +130,7 @@ class ClassWriter(WriterObject):
         s = self.writeClassOpen(s)
         s = self.writeClassInitializer(s)
         s = self.writeClassProperties(s)
+        s = self.writeClassReferenceCollections(s)
         s = self.writeClassClose(s)
         self.createClassFile(s)
 
@@ -124,7 +139,7 @@ class ClassWriter(WriterObject):
     '''
 
     def writeClassCollection(self):
-        self.Logger.Log(f"  -> Writing Class: {self.Class.Name}")
+        self.Logger.Log(f"  -> Writing {self.Language.Name} Class Collection: {self.Class.Name}")
         self.S = self.StringWriterClass(self.Language)
         s = self.S
         dependencies = self.getClassCollectionDependencies()
