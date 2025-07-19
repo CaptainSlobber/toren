@@ -53,14 +53,12 @@ class PythonPropertyWriter(PropertyWriter):
         s.o().wln(f'return "{self.Property.ID}"')
         s.c()
 
-        #s.wln(f"@property")
         s.wln(f"def get{self.Property.Name}(self):")
-        s.o().wln(f"return self._{self.Property.Name.lower()}")
+        s.o().wln(f"return self.{self.Property.Name}")
         s.c()
 
-        #s.wln(f"@{self.Property.Name.lower()}.setter")
         s.wln(f"def set{self.Property.Name}(self, {self.Property.Name.lower()}_: {self.Property.Python()}):")
-        s.o().wln(f"self._{self.Property.Name.lower()} = {self.Property.Name.lower()}_")
+        s.o().wln(f"self.{self.Property.Name} = {self.Property.Name.lower()}_")
         s.c()
 
 
@@ -77,7 +75,11 @@ class PythonPropertyWriter(PropertyWriter):
         s.o().wln(f"return self._{self.Property.ForeignKey.PropertyName.lower()}")
         s.c()
 
-        s.wln(f"def set{self.Property.ForeignKey.PropertyName}(self, {self.Property.ForeignKey.PropertyName.lower()}_: {self.Property.ForeignKey.FKClass.Name}):")
+        fktype = self.Property.ForeignKey.FKClass.Name
+        if self.Property.ForeignKey.FKClassID == self.Class.ID:
+            fktype = "Self"
+
+        s.wln(f"def set{self.Property.ForeignKey.PropertyName}(self, {self.Property.ForeignKey.PropertyName.lower()}_: {fktype}):")
         s.o().wln(f"self._{self.Property.ForeignKey.PropertyName.lower()} = {self.Property.ForeignKey.PropertyName.lower()}_")
         s.c()
         return s

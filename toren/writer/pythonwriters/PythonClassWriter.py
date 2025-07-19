@@ -52,10 +52,21 @@ class PythonClassWriter(ClassWriter):
 
         for propertyid, property in self.Class.Properties.Data.items():
             if property.ForeignKey is not None:
-                fkdep = f"from .{property.ForeignKey.FKClass.Name} import {property.ForeignKey.FKClass.Name}"
-                dependency_map[fkdep] = fkdep
-        return dependency_map
+                if property.ForeignKey.FKClassID == self.Class.ID:
+                    fkdep = f"from typing import Self"
+                    dependency_map[fkdep] = fkdep
+                else:
+                    fkdep = f"from .{property.ForeignKey.FKClass.Name} import {property.ForeignKey.FKClass.Name}"
+                    dependency_map[fkdep] = fkdep
 
+        for _classid, _class in self.Module.Classes.Data.items():
+            for _propertyid, _property in _class.Properties.Data.items():
+                if _property.ForeignKey is not None:
+                    if _property.ForeignKey.FKClassID == self.Class.ID:
+                        coll = f"{_class.Name}{self.SetDescription}"
+                        reference_coll_dep = f"from .{coll} import {coll}"
+                        dependency_map[reference_coll_dep] = reference_coll_dep
+        return dependency_map
 
     
     def writeClassOpen(self, s: PythonStringWriter):
@@ -132,7 +143,8 @@ class PythonClassWriter(ClassWriter):
 
     def writeClassCollectionAddItem(self, s:PythonStringWriter):
         pkcls = self.getPrimaryKeyClass()
-        s.wln(f"def appendItem(self, _{self.Class.Name.lower()}: {self.Class.Name}):").o()
+        s.wln(f"def appendItem(self, _{self.Class.Name.lower()}):").o()
+        #s.wln(f"def appendItem(self, _{self.Class.Name.lower()}: {self.Class.Name}):").o()
         s.wln(f"self.Data[_{self.Class.Name.lower()}.{pkcls.Name}] = _{self.Class.Name.lower()}").c()
 
         return s
@@ -177,11 +189,11 @@ class PythonClassWriter(ClassWriter):
         _typing = "from typing import List"
         _json = "import json"
         _uuid = "import uuid"
-        cls = f"from .{self.Class.Name} import {self.Class.Name}"
+        #cls = f"from .{self.Class.Name} import {self.Class.Name}"
         dependency_map[_collections] = _collections
         dependency_map[_json] = _json
         dependency_map[_uuid] = _uuid
-        dependency_map[cls] = cls
+        #dependency_map[cls] = cls
         return dependency_map
     
 

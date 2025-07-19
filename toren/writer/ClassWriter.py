@@ -110,8 +110,10 @@ class ClassWriter(WriterObject):
         s.ret()
 
         for _classid, _class in self.Module.Classes.Data.items():
-            for _propertyid, _prorperty in _class.Properties.Data.items():
-                pass
+            for _propertyid, _property in _class.Properties.Data.items():
+                if _property.ForeignKey is not None:
+                    if _property.ForeignKey.FKClassID == self.Class.ID:
+                        s = self.writeClassReferenceCollection(_class, s)
                 
 
 
