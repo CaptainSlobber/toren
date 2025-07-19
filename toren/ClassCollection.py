@@ -58,9 +58,31 @@ class ClassCollection():
                 _class.InheritsFrom = self.Data[_class.InheritsFromID]
         self.Data[_class.ID] = _class
 
+
+    def sort_class_list(self, classlist: List[Class] = []):
+        _classlist = []
+
+        for class_ in classlist:
+            if isinstance(class_, dict): 
+                class_ = Class().from_dict(class_)
+            indx = 0
+            inflg = False
+            for i in range(len(_classlist)):
+                if _classlist[i].InheritsFrom is not None:
+                    if _classlist[i].InheritsFrom.ID == class_.ID:
+                        if (inflg == False): indx = i
+                        inflg = True
+            if (inflg) :
+                _classlist.insert(indx, class_)
+            else:
+                _classlist.append(class_)
+                
+        return _classlist
+        
     def from_list(self, classlist: List[Class] = [], parentmodule =None):
         self.Data = collections.OrderedDict()
         if not classlist is None:
+            classlist = self.sort_class_list(classlist=classlist)
             for _class in classlist:
                 self.addClass(_class, parentmodule)
         self.setInheritence()
@@ -77,11 +99,9 @@ class ClassCollection():
         return dict(self.Data)
         
     def from_dict(self, classes: dict, parentmodule =None):
-        self.Data = collections.OrderedDict()
+        classlist = []
         if not classes is None:
             for key, value in classes.items():
-                self.addClass(value, parentmodule)
-
-        self.setInheritence()
-        return self  
+                classlist.append(value)
+        return self.from_list(classlist, parentmodule=parentmodule)  
                 
