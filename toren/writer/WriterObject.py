@@ -33,10 +33,18 @@ class WriterObject():
         return file_path
 
 
+    def getDatalayerName(self):
+        return "datalayer"
 
     def getParentProjectPath(self, language: Language, project: Project):
         return os.path.join(language.OutputDirectory, project.Name, project.Name)
     
+    def getParentProjectDataPath(self, language: Language, project: Project):
+        return os.path.join(language.OutputDirectory, project.Name, project.Name, self.getDatalayerName())
+    
 
     def getParentModulePath(self, language: Language, project: Project, module: Module):
         return os.path.join(language.OutputDirectory, project.Name, project.Name,  module.Name)
+    
+    def getDataModulePath(self, language: Language, project: Project, module: Module):
+        return os.path.join(language.OutputDirectory, project.Name, project.Name, self.getDatalayerName(), module.Name)

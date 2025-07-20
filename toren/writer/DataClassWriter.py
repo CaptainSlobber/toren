@@ -1,0 +1,114 @@
+import collections
+import json
+import os
+from pathlib import Path
+
+from typing import List
+from .WriterObject import WriterObject
+from .PropertyWriter import PropertyWriter
+from .StringWriter import StringWriter
+from ..Project import Project
+from ..Module import Module
+from ..Class import Class
+from ..languages import *
+from ..tracer.Logger import Logger
+
+class DataClassWriter(WriterObject):
+
+    def __init__(self, project: Project, 
+                 module: Module, 
+                 class_: Class,
+                 language: Language, 
+                 logger:Logger=None):
+        super().__init__()
+        self.Project = project
+        self.Module = module
+        self.StringWriterClass = StringWriter
+        self.Class = class_
+        self.Language = language
+        self.ParentClassName = self.getParentClassName()
+        self.setLogger(logger)
+        self.S = self.StringWriterClass(self.Language)
+
+
+    def setLogger(self, logger: Logger):
+        if logger is not None:
+            self.Logger = logger
+        else:
+            self.Logger = Logger()
+        return self.Logger
+    
+    '''
+        Class
+    '''
+    
+    def getParentClassName(self):
+        if self.Class.InheritsFrom is not None:
+            return self.Class.InheritsFrom.Name
+        return ""
+
+    def getDLDependencies(self):
+        dependency_map = {}
+        for propertyid, property in self.Class.Properties.Data.items():
+            pass
+        return dependency_map
+
+
+    def writeDLDependencies(self, dependency_map, s:StringWriter):
+        
+        for dependencyid, dependency in dependency_map.items():
+            s.wln(f"{dependency}")
+        
+        s.ret()
+        return s
+    
+    def writeDLClassOpen(self, s:StringWriter):
+        s.write(f"class {self.Class.Name}").o()
+        s.wln(f" ")
+        s.wln(f"// {self.Class.Description}")
+        s.wln(f" ")
+        return s
+    
+    def writeParentClassInitializer(self, s:StringWriter):
+        return s
+
+    def writeDLClassInitializer(self, s:StringWriter):
+
+        s.wln("init() {}")
+        return s
+    
+    def writeDLClassProperties(self, s:StringWriter):
+        return s
+    
+
+    def writeDLClassClose(self, s:StringWriter):
+        s.c()
+        return s
+    
+
+    def write(self):
+        self.writeDLClass()
+    def writeDLClass(self):
+        self.Logger.Log(f"  -> Writing {self.Language.Name} Class: {self.Class.Name}")
+        self.S = self.StringWriterClass(self.Language)
+        s = self.S
+        dependencies = self.getDLDependencies()
+        s = self.writeDLDependencies(dependencies, s)
+        s = self.writeDLClassOpen(s)
+        s = self.writeDLClassInitializer(s)
+        s = self.writeDLClassProperties(s)
+        s = self.writeDLClassClose(s)
+        self.createDLClassFile(s)
+
+    def getDLPrefix(self):
+        return "DL"
+    
+    def getDLSuffix(self):
+        return ""
+
+    def createDLClassFile(self, s:StringWriter):
+        
+        parent_project_data_path = self.getParentProjectDataPath(self.Language, self.Project)
+        data_module_path = self.getDataModulePath(self.Language, self.Project, self.Module)
+        fn = f"{self.getDLPrefix()}{self.Class.Name}{self.getDLSuffix()}.{self.Language.DefaultFileExtension}"
+        self.writeFile(data_module_path, fn, s.toString())

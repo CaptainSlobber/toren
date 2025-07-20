@@ -6,6 +6,7 @@ from pathlib import Path
 from typing import List
 from .WriterObject import WriterObject
 from .ModuleWriter import ModuleWriter
+from .DataModuleWriter import DataModuleWriter
 from ..Project import Project
 from ..Module import Module
 from ..Class import Class
@@ -19,6 +20,7 @@ class ProjectWriter(WriterObject):
         self.Project = project
         self.Language = language
         self.ModuleWriterClass = ModuleWriter
+        self.DataModuleWriterClass = DataModuleWriter
         self.setLogger(logger)
 
     def setLogger(self, logger: Logger):
@@ -34,12 +36,19 @@ class ProjectWriter(WriterObject):
 
         self.writeProjectDirectory(project=self.Project)
         self.writeModules(project=self.Project)
+        self.writeDataLayer(project=self.Project)
 
     def writeProjectDirectory(self, project:Project):
         self.writeDirectory(self.Language.OutputDirectory, project.Name)
         self.writeDirectory(os.path.join(self.Language.OutputDirectory, project.Name), project.Name)
 
 
+
+    def writeDataLayer(self, project: Project):
+        for moduleid, module in project.Modules.Data.items():
+            for languageid, language in project.Datastores.Data.items():
+                dm = self.DataModuleWriterClass(project=project, module=module, language=self.Language, logger=self.Logger)
+                dm.write()
 
     def writeModules(self, project:Project):
         for moduleid, module in project.Modules.Data.items():
