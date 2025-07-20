@@ -59,24 +59,52 @@ class ClassCollection():
         self.Data[_class.ID] = _class
 
 
-    def sort_class_list(self, classlist: List[Class] = []):
+    def dedict_list(self, classlist: List[Class] = []):
         _classlist = []
 
         for class_ in classlist:
             if isinstance(class_, dict): 
                 class_ = Class().from_dict(class_)
-            indx = 0
-            inflg = False
-            for i in range(len(_classlist)):
-                if _classlist[i].InheritsFrom is not None:
-                    if _classlist[i].InheritsFrom.ID == class_.ID:
-                        if (inflg == False): indx = i
+
+            _classlist.append(class_)
+        return _classlist
+    
+    def class_list_search_inheritence(self, sorted, p, rem):
+        if (len(rem) == 0):
+            return sorted
+        elif (len(p) == 0):
+            _p = []
+            _rem = []
+            for c in rem:
+                if c.InheritsFromID is None:
+                    _p.append(c)
+                else:
+                    _rem.append(c)
+            sorted = sorted + _p
+            sorted = self.class_list_search_inheritence(sorted ,_p, _rem)
+            return sorted
+        else:
+            _p = []
+            _rem = []
+            for c in rem:
+                inflg = False
+                for _c in p:
+                    if c.InheritsFromID == _c.ID:
                         inflg = True
-            if (inflg) :
-                _classlist.insert(indx, class_)
-            else:
-                _classlist.append(class_)
-                
+                if inflg:
+                    _p.append(c)
+                else:
+                    _rem.append(c)
+            sorted = sorted + _p
+            sorted = self.class_list_search_inheritence(sorted ,_p, _rem)
+            return sorted
+
+
+
+    def sort_class_list(self, classlist: List[Class] = []):
+
+        classlist  = self.dedict_list(classlist)
+        _classlist = self.class_list_search_inheritence([],[], classlist)
         return _classlist
         
     def from_list(self, classlist: List[Class] = [], parentmodule =None):
