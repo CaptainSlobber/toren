@@ -1,35 +1,67 @@
+from .Datatype import Datatype
+from .ForeignKey import ForeignKey
 from .DatatypeNumeric import DatatypeNumeric
 import collections
 
 class DatatypeDouble(DatatypeNumeric):
-  
+
+  class PropertName(DatatypeNumeric.PropertName):
+    pass
+
+  class PropertID(DatatypeNumeric.PropertID):
+    pass
   
   def getType(self):
-    return "toren.datatypes.DatatypeUUID"
+    return "toren.datatypes.DatatypeDouble"
   
   def __init__(self):
+    super().__init__()
     self.Type = self.getType()
-    self.Name = ""
-    self.Description = ""
-    self.ID = ""
-    self.ParentModule = None
-    self.IsPrimaryKey = False
-    self.IsUnique = False
-    self.DefaultValue = ""
-    self.Dimensinality = None
+
 
   def initialize(self, name: str, 
                  description: str, 
                  id: str,
                  isprimarykey: bool = False,
                  isunique: bool = False,
-                 defaultvalue: str = ""):
+                 defaultvalue: str = "",
+                 dimensionality: list = [],
+                 foreignKey: ForeignKey=None,
+                 minimum: float = 0.0,
+                 maximum: float = 100.0):
+    
+    super().initialize(name = name, 
+                 description = description, 
+                 id = id,
+                 isprimarykey = isprimarykey,
+                 isunique=isunique,
+                 defaultvalue=defaultvalue,
+                 dimensionality=dimensionality,
+                 foreignKey=foreignKey,
+                 minimum=minimum,
+                 maximum=maximum)
     self.Type = self.getType()
-    self.Name = name
-    self.Description = description
-    self.ID = id
-    self.ParentModule = None
-    self.IsPrimaryKey = isprimarykey
-    self.IsUnique = isunique
-    self.DefaultValue = defaultvalue
     return self
+  
+  def from_dict(self, datatype):
+    super().from_dict(datatype)
+    self.Type = self.getType()
+    return self
+
+  def to_dict(self):
+    _datatype = super().to_dict()
+    return _datatype
+  
+  def Python(self, *args) -> str:
+    # float type = 64-bit double-precision floating-point number in Python
+    return "float" 
+  
+  def Python_Dependencies(self) -> list:
+    return [""]
+  
+  def Python_DefaultValue(self, *args) -> str:
+    default_value = "0.0" 
+    if self.DefaultValue:
+      if len(self.DefaultValue) > 0:
+        default_value = f"float({self.DefaultValue})"
+    return default_value

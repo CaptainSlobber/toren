@@ -1,13 +1,14 @@
 from .Datatype import Datatype
 from .ForeignKey import ForeignKey
+from .DatatypeNumeric import DatatypeNumeric
 import collections
 
-class DatatypeFloat(Datatype):
+class DatatypeFloat(DatatypeNumeric):
 
-  class PropertName(Datatype.PropertName):
+  class PropertName(DatatypeNumeric.PropertName):
     pass
 
-  class PropertID(Datatype.PropertID):
+  class PropertID(DatatypeNumeric.PropertID):
     pass
   
   def getType(self):
@@ -25,7 +26,9 @@ class DatatypeFloat(Datatype):
                  isunique: bool = False,
                  defaultvalue: str = "",
                  dimensionality: list = [],
-                 foreignKey: ForeignKey=None):
+                 foreignKey: ForeignKey=None,
+                 minimum: float = 0.0,
+                 maximum: float = 100.0):
     
     super().initialize(name = name, 
                  description = description, 
@@ -34,7 +37,9 @@ class DatatypeFloat(Datatype):
                  isunique=isunique,
                  defaultvalue=defaultvalue,
                  dimensionality=dimensionality,
-                 foreignKey=foreignKey)
+                 foreignKey=foreignKey,
+                 minimum=minimum,
+                 maximum=maximum)
     self.Type = self.getType()
     return self
   
@@ -44,20 +49,18 @@ class DatatypeFloat(Datatype):
     return self
 
   def to_dict(self):
-    _datatypeFloat = super().to_dict()
-    return _datatypeFloat
+    _datatype = super().to_dict()
+    return _datatype
   
   def Python(self, *args) -> str:
     return "float"
   
   def Python_Dependencies(self) -> list:
-    return []
+    return [""]
   
   def Python_DefaultValue(self, *args) -> str:
-    default_value = "float(0.0)"
+    default_value = "0.0" 
     if self.DefaultValue:
       if len(self.DefaultValue) > 0:
         default_value = f"float({self.DefaultValue})"
-
     return default_value
-  

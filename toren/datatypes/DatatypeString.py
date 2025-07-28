@@ -1,14 +1,17 @@
 from .Datatype import Datatype
 from .ForeignKey import ForeignKey
 import collections
+import base64
 
 class DatatypeString(Datatype):
 
   class PropertName(Datatype.PropertName):
     MAXLENGTH = "MaxLength"
+    REGEX = "Regex"
 
   class PropertID(Datatype.PropertID):
     MAXLENGTH = "cef913a1-4297-4834-9337-a337ec10ce80"
+    REGEX = "9aa7e590-f7e1-4b91-a5dd-e257760c46f8"
   
   def getType(self):
     return "toren.datatypes.DatatypeString"
@@ -27,7 +30,8 @@ class DatatypeString(Datatype):
                  defaultvalue: str = "",
                  dimensionality: list = [],
                  foreignKey: ForeignKey=None,
-                 maxlength: int = 32):
+                 maxlength: int = 32,
+                 regex: str = ""):
     
     super().initialize(name = name, 
                  description = description, 
@@ -39,24 +43,27 @@ class DatatypeString(Datatype):
                  foreignKey=foreignKey)
     self.Type = self.getType()
     self.MaxLength = maxlength
+    self.Regex = regex
     return self
   
   def from_dict(self, datatype):
     super().from_dict(datatype)
     self.Type = self.getType()
     self.MaxLength = bool(datatype[self.PropertName.MAXLENGTH])
+    self.Regex = bool(datatype[self.PropertName.MAXLENGTH]) # Handle Escape
     return self
 
   def to_dict(self):
     _datatypeString = super().to_dict()
     _datatypeString[self.PropertName.MAXLENGTH] = self.MaxLength
+    _datatypeString[self.PropertName.REGEX] = self.Regex # Handle Escape
     return _datatypeString
   
   def Python(self, *args) -> str:
     return "str"
   
   def Python_Dependencies(self) -> list:
-    return []
+    return [] # import re
   
   def Python_DefaultValue(self, *args) -> str:
     default_value = "\"\""

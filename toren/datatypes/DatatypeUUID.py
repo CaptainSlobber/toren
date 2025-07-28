@@ -44,8 +44,8 @@ class DatatypeUUID(Datatype):
     return self
 
   def to_dict(self):
-    _datatypeString = super().to_dict()
-    return _datatypeString
+    _datatype = super().to_dict()
+    return _datatype
   
   def Python(self, *args) -> str:
     return "uuid.UUID"

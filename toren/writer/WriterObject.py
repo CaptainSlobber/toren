@@ -32,7 +32,6 @@ class WriterObject():
             file.write(content)
         return file_path
 
-
     def getDatalayerName(self):
         return "datalayer"
 
@@ -42,7 +41,6 @@ class WriterObject():
     def getParentProjectDataPath(self, language: Language, project: Project):
         return os.path.join(language.OutputDirectory, project.Name, project.Name, self.getDatalayerName())
     
-
     def getParentModulePath(self, language: Language, project: Project, module: Module):
         return os.path.join(language.OutputDirectory, project.Name, project.Name,  module.Name)
     

@@ -1,14 +1,18 @@
 from .Datatype import Datatype
 from .ForeignKey import ForeignKey
+from .DatatypeNumeric import DatatypeNumeric
 import collections
 
-class DatatypeDecimal(Datatype):
+class DatatypeDecimal(DatatypeNumeric):
 
-  class PropertName(Datatype.PropertName):
-    pass
+  class PropertName(DatatypeNumeric.PropertName):
+    PRECISION = "Precision"
+    SCALE = "Scale"
 
-  class PropertID(Datatype.PropertID):
-    pass
+  class PropertID(DatatypeNumeric.PropertID):
+    PRECISION = "2a43476d-5856-4b6b-92dd-62ae95a8844f"
+    SCALE = "2a43476d-5856-4b6b-92dd-62ae95a8844f"
+  
   
   def getType(self):
     return "toren.datatypes.DatatypeDecimal"
@@ -25,7 +29,11 @@ class DatatypeDecimal(Datatype):
                  isunique: bool = False,
                  defaultvalue: str = "",
                  dimensionality: list = [],
-                 foreignKey: ForeignKey=None):
+                 foreignKey: ForeignKey=None,
+                 minimum: float = 0.0,
+                 maximum: float = 100.0,
+                 precision: int = 2,
+                 scale: int = 2):
     
     super().initialize(name = name, 
                  description = description, 
@@ -34,18 +42,29 @@ class DatatypeDecimal(Datatype):
                  isunique=isunique,
                  defaultvalue=defaultvalue,
                  dimensionality=dimensionality,
-                 foreignKey=foreignKey)
+                 foreignKey=foreignKey,
+                 minimum=minimum,
+                 maximum=maximum)
+  
+    # precision (p) is the maximum number of all digits (both sides of the decimal point),
+    self.Precision = precision
+    # scale (s) is the maximum number of digits after the decimal point
+    self.Scale = scale
     self.Type = self.getType()
     return self
   
   def from_dict(self, datatype):
     super().from_dict(datatype)
+    self.Precision = float(datatype[self.PropertName.PRECISION])
+    self.Scale = float(datatype[self.PropertName.SCALE])
     self.Type = self.getType()
     return self
 
   def to_dict(self):
-    _datatypeDecimal = super().to_dict()
-    return _datatypeDecimal
+    _datatype = super().to_dict()
+    _datatype[self.PropertName.PRECISION] = self.Precision
+    _datatype[self.PropertName.SCALE] = self.Scale
+    return _datatype
   
   def Python(self, *args) -> str:
     return "Decimal"
