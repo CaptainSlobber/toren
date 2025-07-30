@@ -28,7 +28,6 @@ class DatatypeString(Datatype):
                  isprimarykey: bool = False,
                  isunique: bool = False,
                  defaultvalue: str = "",
-                 dimensionality: list = [],
                  foreignKey: ForeignKey=None,
                  maxlength: int = 32,
                  regex: str = ""):
@@ -39,7 +38,6 @@ class DatatypeString(Datatype):
                  isprimarykey = isprimarykey,
                  isunique=isunique,
                  defaultvalue=defaultvalue,
-                 dimensionality=dimensionality,
                  foreignKey=foreignKey)
     self.Type = self.getType()
     self.MaxLength = maxlength

@@ -24,7 +24,6 @@ class DatatypeCharacter(Datatype):
                  isprimarykey: bool = False,
                  isunique: bool = False,
                  defaultvalue: str = "",
-                 dimensionality: list = [],
                  foreignKey: ForeignKey=None):
     
     if len(defaultvalue) > 1: defaultvalue = defaultvalue[0] # First character only
@@ -34,7 +33,6 @@ class DatatypeCharacter(Datatype):
                  isprimarykey = isprimarykey,
                  isunique=isunique,
                  defaultvalue=defaultvalue,
-                 dimensionality=dimensionality,
                  foreignKey=foreignKey)
     self.Type = self.getType()
     return self

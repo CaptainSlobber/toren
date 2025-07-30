@@ -24,7 +24,6 @@ class DatatypeNetworkAddress(Datatype):
                  isprimarykey: bool = False,
                  isunique: bool = False,
                  defaultvalue: str = "",
-                 dimensionality: list = [],
                  foreignKey: ForeignKey=None):
     
     super().initialize(name = name, 
@@ -33,7 +32,6 @@ class DatatypeNetworkAddress(Datatype):
                  isprimarykey = isprimarykey,
                  isunique=isunique,
                  defaultvalue=defaultvalue,
-                 dimensionality=dimensionality,
                  foreignKey=foreignKey)
     self.Type = self.getType()
     return self

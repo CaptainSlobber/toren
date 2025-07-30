@@ -51,16 +51,26 @@ class DatatypeFloat(DatatypeNumeric):
   def to_dict(self):
     _datatype = super().to_dict()
     return _datatype
-  
+
   def Python(self, *args) -> str:
-    return "float"
+    if len(self.Dimensinality) > 0:
+      return f"npt.NDArray[np.float32]" #np.array/np.ndarray
+    else:
+      return "float"
   
   def Python_Dependencies(self) -> list:
-    return [""]
+    if len(self.Dimensinality) > 0:
+      return ["import numpy as np", "import numpy.typing as npt"]
+    else:
+      return [""]
   
   def Python_DefaultValue(self, *args) -> str:
-    default_value = "0.0" 
-    if self.DefaultValue:
-      if len(self.DefaultValue) > 0:
-        default_value = f"float({self.DefaultValue})"
-    return default_value
+    if len(self.Dimensinality) > 0:
+      return f"np.zeros({str(self.Dimensinality)}, dtype=np.float32)"
+    else:
+      default_value = "0.0" 
+      if self.DefaultValue:
+        if len(self.DefaultValue) > 0:
+          default_value = f"float({self.DefaultValue})"
+      return default_value
+  

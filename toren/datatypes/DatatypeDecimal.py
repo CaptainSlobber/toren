@@ -65,17 +65,25 @@ class DatatypeDecimal(DatatypeNumeric):
     _datatype[self.PropertName.PRECISION] = self.Precision
     _datatype[self.PropertName.SCALE] = self.Scale
     return _datatype
-  
+
   def Python(self, *args) -> str:
-    return "Decimal"
+    if len(self.Dimensinality) > 0:
+      return f"npt.NDArray[np.float128]" # Sorta 
+    else:
+      return "Decimal"
   
   def Python_Dependencies(self) -> list:
-    return ['from decimal import Decimal']
+    if len(self.Dimensinality) > 0:
+      return ["import numpy as np", "import numpy.typing as npt"]
+    else:
+      return ['from decimal import Decimal']
   
   def Python_DefaultValue(self, *args) -> str:
-    default_value = "Decimal(0.0)"
-    if self.DefaultValue:
-      if len(self.DefaultValue) > 0:
-        default_value = f"Decimal('{self.DefaultValue}')"
-    return default_value
-  
+    if len(self.Dimensinality) > 0:
+      return f"np.zeros({str(self.Dimensinality)}, dtype=np.float128)" # Kinda 
+    else:
+      default_value = "Decimal(0.0)"
+      if self.DefaultValue:
+        if len(self.DefaultValue) > 0:
+          default_value = f"Decimal('{self.DefaultValue}')"
+      return default_value

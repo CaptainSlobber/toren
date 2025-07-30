@@ -53,15 +53,24 @@ class DatatypeDouble(DatatypeNumeric):
     return _datatype
   
   def Python(self, *args) -> str:
-    # float type = 64-bit double-precision floating-point number in Python
-    return "float" 
+    if len(self.Dimensinality) > 0:
+      return f"npt.NDArray[np.float64]" #np.array/np.ndarray
+    else:
+      # float type = 64-bit double-precision floating-point number in Python
+      return "float"
   
   def Python_Dependencies(self) -> list:
-    return [""]
+    if len(self.Dimensinality) > 0:
+      return ["import numpy as np", "import numpy.typing as npt"]
+    else:
+      return [""]
   
   def Python_DefaultValue(self, *args) -> str:
-    default_value = "0.0" 
-    if self.DefaultValue:
-      if len(self.DefaultValue) > 0:
-        default_value = f"float({self.DefaultValue})"
-    return default_value
+    if len(self.Dimensinality) > 0:
+      return f"np.zeros({str(self.Dimensinality)}, dtype=np.float64)"
+    else:
+      default_value = "0.0" 
+      if self.DefaultValue:
+        if len(self.DefaultValue) > 0:
+          default_value = f"float({self.DefaultValue})"
+      return default_value

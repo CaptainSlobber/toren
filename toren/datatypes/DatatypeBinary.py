@@ -24,7 +24,6 @@ class DatatypeBinary(Datatype):
                  isprimarykey: bool = False,
                  isunique: bool = False,
                  defaultvalue: str = "",
-                 dimensionality: list = [],
                  foreignKey: ForeignKey=None,
                  sizeLimitkb: int = 1024):
     
@@ -34,7 +33,6 @@ class DatatypeBinary(Datatype):
                  isprimarykey = isprimarykey,
                  isunique=isunique,
                  defaultvalue=defaultvalue,
-                 dimensionality=dimensionality,
                  foreignKey=foreignKey)
     self.Type = self.getType()
     self.SizeLimitkb = sizeLimitkb
