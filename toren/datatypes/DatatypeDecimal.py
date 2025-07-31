@@ -87,3 +87,27 @@ class DatatypeDecimal(DatatypeNumeric):
         if len(self.DefaultValue) > 0:
           default_value = f"Decimal('{self.DefaultValue}')"
       return default_value
+
+  def CSharp(self, *args) -> str:
+    if len(self.Dimensinality) > 0:
+      commas = ","*(len(self.Dimensinality)-1)  
+      return f"decimal[{commas}]" #multidimensional array
+    else:
+      return "decimal"
+  
+  def CSharp_Dependencies(self) -> list:
+    if len(self.Dimensinality) > 0:
+      return ["using System;"] # Consider: System.Numerics.Vectors
+    else:
+      return [""]
+  
+  def CSharp_DefaultValue(self, *args) -> str:
+    if len(self.Dimensinality) > 0:
+      
+      return f"new decimal[{','.join(self.Dimensinality)}]"
+    else:
+      default_value = "0.0m" #"(decimal) 0m"
+      if self.DefaultValue:
+        if len(self.DefaultValue) > 0:
+          default_value = f"{self.DefaultValue}m" #f"(decimal) {self.DefaultValue}M"
+      return default_value

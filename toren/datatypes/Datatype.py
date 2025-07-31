@@ -7,7 +7,6 @@ import json
 
 class Datatype(TorenObject):
 
-
   class PropertName():
     TYPE = "Type"
     NAME = "Name"
@@ -179,6 +178,12 @@ class Datatype(TorenObject):
   ##########################################################################
   def CSharp(self, *args) -> str:
     raise NotImplementedError
+  
+  def CSharp_Dependencies(self) -> list:
+    return NotImplementedError
+
+  def CSharp_DefaultValue(self, *args) -> str:
+    return NotImplementedError
   
   def CSharp_to_Oracle(self, *args) -> str:
     raise NotImplementedError

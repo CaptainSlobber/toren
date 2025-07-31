@@ -58,3 +58,15 @@ class DatatypeBoolean(Datatype):
         default_value = f"{self.DefaultValue.capitalize()}"
     return default_value
   
+  def CSharp(self, *args) -> str:
+    return "bool"
+  
+  def CSharp_Dependencies(self) -> list:
+    return [""]
+  
+  def CSharp_DefaultValue(self, *args) -> str:
+    default_value = "false"
+    if self.DefaultValue:
+      if len(self.DefaultValue) > 0:
+        default_value = f"{self.DefaultValue.lower()}"
+    return default_value

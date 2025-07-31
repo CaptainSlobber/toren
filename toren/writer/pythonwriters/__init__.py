@@ -1,3 +1,1 @@
-
-
 from .PythonProjectWriter import PythonProjectWriter

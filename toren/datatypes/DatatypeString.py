@@ -69,3 +69,16 @@ class DatatypeString(Datatype):
       if len(self.DefaultValue) > 0:
         default_value = f"\"{self.DefaultValue}\""
     return default_value
+
+  def CSharp(self, *args) -> str:
+    return "string"
+  
+  def CSharp_Dependencies(self) -> list:
+    return ["using System;"] 
+  
+  def CSharp_DefaultValue(self, *args) -> str:
+    default_value = 'String.Empty'
+    if self.DefaultValue:
+      if len(self.DefaultValue) > 0:
+        default_value = f'"{self.DefaultValue}"'
+    return default_value

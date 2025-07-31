@@ -58,3 +58,15 @@ class DatatypeUUID(Datatype):
         default_value = f"uuid.UUID('{self.DefaultValue}')"
     return default_value
   
+  def CSharp(self, *args) -> str:
+    return "System.Guid"
+  
+  def CSharp_Dependencies(self) -> list:
+    return ["using System;"] 
+  
+  def CSharp_DefaultValue(self, *args) -> str:
+    default_value = 'System.Guid.NewGuid()'
+    if self.DefaultValue:
+      if len(self.DefaultValue) > 0: # TODO: Validate if string is a valid UUID
+        default_value = f'System.Guid.NewGuid("{self.DefaultValue}")'
+    return default_value

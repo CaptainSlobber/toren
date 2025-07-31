@@ -52,9 +52,22 @@ class DatatypeNetworkAddress(Datatype):
     return ["import ipaddress", "from ipaddress import IPv4Address"]
   
   def Python_DefaultValue(self, *args) -> str:
-    default_value = "ipaddress.ip_address('0.0.0.0')"
+    default_value = "ipaddress.ip_address('127.0.0.1')"
     if self.DefaultValue:
       if len(self.DefaultValue) > 0:
         default_value = f"ipaddress.ip_address('{self.DefaultValue}')"
     return default_value
   
+
+  def CSharp(self, *args) -> str:
+    return "IPAddress"
+  
+  def CSharp_Dependencies(self) -> list:
+    return ["using System;", "using System.Net;"] 
+  
+  def CSharp_DefaultValue(self, *args) -> str:
+    default_value = 'IPAddress.Parse("127.0.0.1")'
+    if self.DefaultValue:
+      if len(self.DefaultValue) > 0:
+        default_value = f'IPAddress.Parse("{self.DefaultValue}")'
+    return default_value

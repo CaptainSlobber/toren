@@ -59,3 +59,16 @@ class DatatypeDatetime(Datatype):
       if len(self.DefaultValue) > 0:
         default_value = f"datetime.fromisoformat('{self.DefaultValue}')"
     return default_value
+  
+  def CSharp(self, *args) -> str:
+    return "Datetime"
+  
+  def CSharp_Dependencies(self) -> list:
+    return ["using System.Globalization;"]
+  
+  def CSharp_DefaultValue(self, *args) -> str:
+    default_value = "DateTime.Now"
+    if self.DefaultValue:
+      if len(self.DefaultValue) > 0:
+        default_value = f'DateTime.Parse("{self.DefaultValue}", null, DateTimeStyles.RoundtripKind)'
+    return default_value

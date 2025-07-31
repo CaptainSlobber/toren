@@ -59,3 +59,16 @@ class DatatypeCharacter(Datatype):
         default_value = f"\"{self.DefaultValue[0]}\"" # First character only
     return default_value
   
+  def CSharp(self, *args) -> str:
+    return "char[]"
+  
+  def CSharp_Dependencies(self) -> list:
+    return [""]
+  
+  def CSharp_DefaultValue(self, *args) -> str:
+    default_value = "new char[1]"
+    if self.DefaultValue:
+      if len(self.DefaultValue) > 0:
+        #default_value = f"new char[1] {{{self.DefaultValue}}}"
+        default_value = f"['{self.DefaultValue}']"
+    return default_value

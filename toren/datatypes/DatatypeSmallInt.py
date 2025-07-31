@@ -74,4 +74,26 @@ class DatatypeSmallInt(DatatypeNumeric):
         if len(self.DefaultValue) > 0:
           default_value = f"{self.DefaultValue}"
       return default_value
-    
+
+  def CSharp(self, *args) -> str:
+    if len(self.Dimensinality) > 0:
+      commas = ","*(len(self.Dimensinality)-1)  
+      return f"int16[{commas}]" #multidimensional array
+    else:
+      return "int16"
+  
+  def CSharp_Dependencies(self) -> list:
+    if len(self.Dimensinality) > 0:
+      return ["using System;"] # Consider: System.Numerics.Vectors
+    else:
+      return [""]
+  
+  def CSharp_DefaultValue(self, *args) -> str:
+    if len(self.Dimensinality) > 0:
+      return f"new int16[{','.join(self.Dimensinality)}]"
+    else:
+      default_value = "0"
+      if self.DefaultValue:
+        if len(self.DefaultValue) > 0:
+          default_value = f"{self.DefaultValue}"
+      return default_value

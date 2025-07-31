@@ -72,6 +72,29 @@ class DatatypeInt(DatatypeNumeric):
       default_value = "0"
       if self.DefaultValue:
         if len(self.DefaultValue) > 0:
-          default_value = f"{self.DefaultValue}"
+          default_value = f"{str(int(self.DefaultValue))}"
+      return default_value
+    
+  def CSharp(self, *args) -> str:
+    if len(self.Dimensinality) > 0:
+      commas = ","*(len(self.Dimensinality)-1)  
+      return f"int[{commas}]" #multidimensional array
+    else:
+      return "int"
+  
+  def CSharp_Dependencies(self) -> list:
+    if len(self.Dimensinality) > 0:
+      return ["using System;"] # Consider: System.Numerics.Vectors
+    else:
+      return [""]
+  
+  def CSharp_DefaultValue(self, *args) -> str:
+    if len(self.Dimensinality) > 0:
+      return f"new int[{','.join(self.Dimensinality)}]"
+    else:
+      default_value = "0"
+      if self.DefaultValue:
+        if len(self.DefaultValue) > 0:
+          default_value = f"{str(int(self.DefaultValue))}"
       return default_value
     

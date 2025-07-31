@@ -62,3 +62,16 @@ class DatatypeBinary(Datatype):
         default_value = f"bytearray({self.DefaultValue})"
     return default_value
   
+  def CSharp(self, *args) -> str:
+    # TODO: Implement length
+    return "byte[]"
+  
+  def CSharp_Dependencies(self) -> list:
+    return [""]
+  
+  def CSharp_DefaultValue(self, *args) -> str:
+    default_value = "new byte[] {}"
+    if self.DefaultValue:
+      if len(self.DefaultValue) > 0:
+        default_value = f"new byte[] {{{self.DefaultValue}}}"
+    return default_value
