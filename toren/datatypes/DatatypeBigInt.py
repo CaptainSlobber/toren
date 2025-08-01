@@ -92,7 +92,7 @@ class DatatypeBigInt(DatatypeNumeric):
   def CSharp_DefaultValue(self, *args) -> str:
     if len(self.Dimensinality) > 0:
       
-      return f"new long[{','.join(self.Dimensinality)}]"
+      return f"new long[{','.join(list(map(str, self.Dimensinality)))}]"
     else:
       default_value = "0"
       if self.DefaultValue:

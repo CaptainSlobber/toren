@@ -49,6 +49,9 @@ class StringWriter:
         return self
     
 
+    def a(self, text: str) -> Self:
+        return self.append(text)
+    
     def append(self, text: str) -> Self:
         self._buffer.write(text)
         return self

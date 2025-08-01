@@ -16,12 +16,13 @@ class CSharpStringWriter(StringWriter):
 
     def o(self):
         self.append("{").Inc()
+        self.append(self.newline())
         return self
 
     
     def c(self):
         self.Dec()
-        self.append("}")
+        self.write("}")
         self.append(self.newline())
         return self
         

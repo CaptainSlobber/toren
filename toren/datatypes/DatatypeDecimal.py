@@ -104,7 +104,7 @@ class DatatypeDecimal(DatatypeNumeric):
   def CSharp_DefaultValue(self, *args) -> str:
     if len(self.Dimensinality) > 0:
       
-      return f"new decimal[{','.join(self.Dimensinality)}]"
+      return f"new decimal[{','.join(list(map(str, self.Dimensinality)))}]"
     else:
       default_value = "0.0m" #"(decimal) 0m"
       if self.DefaultValue:

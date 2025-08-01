@@ -90,7 +90,7 @@ class DatatypeNumeric(Datatype):
   
   def CSharp_DefaultValue(self, *args) -> str:
     if len(self.Dimensinality) > 0:
-      return f"new double[{','.join(self.Dimensinality)}]"
+      return f"new double[{','.join(list(map(str, self.Dimensinality)))}]"
     else:
       default_value = "0.0"
       if self.DefaultValue:
