@@ -16,6 +16,7 @@ class Class(TorenObject):
     PROPERTIES = "Properties"
     INHERITSFROMID = "InheritsFromID"
     INHERITSFROM = "InheritsFrom"
+    PLURALNAME = "PluralName"
 
   class PropertID():
     TYPE = "1fefc4f1-a3da-4c55-a5c5-2332e1330a07"
@@ -26,6 +27,7 @@ class Class(TorenObject):
     PROPERTIES = "b95a7a80-21b8-417f-862c-49365faa94d0"
     INHERITSFROMID = "987d435c-3726-488e-a627-34080d055bc5"
     INHERITSFROM = "d23ce36a-2950-49a7-a008-1c935f7678b4"
+    PLURALNAME = "c28bb6ff-6de2-4180-a379-207626961090"
   
   def __init__(self):
     self.Type = "toren.Class"
@@ -36,6 +38,12 @@ class Class(TorenObject):
     self.Properties = DatatypeCollection()
     self.Children = {}
     self.setInheritsFrom(None)
+    self.PluralName = self.getDefaultPluralName(self.Name, None)
+
+  def getDefaultPluralName(self, name, pluralname=None):
+    if pluralname is not None:
+      return pluralname
+    return f"{name}Set"
 
   
   def initialize(self, 
@@ -44,10 +52,12 @@ class Class(TorenObject):
                  id: str,
                  properties: List[Datatype] = None,
                  inheritsfrom = None,
-                 children = {}):
+                 children = {},
+                 pluralname = None):
     self.Type = "toren.Class"
     self.Name = name
     self.Description = description
+    self.PluralName = self.getDefaultPluralName(self.Name, pluralname)
     self.ID = id
     self.ParentModule = None
     self.setInheritsFrom(inheritsfrom)
@@ -106,6 +116,7 @@ class Class(TorenObject):
     _class = {}
     _class[self.PropertName.TYPE] = self.Type
     _class[self.PropertName.NAME] = self.Name
+    _class[self.PropertName.PLURALNAME] = self.PluralName
     _class[self.PropertName.DESCRIPTION] = self.Description
     _class[self.PropertName.ID]  = self.ID
     _class[self.PropertName.INHERITSFROMID] = self.InheritsFromID
@@ -116,6 +127,7 @@ class Class(TorenObject):
   def from_dict(self, _class):
     #self.Type = str(_class[self.PropertName.TYPE])
     self.Name = str(_class[self.PropertName.NAME])
+    self.PluralName = str(_class[self.PropertName.PLURALNAME])
     self.Description = str(_class[self.PropertName.DESCRIPTION])
     self.ID = str(_class[self.PropertName.ID])
     self.InheritsFromID = _class[self.PropertName.INHERITSFROMID] if self.PropertName.INHERITSFROMID in _class else None

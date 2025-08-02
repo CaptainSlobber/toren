@@ -199,18 +199,15 @@ class PythonClassWriter(ClassWriter):
 
     def writeClassReferenceCollection(self, _class, s: PythonStringWriter):
         s.wln("\"\"\"")
-        s.wln(f" property: {_class.Name} Collection")
+        s.wln(f" property: {_class.PluralName} ({_class.Name} Collection)")
         s.wln("\"\"\"")
 
-        setName = "Set"
-
-
-        s.wln(f"def set{_class.Name}{setName}(self, {_class.Name.lower()}{setName}_: {_class.Name}{self.SetDescription}):")
-        s.o().wln(f"self._{_class.Name.lower()}{setName} = {_class.Name.lower()}{setName}_")
+        s.wln(f"def set{_class.PluralName}(self, {_class.PluralName.lower()}_: {_class.Name}{self.SetDescription}):")
+        s.o().wln(f"self._{_class.PluralName.lower()} = {_class.PluralName.lower()}_")
         s.c()
 
-        s.wln(f"def get{_class.Name}{setName}(self):")
-        s.o().wln(f"return self._{_class.Name.lower()}{setName}")
+        s.wln(f"def get{_class.PluralName}(self):")
+        s.o().wln(f"return self._{_class.PluralName.lower()}")
         s.c()
 
 

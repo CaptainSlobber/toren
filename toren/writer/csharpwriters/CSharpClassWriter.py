@@ -135,17 +135,115 @@ class CSharpClassWriter(ClassWriter):
 
     def writeClassReferenceCollection(self, _class, s: CSharpStringWriter):
         s.wln("/*")
-        s.wln(f" property: {_class.Name} Collection")
+        s.wln(f" property: {_class.PluralName} ({_class.Name} Collection)")
         s.wln("*/")
 
-        setName = "Set" # TODO: Parameterize 
+        s.wln(f"private {_class.Name}{self.SetDescription} _{_class.PluralName.lower()};").ret()
+        s.w(f"public {_class.Name}{self.SetDescription} {_class.PluralName} ").o()
+        s.wln(f"get {{ return this._{_class.PluralName.lower()}; }}")
+        s.wln(f"set {{ this._{_class.PluralName.lower()} = value; }}")
+        s.c().ret()
+
+        return s
+    
 
 
-        s.wln(f"private {_class.Name}{self.SetDescription} _{_class.Name.lower()}{setName};").ret()
-        s.w(f"public {_class.Name}{self.SetDescription} {_class.Name}{setName} ").o()
-        s.wln(f"get {{ return this._{_class.Name.lower()}{setName}; }}")
-        s.wln(f"set {{ this._{_class.Name.lower()}{setName} = value; }}")
+    def writeClassCollectionOpen(self, s):
+        s.write(f"public class {self.Class.Name}{self.SetDescription} ").o()
+        s.ret()
+        s.wln("/*")
+        s.wln(f" {self.Class.Description} {self.SetDescription}")
+        s.wln("*/")
+        s.ret()
+
+        return s
+    
+
+
+    def writeClassCollectionInitializer(self, s:CSharpStringWriter):
+
+
+        # +------------------+---------+----------+--------+----------+----------+---------+
+        # | Collection       | Indexed | Keyed    | Value  | Addition |  Removal | Memory  |
+        # |                  | lookup  | lookup   | lookup |          |          |         |
+        # +------------------+---------+----------+--------+----------+----------+---------+
+        # | SortedList       | O(1)    | O(log n) | O(n)   | O(n)*    | O(n)     | Lesser  |
+        # | SortedDictionary | O(n)**  | O(log n) | O(n)   | O(log n) | O(log n) | Greater |
+        # +------------------+---------+----------+--------+----------+----------+---------+
+        pkcls = self.getPrimaryKeyClass()
+        csharpCollectionObject = f"SortedDictionary<{pkcls.CSharp()}, {self.Class.Name}>"
+
+        s.w(f"public {self.Class.Name}{self.SetDescription}() ").o()
+        s.wln(f"this._data = new {csharpCollectionObject}();")
+        s.c()
+
+        s.wln(f"private {csharpCollectionObject} _data;").ret()
+        s.w(f"public {csharpCollectionObject} Data ").o()
+        s.wln(f"get {{ return this._data; }}")
+        s.wln(f"set {{ this._data = value; }}")
         s.c().ret()
 
 
         return s
+
+
+    def writeClassCollectionAddItem(self, s:CSharpStringWriter):
+        pkcls = self.getPrimaryKeyClass()
+        s.w(f"public void appendItem({self.Class.Name} _{self.Class.Name.lower()}) ").o()
+        s.wln(f"this._data.Add(_{self.Class.Name.lower()}.{pkcls.Name}, _{self.Class.Name.lower()});")
+        s.c().ret()
+        return s
+    
+    def writeClassCollectionRemoveItem(self, s:CSharpStringWriter):
+        pkcls = self.getPrimaryKeyClass()
+        s.w(f"public bool removeItem({pkcls.CSharp()} {pkcls.Name.lower()}) ").o()
+        s.wln(f"return this._data.Remove({pkcls.Name.lower()});")
+        s.c().ret()
+
+        return s
+    
+
+
+    
+    def writeClassCollectionGetItem(self, s:CSharpStringWriter):
+        pkcls = self.getPrimaryKeyClass()
+        s.w(f"public {self.Class.Name} getItem({pkcls.CSharp()} {pkcls.Name.lower()}) ").o()
+        #s.w(f"if (this.Data.ContainsKey({pkcls.Name.lower()})").o()
+        s.wln(f"return this.Data[{pkcls.Name.lower()}];")
+        #s.c()
+        #s.wln("return null;")
+        s.c().ret()
+
+        return s
+    
+    def writeClassCollectionGetLength(self, s:CSharpStringWriter):
+
+        s.w(f"public int count() ").o()
+        s.wln(f"return length();")
+        s.c().ret()
+
+        s.w(f"public int length() ").o()
+        s.wln(f"return this._data.Count;")
+        s.c().ret()
+        return s
+    
+    def writeClassCollectionClose(self, s:CSharpStringWriter):
+        s.c()
+        return s  
+
+    def getClassCollectionDependencies(self):
+        dependency_map = {}
+        
+        _system = "using System;"
+        _collections = "using System.Collections.Generic;" 
+        proj = self.Class.ParentModule.ParentProject.Name
+        modl = self.Class.ParentModule.Name
+        clss = self.Class.Name
+        _cls = f"using {proj}.{modl}.{clss};"
+
+        dependency_map[_system] = _system
+        dependency_map[_collections] = _collections
+        dependency_map[_cls] = _cls
+
+        return dependency_map
+    
