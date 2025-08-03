@@ -142,31 +142,26 @@ class PythonClassWriter(ClassWriter):
 
 
     def writeClassCollectionAddItem(self, s:PythonStringWriter):
-        pkcls = self.getPrimaryKeyClass()
+        pkproperty = self.getPrimaryKeyProperty()
         s.wln(f"def appendItem(self, _{self.Class.Name.lower()}):").o()
         #s.wln(f"def appendItem(self, _{self.Class.Name.lower()}: {self.Class.Name}):").o()
-        s.wln(f"self.Data[_{self.Class.Name.lower()}.{pkcls.Name}] = _{self.Class.Name.lower()}").c()
+        s.wln(f"self.Data[_{self.Class.Name.lower()}.{pkproperty.Name}] = _{self.Class.Name.lower()}").c()
 
         return s
     
     def writeClassCollectionRemoveItem(self, s:PythonStringWriter):
-        pkcls = self.getPrimaryKeyClass()
-        s.wln(f"def removeItem(self, {pkcls.Name.lower()}):").o()
-        s.wln(f"if {pkcls.Name.lower()} in self.Data:").o()
-        s.wln(f"del self.Data[{pkcls.Name.lower()}]").c().c()
-
+        pkproperty = self.getPrimaryKeyProperty()
+        s.wln(f"def removeItem(self, {pkproperty.Name.lower()}):").o()
+        s.wln(f"if {pkproperty.Name.lower()} in self.Data:").o()
+        s.wln(f"del self.Data[{pkproperty.Name.lower()}]").c().c()
         return s
     
-
-
-    
     def writeClassCollectionGetItem(self, s:PythonStringWriter):
-        pkcls = self.getPrimaryKeyClass()
-        s.wln(f"def getItem(self, {pkcls.Name.lower()}):").o()
-        s.wln(f"if {pkcls.Name.lower()} in self.Data:").o()
-        s.wln(f"return self.Data[{pkcls.Name.lower()}]").c()
+        pkproperty = self.getPrimaryKeyProperty()
+        s.wln(f"def getItem(self, {pkproperty.Name.lower()}):").o()
+        s.wln(f"if {pkproperty.Name.lower()} in self.Data:").o()
+        s.wln(f"return self.Data[{pkproperty.Name.lower()}]").c()
         s.wln("return None").c()
-
         return s
     
     def writeClassCollectionGetLength(self, s:PythonStringWriter):
@@ -176,6 +171,32 @@ class PythonClassWriter(ClassWriter):
         s.wln("def length(self):").o()
         s.wln("return len(self.Data)").c()
         return s
+    
+    def writeClassCollectionFromList(self, s:PythonStringWriter):
+        pkproperty = self.getPrimaryKeyProperty()
+        s.wln(f"def fromList(self, {self.Class.Name}List):").o()
+        #s.wln(f"self.Data = collections.OrderedDict({self.Class.Name}List)")
+        s.wln(f"self.Data = collections.OrderedDict()")
+        s.wln(f"for _{self.Class.Name.lower()} in {self.Class.Name}List:").o()
+        s.wln(f"self.Data[_{self.Class.Name.lower()}.{pkproperty.Name}] = _{self.Class.Name.lower()}").c()
+        s.wln("return self").c()
+        return s
+
+    def writeClassCollectionToList(self, s:PythonStringWriter):
+        s.wln(f"def toList(self):").o()
+        s.wln(f"return list(self.Data.values())").c()
+        return s 
+    
+    def writeClassCollectionToDictionary(self, s:PythonStringWriter):
+        s.wln(f"def toDict(self):").o()
+        s.wln(f"return dict(self.Data)").c()
+        return s
+
+    def writeClassCollectionFromDictionary(self, s:PythonStringWriter):
+        s.wln(f"def fromDict(self, {self.Class.Name}Dict: dict = {{}}):").o()
+        s.wln(f"self.Data = collections.OrderedDict(sorted({self.Class.Name}Dict.items()))")
+        s.wln("return self").c()
+        return s 
     
     def writeClassCollectionClose(self, s:PythonStringWriter):
         s.c()

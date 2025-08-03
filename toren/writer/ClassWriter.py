@@ -61,7 +61,7 @@ class ClassWriter(WriterObject):
         for dependencyid, dependency in dependency_map.items():
             s.wln(f"{dependency}")
         
-        s.ret()
+        #s.ret()
         return s
     
     def writeClassOpen(self, s:StringWriter):
@@ -172,16 +172,41 @@ class ClassWriter(WriterObject):
         s = self.writeClassCollectionRemoveItem(s)
         s = self.writeClassCollectionGetItem(s)
         s = self.writeClassCollectionGetLength(s)
+        s = self.writeClassCollectionFromList(s)
+        s = self.writeClassCollectionToList(s) 
+        s = self.writeClassCollectionFromArray(s)
+        s = self.writeClassCollectionToArray(s) 
+        s = self.writeClassCollectionFromDictionary(s)
+        s = self.writeClassCollectionToDictionary(s)
         return s
     
-    def getPrimaryKeyClass(self):
+    def getPrimaryKeyProperty(self):
         for propertyid, property in self.Class.Properties.Data.items():
             if property.IsPrimaryKey:
                 return property
         for propertyid, property in self.Class.InheritedProperties.Data.items():
             if property.IsPrimaryKey:
                 return property
+        raise Exception(f"Primary key property not found for class {self.Class.Name}") # TODO: Consider this edge case
     
+
+    def writeClassCollectionFromArray(self, s:StringWriter):
+        return s
+
+    def writeClassCollectionToArray(self, s:StringWriter):
+        return s 
+
+    def writeClassCollectionFromList(self, s:StringWriter):
+        return s
+
+    def writeClassCollectionToList(self, s:StringWriter):
+        return s 
+    
+    def writeClassCollectionToDictionary(self, s:StringWriter):
+        return s
+
+    def writeClassCollectionFromDictionary(self, s:StringWriter):
+        return s 
 
     def writeClassCollectionAddItem(self, s:StringWriter):
         return s
