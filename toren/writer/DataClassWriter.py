@@ -26,6 +26,7 @@ class DataClassWriter(WriterObject):
         self.StringWriterClass = StringWriter
         self.Class = class_
         self.Language = language
+
         self.ParentClassName = self.getParentClassName()
         self.setLogger(logger)
         self.S = self.StringWriterClass(self.Language)
@@ -80,6 +81,36 @@ class DataClassWriter(WriterObject):
     def writeDLClassProperties(self, s:StringWriter):
         return s
     
+    def writeDLClassOperations(self, s:StringWriter):
+        s = self.writeCreateTable(s)
+        s = self.writeInsert(s)     
+        s = self.writeInsertCollection(s)
+        s = self.writeUpdate(s) 
+        s = self.writeDelete(s)
+        s = self.writeSelectSingleRecordByPK(s)
+        s = self.writeSelectWhere(s)
+        return s
+    
+    def writeCreateTable(self, s:StringWriter):
+        return s
+    
+    def writeInsert(self, s:StringWriter):
+        return s
+    
+    def writeInsertCollection(self, s:StringWriter):
+        return s
+    
+    def writeUpdate(self, s:StringWriter):
+        return s
+    
+    def writeDelete(self, s:StringWriter):
+        return s
+    
+    def writeSelectSingleRecordByPK(self, s:StringWriter):
+        return s
+    
+    def writeSelectWhere(self, s:StringWriter):
+        return s
 
     def writeDLClassClose(self, s:StringWriter):
         s.c()
@@ -97,6 +128,7 @@ class DataClassWriter(WriterObject):
         s = self.writeDLClassOpen(s)
         s = self.writeDLClassInitializer(s)
         s = self.writeDLClassProperties(s)
+        s = self.writeDLClassOperations(s)
         s = self.writeDLClassClose(s)
         self.createDLClassFile(s)
 
