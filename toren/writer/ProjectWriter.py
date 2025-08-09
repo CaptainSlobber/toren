@@ -23,14 +23,6 @@ class ProjectWriter(WriterObject):
         self.DataModuleWriterClass = DataModuleWriter
         self.setLogger(logger)
 
-    def setLogger(self, logger: Logger):
-        if logger is not None:
-            self.Logger = logger
-        else:
-            self.Logger = Logger()
-        return self.Logger
-
-
     def write(self):
         self.Logger.Log(f"Writing {self.Language.Name} Project: {self.Project.Name}")
 
@@ -46,8 +38,8 @@ class ProjectWriter(WriterObject):
 
     def writeDataLayer(self, project: Project):
         for moduleid, module in project.Modules.Data.items():
-            for languageid, language in project.Datastores.Data.items():
-                dm = self.DataModuleWriterClass(project=project, module=module, language=self.Language, logger=self.Logger)
+            for databaseid, database in project.Datastores.Data.items():
+                dm = self.DataModuleWriterClass(project=project, module=module, language=self.Language, database=database, logger=self.Logger)
                 dm.write()
 
     def writeModules(self, project:Project):

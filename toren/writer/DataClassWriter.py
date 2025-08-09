@@ -8,6 +8,7 @@ from .WriterObject import WriterObject
 from .PropertyWriter import PropertyWriter
 from .StringWriter import StringWriter
 from ..Project import Project
+from ..datastores.Database import Database
 from ..Module import Module
 from ..Class import Class
 from ..languages import *
@@ -18,7 +19,8 @@ class DataClassWriter(WriterObject):
     def __init__(self, project: Project, 
                  module: Module, 
                  class_: Class,
-                 language: Language, 
+                 language: Language,
+                 database: Database, 
                  logger:Logger=None):
         super().__init__()
         self.Project = project
@@ -26,23 +28,11 @@ class DataClassWriter(WriterObject):
         self.StringWriterClass = StringWriter
         self.Class = class_
         self.Language = language
-
+        self.Database = database
         self.ParentClassName = self.getParentClassName()
         self.setLogger(logger)
         self.S = self.StringWriterClass(self.Language)
 
-
-    def setLogger(self, logger: Logger):
-        if logger is not None:
-            self.Logger = logger
-        else:
-            self.Logger = Logger()
-        return self.Logger
-    
-    '''
-        Class
-    '''
-    
     def getParentClassName(self):
         if self.Class.InheritsFrom is not None:
             return self.Class.InheritsFrom.Name
@@ -119,6 +109,7 @@ class DataClassWriter(WriterObject):
 
     def write(self):
         self.writeDLClass()
+
     def writeDLClass(self):
         self.Logger.Log(f"  -> Writing {self.Language.Name} Class: {self.Class.Name}")
         self.S = self.StringWriterClass(self.Language)
@@ -137,10 +128,24 @@ class DataClassWriter(WriterObject):
     
     def getDLSuffix(self):
         return ""
+    
+    def getDLClassName(self):
+        return f"{self.getDLPrefix()}{self.Class.Name}{self.getDLSuffix()}"
+    
+    def getDatalayerName(self):
+        return "data"
+    
+
 
     def createDLClassFile(self, s:StringWriter):
+
+        dbmod = f"{self.Module.Name.lower()}_{self.Database.Name.lower()}"
+        data_module_path = os.path.join(self.Language.OutputDirectory, 
+                                                self.Project.Name, 
+                                                self.Project.Name, 
+                                                dbmod)
+
+
         
-        parent_project_data_path = self.getParentProjectDataPath(self.Language, self.Project)
-        data_module_path = self.getDataModulePath(self.Language, self.Project, self.Module)
-        fn = f"{self.getDLPrefix()}{self.Class.Name}{self.getDLSuffix()}.{self.Language.DefaultFileExtension}"
+        fn = f"{self.getDLClassName()}.{self.Language.DefaultFileExtension}"
         self.writeFile(data_module_path, fn, s.toString())

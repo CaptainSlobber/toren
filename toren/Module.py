@@ -40,12 +40,23 @@ class Module(TorenObject):
                  id: str,
                  classes: List[Class] = None):
     self.Type = "toren.Module"
+    self.IsInReservedNames(name)
     self.Name = name
     self.Description = description
     self.ID = id
     self.ParentProject = None
     self.Classes = ClassCollection().initialize(classes, self)
     return self
+  
+  def IsInReservedNames(self, name):
+    if name in self.ReservedModuleNames():
+      raise Exception(f"Module name '{name}' is in reserved list") 
+      return True
+    
+    return False
+
+  def ReservedModuleNames(self):
+    return ["data"]
 
   def setParentProject(self, parentProject):
     self.ParentProject = parentProject

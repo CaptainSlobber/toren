@@ -4,6 +4,7 @@ import os
 from pathlib import Path
 
 from typing import List
+from ..datastores.Database import Database
 from .WriterObject import WriterObject
 from .ClassWriter import ClassWriter
 from .DataClassWriter import DataClassWriter
@@ -20,29 +21,27 @@ class DataModuleWriter(WriterObject):
     def __init__(self, project: Project, 
                  module: Module, 
                  language: Language, 
+                 database: Database,
                  logger:Logger=None):
         super().__init__()
         self.Project = project
         self.Module = module
         self.Language = language
+        self.Database = database
         self.DataClassWriterClass = DataClassWriter
         self.StringWriterClass = StringWriter
         self.HeaderFileName = f"{self.Module.Name}_header"
         self.S = self.StringWriterClass(self.Language)
         self.setLogger(logger)
-        
-    def setLogger(self, logger: Logger):
-        if logger is not None:
-            self.Logger = logger
-        else:
-            self.Logger = Logger()
-        return self.Logger
 
     def write(self):
         self.Logger.Log(f"=> Writing Data Module: {self.Module.Name}")
-        parent_project_data_path = self.getParentProjectDataPath(self.Language, self.Project)
-
-        data_module_path = self.writeDirectory(parent_project_data_path,  self.Module.Name)
+        dbmod = f"{self.Module.Name.lower()}_{self.Database.Name.lower()}"
+        data_module_path = os.path.join(self.Language.OutputDirectory, 
+                                                self.Project.Name, 
+                                                self.Project.Name, 
+                                                dbmod)
+        self.writePath(data_module_path)
 
 
 
@@ -53,6 +52,7 @@ class DataModuleWriter(WriterObject):
                           module=self.Module,
                           class_=_class,
                           language=self.Language,
+                          database=self.Database,
                           logger=self.Logger)
             c.write()
 

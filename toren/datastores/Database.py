@@ -22,9 +22,9 @@ class Database(TorenObject):
 
   def __init__(self):
     self.Type = "toren.datastores.Database"
-    self.Name = ""
-    self.Description = ""
-    self.ID = ""
+    self.Name = "Database"
+    self.Description = "Database"
+    self.ID = "1a0d0741-65e5-4937-8682-34255fcde015"
     self.ParentProject = None
 
 

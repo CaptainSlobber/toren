@@ -31,18 +31,6 @@ class ClassWriter(WriterObject):
         self.SetDescription = self.getSetDescription()
         self.setLogger(logger)
         self.S = self.StringWriterClass(self.Language)
-
-
-    def setLogger(self, logger: Logger):
-        if logger is not None:
-            self.Logger = logger
-        else:
-            self.Logger = Logger()
-        return self.Logger
-    
-    '''
-        Class
-    '''
     
     def getParentClassName(self):
         if self.Class.InheritsFrom is not None:

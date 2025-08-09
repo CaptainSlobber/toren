@@ -5,9 +5,9 @@ class DatabaseSQLite(Database):
   
   def __init__(self):
     self.Type = "toren.datastores.DatabaseSQLite"
-    self.Name = ""
-    self.Description = ""
-    self.ID = ""
+    self.Name = "Sqlite"
+    self.Description = "Sqlite"
+    self.ID = "febd77a2-29dc-44ac-8b1b-247ac6b4d45f"
 
 
   def initialize(self, name: str, 

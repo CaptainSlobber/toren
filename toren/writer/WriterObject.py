@@ -4,6 +4,7 @@ import os
 from pathlib import Path
 
 from typing import List
+from ..datastores.Database import Database
 from ..Project import Project
 from ..Module import Module
 from ..Class import Class
@@ -16,7 +17,18 @@ class WriterObject():
         #self.Logger = Logger()
         pass
 
-
+    def setLogger(self, logger: Logger):
+        if logger is not None:
+            self.Logger = logger
+        else:
+            self.Logger = Logger()
+        return self.Logger
+    
+    def writePath(self, directory):
+        if not os.path.exists(directory):
+            os.makedirs(directory)
+        return directory
+    
     def writeDirectory(self, path, dirname):
         directory = os.path.join(path, dirname)
         if not os.path.exists(directory):
@@ -32,17 +44,10 @@ class WriterObject():
             file.write(content)
         return file_path
 
-    def getDatalayerName(self):
-        return "datalayer"
-
     def getParentProjectPath(self, language: Language, project: Project):
         return os.path.join(language.OutputDirectory, project.Name, project.Name)
-    
-    def getParentProjectDataPath(self, language: Language, project: Project):
-        return os.path.join(language.OutputDirectory, project.Name, project.Name, self.getDatalayerName())
     
     def getParentModulePath(self, language: Language, project: Project, module: Module):
         return os.path.join(language.OutputDirectory, project.Name, project.Name,  module.Name)
     
-    def getDataModulePath(self, language: Language, project: Project, module: Module):
-        return os.path.join(language.OutputDirectory, project.Name, project.Name, self.getDatalayerName(), module.Name)
+ 

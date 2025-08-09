@@ -5,9 +5,9 @@ class DatabasePostgreSQL(Database):
   
   def __init__(self):
     self.Type = "toren.datastores.DatabasePostgreSQL"
-    self.Name = ""
-    self.Description = ""
-    self.ID = ""
+    self.Name = "PostgreSQL"
+    self.Description = "PostgreSQL"
+    self.ID = "be3f92e2-e2ff-491d-9ca0-eaefb72cc6bf"
 
 
   def initialize(self, name: str, 
