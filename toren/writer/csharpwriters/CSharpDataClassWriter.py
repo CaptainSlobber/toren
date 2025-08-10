@@ -4,80 +4,99 @@ import os
 from pathlib import Path
 
 from typing import List
-from ..WriterObject import WriterObject
-from ..PropertyWriter import PropertyWriter
-from ..StringWriter import StringWriter
+from ..DataClassWriter import DataClassWriter
+from .CSharpStringWriter import CSharpStringWriter
+from ...datastores.Database import Database
 from ...Project import Project
 from ...Module import Module
 from ...Class import Class
 from ...languages import *
 from ...tracer.Logger import Logger
 
-class CSharpDataClassWriter(WriterObject):
+class CSharpDataClassWriter(DataClassWriter):
 
     def __init__(self, project: Project, 
                  module: Module, 
                  class_: Class,
                  language: Language, 
+                 database: Database,
                  logger:Logger=None):
-        super().__init__()
+        super().__init__(project=project, 
+                         module=module, 
+                         class_=class_, 
+                         database=database,
+                         language=language, 
+                         logger=logger)
         self.Project = project
         self.Module = module
-        self.StringWriterClass = StringWriter
+        self.StringWriterClass = CSharpStringWriter
         self.Class = class_
+        self.Database = database
         self.Language = language
         self.ParentClassName = self.getParentClassName()
         self.setLogger(logger)
         self.S = self.StringWriterClass(self.Language)
 
-    def writeDLClassOpen(self, s:StringWriter):
+    def getDLDependencies(self):
+        dependency_map = {}
+        for dependency in self.Database.CSharpDependencies():
+            dependency_map[dependency] = dependency
+        p = self.Class.ParentModule.ParentProject.Name
+        m = self.Class.ParentModule.Name
+        c = self.Class.Name
+        
+
+        return dependency_map
+
+    def writeDLClassOpen(self, s:CSharpStringWriter):
 
         p = self.Class.ParentModule.ParentProject.Name
         m = self.Class.ParentModule.Name
+        b = self.Database.Name.lower()
         l = self.getDatalayerName()
         c = self.Class.Name
         d = self.getDLClassName()
-        s.wln(f"namespace {p}.{l}.{m};")
+        s.wln(f"namespace {p}.{m}.{b};")
         s.ret()
         s.write(f"public class {d} ").o()
         s.ret()
         s.wln("/*")
-        s.wln(f" Data Layer Class: {self.Class.Name}")
+        s.wln(f" {self.Database.Name} Data Layer for Class: {self.Class.Name}")
         s.wln(f" Class ID: {self.Class.ID}")
         s.wln("*/")
         s.ret()
         return s
     
-    def writeParentClassInitializer(self, s:StringWriter):
+    def writeParentClassInitializer(self, s:CSharpStringWriter):
         return s
 
-    def writeDLClassInitializer(self, s:StringWriter):
+    def writeDLClassInitializer(self, s:CSharpStringWriter):
         d = self.getDLClassName()
         s.wln(f"public {d}() {{}}")
         return s
     
     
-    def writeCreateTable(self, s:StringWriter):
+    def writeCreateTable(self, s:CSharpStringWriter):
         return s
     
-    def writeInsert(self, s:StringWriter):
+    def writeInsert(self, s:CSharpStringWriter):
         return s
     
-    def writeInsertCollection(self, s:StringWriter):
+    def writeInsertCollection(self, s:CSharpStringWriter):
         return s
     
-    def writeUpdate(self, s:StringWriter):
+    def writeUpdate(self, s:CSharpStringWriter):
         return s
     
-    def writeDelete(self, s:StringWriter):
+    def writeDelete(self, s:CSharpStringWriter):
         return s
     
-    def writeSelectSingleRecordByPK(self, s:StringWriter):
+    def writeSelectSingleRecordByPK(self, s:CSharpStringWriter):
         return s
     
-    def writeSelectWhere(self, s:StringWriter):
+    def writeSelectWhere(self, s:CSharpStringWriter):
         return s
 
-    def writeDLClassClose(self, s:StringWriter):
+    def writeDLClassClose(self, s:CSharpStringWriter):
         s.c()
         return s

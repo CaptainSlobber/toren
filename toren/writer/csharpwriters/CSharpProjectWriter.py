@@ -5,10 +5,9 @@ from pathlib import Path
 
 from typing import List
 from .CSharpModuleWriter import CSharpModuleWriter
+from .CSharpDataModuleWriter import CSharpDataModuleWriter
 from ..ProjectWriter import ProjectWriter
 from ...Project import Project
-from ...Module import Module
-from ...Class import Class
 from ...languages import *
 from ...tracer.Logger import Logger
 
@@ -21,5 +20,7 @@ class CSharpProjectWriter(ProjectWriter):
         self.Project = project
         self.Language = language
         self.ModuleWriterClass = CSharpModuleWriter
+        self.DataModuleWriterClass = CSharpDataModuleWriter
         self.setLogger(logger)
 
+ 

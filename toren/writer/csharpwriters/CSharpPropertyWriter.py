@@ -5,7 +5,6 @@ from pathlib import Path
 
 from typing import List
 from ..StringWriter import StringWriter
-from ..WriterObject import WriterObject
 from ..PropertyWriter import PropertyWriter
 from ...Project import Project
 from ...Module import Module

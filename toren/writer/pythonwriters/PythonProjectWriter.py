@@ -5,10 +5,9 @@ from pathlib import Path
 
 from typing import List
 from .PythonModuleWriter import PythonModuleWriter
+from .PythonDataModuleWriter import PythonDataModuleWriter
 from ..ProjectWriter import ProjectWriter
 from ...Project import Project
-from ...Module import Module
-from ...Class import Class
 from ...languages import *
 from ...tracer.Logger import Logger
 
@@ -21,5 +20,5 @@ class PythonProjectWriter(ProjectWriter):
         self.Project = project
         self.Language = language
         self.ModuleWriterClass = PythonModuleWriter
+        self.DataModuleWriterClass = PythonDataModuleWriter
         self.setLogger(logger)
-

@@ -18,3 +18,18 @@ class DatabaseSQLite(Database):
     self.Description = description
     self.ID = id
     return self
+
+  def CSharpDependencies(self):
+    return ["using Microsoft.Data.Sqlite;"]
+  
+  def PythonDependencies(self):
+    return ["import sqlite3"]
+  
+  def JavaDependencies(self):
+    return ["import java.sql.Connection;", "import java.sql.DriverManager;", "import java.sql.SQLException;"]
+  
+  def GoDependencies(self):
+    return [""]
+  
+  def JavaScriptDependencies(self):
+    return [""]

@@ -66,3 +66,19 @@ class Database(TorenObject):
     _database = json.loads(jsonString)
     self.from_dict(_database)
     return self
+  
+
+  def CSharpDependencies(self):
+    return [""]
+  
+  def PythonDependencies(self):
+    return [""]
+  
+  def JavaDependencies(self):
+    return [""]
+  
+  def GoDependencies(self):
+    return [""]
+  
+  def JavaScriptDependencies(self):
+    return [""]

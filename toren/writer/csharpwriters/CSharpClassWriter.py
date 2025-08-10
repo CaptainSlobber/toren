@@ -6,9 +6,7 @@ from pathlib import Path
 from typing import List
 from .CSharpPropertyWriter import CSharpPropertyWriter
 from .CSharpStringWriter import CSharpStringWriter
-from ..WriterObject import WriterObject
 from ..ClassWriter import ClassWriter
-from ..PropertyWriter import PropertyWriter
 from ...Project import Project
 from ...Module import Module
 from ...Class import Class

@@ -4,30 +4,34 @@ import os
 from pathlib import Path
 
 from typing import List
-from .CSharpClassWriter import CSharpClassWriter
-from ..ModuleWriter import ModuleWriter
+from ...datastores.Database import Database
+from ..DataModuleWriter import DataModuleWriter
+from .PythonDataClassWriter import PythonDataClassWriter
+from .PythonStringWriter import PythonStringWriter
 from ...Project import Project
 from ...Module import Module
+
 from ...languages import *
 from ...tracer.Logger import Logger
 
-class CSharpModuleWriter(ModuleWriter):
+class PythonDataModuleWriter(DataModuleWriter):
 
     def __init__(self, project: Project, 
                  module: Module, 
                  language: Language, 
+                 database: Database,
                  logger:Logger=None):
         super().__init__(project=project, 
                          module=module, 
                          language=language, 
+                         database=database,
                          logger=logger)
         self.Project = project
         self.Module = module
         self.Language = language
-        self.ClassWriterClass = CSharpClassWriter
-        self.HeaderFileName = f""
+        self.Database = database
+        self.DataClassWriterClass = PythonDataClassWriter
+        self.StringWriterClass = PythonStringWriter
+        self.HeaderFileName = f"{self.Module.Name}_header"
+        self.S = self.StringWriterClass(self.Language)
         self.setLogger(logger)
-
-    def writeModuleHeader(self, path, filename):
-        s = self.S
-        pass

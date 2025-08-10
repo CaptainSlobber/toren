@@ -18,3 +18,18 @@ class DatabaseOracle(Database):
     self.Description = description
     self.ID = id
     return self
+  
+  def CSharpDependencies(self):
+    return ["using Oracle.DataAccess.Client;", "using Oracle.ManagedDataAccess.Client;"] #System.Data.OracleClient
+  
+  def PythonDependencies(self):
+    return ["import oracledb"]
+  
+  def JavaDependencies(self):
+    return ["import java.sql.Connection;", "import java.sql.DriverManager;", "import java.sql.SQLException;"]
+  
+  def GoDependencies(self):
+    return [""]
+  
+  def JavaScriptDependencies(self):
+    return [""]

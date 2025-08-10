@@ -18,3 +18,18 @@ class DatabasePostgreSQL(Database):
     self.Description = description
     self.ID = id
     return self
+  
+  def CSharpDependencies(self):
+    return ["using Npgsql;"]
+  
+  def PythonDependencies(self):
+    return ["import psycopg2"]
+  
+  def JavaDependencies(self):
+    return ["import java.sql.Connection;", "import java.sql.DriverManager;", "import java.sql.SQLException;"]
+  
+  def GoDependencies(self):
+    return [""]
+  
+  def JavaScriptDependencies(self):
+    return [""]
