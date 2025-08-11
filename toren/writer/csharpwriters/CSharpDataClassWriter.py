@@ -73,10 +73,36 @@ class CSharpDataClassWriter(DataClassWriter):
     def writeDLClassInitializer(self, s:CSharpStringWriter):
         d = self.getDLClassName()
         s.wln(f"public {d}() {{}}")
+        s.ret()
         return s
     
+    def writeDLClassProperties(self, s:CSharpStringWriter):
+        s.wln(f"public static string SCHEMA_NAME = \"{self.Class.ParentModule.Name}\";")
+        s.wln(f"public static string TABLE_NAME = \"{self.Class.Name}\";")
+        if self.Class.InheritsFrom is not None:
+            for propertyid, property in self.Class.InheritsFrom.Properties.Data.items():
+                s.wln(f"public static string COL_NAME_{property.Name.upper()} = \"{property.Name}\";")
+        for propertyid, property in self.Class.Properties.Data.items():
+            s.wln(f"public static string COL_NAME_{property.Name.upper()} = \"{property.Name}\";")
+        s.ret()
+        return s
     
     def writeCreateTable(self, s:CSharpStringWriter):
+
+
+
+        s.w(f"private static string create{self.Class.Name}TableQuery ()").o()
+        if self.Class.InheritsFrom is not None:
+            for propertyid, property in self.Class.InheritsFrom.Properties.Data.items():
+                pass
+        for propertyid, property in self.Class.Properties.Data.items():
+            pass
+
+        s.c().ret()
+
+        s.w(f"public static bool create{self.Class.Name}Table () ").o()
+
+        s.c()
         return s
     
     def writeInsert(self, s:CSharpStringWriter):

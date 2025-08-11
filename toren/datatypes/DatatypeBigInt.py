@@ -54,7 +54,64 @@ class DatatypeBigInt(DatatypeNumeric):
     _datatypeString = super().to_dict()
     return _datatypeString
   
-  def Python(self, *args) -> str:
+
+  ##########################################################################
+  # Database Property Types and Default Values
+  ##########################################################################
+  
+  def SQLite_Type(self, *args):
+    if len(self.Dimensinality) > 0:
+      return "BLOB"
+    else:
+      return "BIGINT"
+  
+  def SQLite_DefaultValue(self, *args):
+    if len(self.Dimensinality) > 0:
+      return "[]"
+    else:
+      return "0"
+  
+  def PostgreSQL_Type(self, *args):
+    if len(self.Dimensinality) > 0:
+      return "BYTEA"
+    else:
+      return "BIGINT"
+  
+  def PostgreSQL_DefaultValue(self, *args):
+    if len(self.Dimensinality) > 0:
+      return "[]"
+    else:
+      return "0"
+    
+  def Oracle_Type(self, *args):
+    if len(self.Dimensinality) > 0:
+      return "BLOB"
+    else:
+      return "BIGINT"
+  
+  def Oracle_DefaultValue(self, *args):
+    if len(self.Dimensinality) > 0:
+      return "[]"
+    else:
+      return "0"
+    
+  def MicrosoftSQL_Type(self, *args):
+    if len(self.Dimensinality) > 0:
+      return "VARBINARY(MAX)"
+    else:
+      return "BIGINT"
+  
+  def MicrosoftSQL_DefaultValue(self, *args):
+    if len(self.Dimensinality) > 0:
+      return "[]"
+    else:
+      return "0"
+
+  ##########################################################################
+  # Python methods for converting to and from various database types
+  ##########################################################################
+  
+  def Python_Type(self, *args) -> str:
     if len(self.Dimensinality) > 0:
       return f"npt.NDArray[np.int64]" #np.array/np.ndarray
     else:
@@ -76,7 +133,11 @@ class DatatypeBigInt(DatatypeNumeric):
           default_value = f"{str(int(self.DefaultValue))}"
       return default_value
     
-  def CSharp(self, *args) -> str:
+  ##########################################################################
+  # C# methods for converting to and from various database types
+  ##########################################################################
+    
+  def CSharp_Type(self, *args) -> str:
     if len(self.Dimensinality) > 0:
       commas = ","*(len(self.Dimensinality)-1)  
       return f"long[{commas}]" #multidimensional array

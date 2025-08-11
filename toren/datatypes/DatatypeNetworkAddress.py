@@ -45,7 +45,7 @@ class DatatypeNetworkAddress(Datatype):
     _datatype = super().to_dict()
     return _datatype
   
-  def Python(self, *args) -> str:
+  def Python_Type(self, *args) -> str:
     return "IPv4Address" # TODO: Change to IPv6Address when the time comes
   
   def Python_Dependencies(self) -> list:
@@ -59,7 +59,7 @@ class DatatypeNetworkAddress(Datatype):
     return default_value
   
 
-  def CSharp(self, *args) -> str:
+  def CSharp_Type(self, *args) -> str:
     return "IPAddress"
   
   def CSharp_Dependencies(self) -> list:

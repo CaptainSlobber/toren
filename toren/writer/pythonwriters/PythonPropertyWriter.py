@@ -44,7 +44,7 @@ class PythonPropertyWriter(PropertyWriter):
         
         s.wln("\"\"\"")
         s.wln(f" property: {self.Property.Name}")
-        s.wln(f" type: {self.Property.Python()} = {self.Property.Type}")
+        s.wln(f" type: {self.Property.Python_Type()} = {self.Property.Type}")
         s.wln(f" description: {self.Property.Description}")
         s.wln("\"\"\"")
 
@@ -57,7 +57,7 @@ class PythonPropertyWriter(PropertyWriter):
         s.o().wln(f"return self.{self.Property.Name}")
         s.c()
 
-        s.wln(f"def set{self.Property.Name}(self, {self.Property.Name.lower()}_: {self.Property.Python()}):")
+        s.wln(f"def set{self.Property.Name}(self, {self.Property.Name.lower()}_: {self.Property.Python_Type()}):")
         s.o().wln(f"self.{self.Property.Name} = {self.Property.Name.lower()}_")
         s.c()
 

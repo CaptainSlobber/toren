@@ -1,4 +1,10 @@
 from ..TorenObject import TorenObject
+from ..languages.Language import Language
+from ..languages.LanguageCSharp import LanguageCSharp
+from ..languages.LanguageGo import LanguageGo
+from ..languages.LanguagePython import LanguagePython
+from ..languages.LanguageJavaScript import LanguageJavaScript
+from ..languages.LanguageJava import LanguageJava
 import collections
 import json
 
@@ -10,6 +16,9 @@ class Database(TorenObject):
     DESCRIPTION = "Description"
     ID = "ID"
     PARENTPROJECT = "ParentProject"
+    INSTANCENAME = "InstanceName"
+    INSTANCEDESCRIPTION = "InstanceDescription"
+    INSTANCEID = "InstanceID"
 
   class PropertID():
     TYPE = "03f73e15-c4d7-4bbf-baa8-25e18e1d1146"
@@ -17,24 +26,45 @@ class Database(TorenObject):
     DESCRIPTION = "d2f9dd1d-4e3e-4300-ad34-5aad7b03915a"
     ID = "7672f241-b819-4613-a18b-f9e8e44d2167"
     PARENTPROJECT = "cee5a52a-b755-4446-a826-633f0d697be7"
-
-
+    INSTANCENAME = "28029e15-086d-4fde-9cb5-f8896c6fc69e"
+    INSTANCEDESCRIPTION = "15d55be7-02b1-4b14-b88f-c28680a3c1bb"
+    INSTANCEID = "e41a26bf-5638-47f3-bc0d-c35f4bdc0101"
 
   def __init__(self):
-    self.Type = "toren.datastores.Database"
-    self.Name = "Database"
-    self.Description = "Database"
-    self.ID = "1a0d0741-65e5-4937-8682-34255fcde015"
+    self.Type = self.getType()
+    self.Name = self.getName()
+    self.Description = self.getDescription()
+    self.ID = self.getID()
+    self.InstanceName = ""
+    self.InstanceDescription = ""
+    self.InstanceID = ""
     self.ParentProject = None
 
 
-  def initialize(self, name: str, 
-                 description: str, 
-                 id: str):
-    self.Type = "toren.datastores.Database"
-    self.Name = name
-    self.Description = description
-    self.ID = id
+  def getName(self):
+    return "Database"
+  
+  def getDescription(self):
+    return "Database"
+
+  def getType(self):
+    return "toren.datastores.Database"
+  
+  def getID(self):
+    return "1a0d0741-65e5-4937-8682-34255fcde015"
+
+  def initialize(self, instanceName: str, 
+                 dinstanceDescription: str, 
+                 instanceID: str):
+    
+
+    self.Type = self.getType()
+    self.InstanceName = instanceName
+    self.InstanceDescription = dinstanceDescription
+    self.InstanceID = instanceID
+    self.Name = self.getName()
+    self.Description = self.getDescription()
+    self.ID = self.getID()
     self.ParentProject = None
     return self
   
@@ -48,6 +78,9 @@ class Database(TorenObject):
     self.Name = str(database[self.PropertName.NAME])
     self.Description = str(database[self.PropertName.DESCRIPTION]) 
     self.ID = str(database[self.PropertName.ID])
+    self.InstanceName = str(database[self.PropertName.INSTANCENAME])
+    self.InstanceDescription = str(database[self.PropertName.INSTANCEDESCRIPTION])
+    self.InstanceID = str(database[self.PropertName.INSTANCEID]) 
     return self
 
   def to_dict(self):
@@ -56,6 +89,10 @@ class Database(TorenObject):
     _database[self.PropertName.NAME] = self.Name
     _database[self.PropertName.DESCRIPTION] = self.Description
     _database[self.PropertName.ID] = self.ID
+    _database[self.PropertName.INSTANCEID] = self.InstanceName
+    _database[self.PropertName.INSTANCENAME] = self.InstanceID
+    _database[self.PropertName.INSTANCEDESCRIPTION] = self.InstanceDescription
+
     return _database
   
   def to_json(self):
@@ -67,6 +104,19 @@ class Database(TorenObject):
     self.from_dict(_database)
     return self
   
+
+  ##########################################################################
+  # Dependencies
+  ##########################################################################
+
+  def Dependencies(self, language: Language):
+    _dep = {}
+    _dep[LanguagePython.getID()] = self.PythonDependencies
+    _dep[LanguageCSharp.getID()] = self.CSharpDependencies
+    _dep[LanguageJava.getID()] = self.JavaDependencies
+    _dep[LanguageGo.getID()] = self.GoDependencies
+    _dep[LanguageJavaScript.getID()] = self.JavaScriptDependencies
+    return _dep[language.ID]
 
   def CSharpDependencies(self):
     return [""]

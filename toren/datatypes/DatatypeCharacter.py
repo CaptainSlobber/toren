@@ -45,8 +45,48 @@ class DatatypeCharacter(Datatype):
   def to_dict(self):
     _datatype = super().to_dict()
     return _datatype
+
+  ##########################################################################
+  # Database Property Types and Default Values
+  ##########################################################################
+
+  def SQLite_Type(self, *args):
+    return "TEXT"  # SQLite uses TEXT for string/character data
+
+  def SQLite_DefaultValue(self, *args):
+    if self.DefaultValue and len(self.DefaultValue) > 0:
+      return f"\"{self.DefaultValue[0]}\""
+    return "\"\""
+
+  def PostgreSQL_Type(self, *args):
+    return "CHAR(1)"  # Single character
+
+  def PostgreSQL_DefaultValue(self, *args):
+    if self.DefaultValue and len(self.DefaultValue) > 0:
+      return f"\"{self.DefaultValue[0]}\""
+    return "\"\""
+
+  def Oracle_Type(self, *args):
+    return "CHAR(1)"
+
+  def Oracle_DefaultValue(self, *args):
+    if self.DefaultValue and len(self.DefaultValue) > 0:
+      return f"\"{self.DefaultValue[0]}\""
+    return "\"\""
+
+  def MicrosoftSQL_Type(self, *args):
+    return "CHAR(1)"
+
+  def MicrosoftSQL_DefaultValue(self, *args):
+    if self.DefaultValue and len(self.DefaultValue) > 0:
+      return f"\"{self.DefaultValue[0]}\""
+    return "\"\""
   
-  def Python(self, *args) -> str:
+  ##########################################################################
+  # Python methods for converting to and from various database types
+  ##########################################################################
+
+  def Python_Type(self, *args) -> str:
     return "str"
   
   def Python_Dependencies(self) -> list:
@@ -59,7 +99,11 @@ class DatatypeCharacter(Datatype):
         default_value = f"\"{self.DefaultValue[0]}\"" # First character only
     return default_value
   
-  def CSharp(self, *args) -> str:
+  ##########################################################################
+  # C# methods for converting to and from various database types
+  ##########################################################################
+  
+  def CSharp_Type(self, *args) -> str:
     return "char[]"
   
   def CSharp_Dependencies(self) -> list:

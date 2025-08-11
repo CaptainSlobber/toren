@@ -2,23 +2,28 @@ from .Database import Database
 import collections
 
 class DatabaseOracle(Database):
+
+  class PropertName(Database.PropertName):
+    pass
+
+  class PropertID(Database.PropertID):
+    pass
   
   def __init__(self):
-    self.Type = "toren.datastores.DatabaseOracle"
-    self.Name = "Oracle"
-    self.Description = "Oracle"
-    self.ID = "1a188e6f-f5d3-4f18-9e19-7cbfb3eb7d42"
+    super().__init__()
 
-
-  def initialize(self, name: str, 
-                 description: str, 
-                 id: str):
-    self.Type = "toren.datastores.DatabaseOracle"
-    self.Name = name
-    self.Description = description
-    self.ID = id
-    return self
+  def getName(self):
+    return "Oracle"
   
+  def getDescription(self):
+    return "Oracle"
+
+  def getType(self):
+    return "toren.datastores.DatabaseOracle"
+  
+  def getID(self):
+    return "1a188e6f-f5d3-4f18-9e19-7cbfb3eb7d42"
+
   def CSharpDependencies(self):
     return ["using Oracle.DataAccess.Client;", "using Oracle.ManagedDataAccess.Client;"] #System.Data.OracleClient
   

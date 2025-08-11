@@ -49,7 +49,40 @@ class DatatypeBinary(Datatype):
     _datatype[self.PropertName.SIZELIMITKB] = self.SizeLimitkb
     return _datatype
   
-  def Python(self, *args) -> str:
+
+  ##########################################################################
+  # Database Property Types and Default Values
+  ##########################################################################
+
+  def SQLite_Type(self, *args):
+    return "BLOB"
+  
+  def SQLite_DefaultValue(self, *args):
+    return "0x00"
+  
+  def PostgreSQL_Type(self, *args):
+    return "BYTEA"
+  
+  def PostgreSQL_DefaultValue(self, *args):
+    return "0x00"
+    
+  def Oracle_Type(self, *args):
+     return "BLOB"
+  
+  def Oracle_DefaultValue(self, *args):
+    return "0x00"
+    
+  def MicrosoftSQL_Type(self, *args):
+    return "VARBINARY(MAX)"
+  
+  def MicrosoftSQL_DefaultValue(self, *args):
+    return "0x00"
+  
+  ##########################################################################
+  # Python methods for converting to and from various database types
+  ##########################################################################
+
+  def Python_Type(self, *args) -> str:
     return "bytearray"
   
   def Python_Dependencies(self) -> list:
@@ -62,7 +95,11 @@ class DatatypeBinary(Datatype):
         default_value = f"bytearray({self.DefaultValue})"
     return default_value
   
-  def CSharp(self, *args) -> str:
+  ##########################################################################
+  # C# methods for converting to and from various database types
+  ##########################################################################
+  
+  def CSharp_Type(self, *args) -> str:
     # TODO: Implement length
     return "byte[]"
   

@@ -66,7 +66,7 @@ class DatatypeDecimal(DatatypeNumeric):
     _datatype[self.PropertName.SCALE] = self.Scale
     return _datatype
 
-  def Python(self, *args) -> str:
+  def Python_Type(self, *args) -> str:
     if len(self.Dimensinality) > 0:
       return f"npt.NDArray[np.float128]" # Sorta 
     else:
@@ -88,7 +88,7 @@ class DatatypeDecimal(DatatypeNumeric):
           default_value = f"Decimal('{self.DefaultValue}')"
       return default_value
 
-  def CSharp(self, *args) -> str:
+  def CSharp_Type(self, *args) -> str:
     if len(self.Dimensinality) > 0:
       commas = ","*(len(self.Dimensinality)-1)  
       return f"decimal[{commas}]" #multidimensional array

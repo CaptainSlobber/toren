@@ -53,7 +53,7 @@ class DatatypeSmallInt(DatatypeNumeric):
     _datatype = super().to_dict()
     return _datatype
   
-  def Python(self, *args) -> str:
+  def Python_Type(self, *args) -> str:
     if len(self.Dimensinality) > 0:
       return f"npt.NDArray[np.int16]" #np.array/np.ndarray
     else:
@@ -75,7 +75,7 @@ class DatatypeSmallInt(DatatypeNumeric):
           default_value = f"{self.DefaultValue}"
       return default_value
 
-  def CSharp(self, *args) -> str:
+  def CSharp_Type(self, *args) -> str:
     if len(self.Dimensinality) > 0:
       commas = ","*(len(self.Dimensinality)-1)  
       return f"int16[{commas}]" #multidimensional array

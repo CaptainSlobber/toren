@@ -45,7 +45,39 @@ class DatatypeBoolean(Datatype):
     _datatype = super().to_dict()
     return _datatype
   
-  def Python(self, *args) -> str:
+  ##########################################################################
+  # Database Property Types and Default Values
+  ##########################################################################
+   
+  def SQLite_Type(self, *args):
+    return "BOOLEAN"
+  
+  def SQLite_DefaultValue(self, *args):
+    return "0"
+  
+  def PostgreSQL_Type(self, *args):
+    return "BOOLEAN"
+  
+  def PostgreSQL_DefaultValue(self, *args):
+    return "FALSE" # "0"
+    
+  def Oracle_Type(self, *args):
+     return "NUMBER(1)"
+  
+  def Oracle_DefaultValue(self, *args):
+    return "0"
+    
+  def MicrosoftSQL_Type(self, *args):
+    return "BIT"
+  
+  def MicrosoftSQL_DefaultValue(self, *args):
+    return "0"
+  
+  ##########################################################################
+  # Python methods for converting to and from various database types
+  ##########################################################################
+
+  def Python_Type(self, *args) -> str:
     return "bool"
   
   def Python_Dependencies(self) -> list:
@@ -58,7 +90,12 @@ class DatatypeBoolean(Datatype):
         default_value = f"{self.DefaultValue.capitalize()}"
     return default_value
   
-  def CSharp(self, *args) -> str:
+
+  ##########################################################################
+  # C# methods for converting to and from various database types
+  ##########################################################################
+  
+  def CSharp_Type(self, *args) -> str:
     return "bool"
   
   def CSharp_Dependencies(self) -> list:

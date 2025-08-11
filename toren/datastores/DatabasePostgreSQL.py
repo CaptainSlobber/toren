@@ -3,22 +3,27 @@ import collections
 
 class DatabasePostgreSQL(Database):
   
-  def __init__(self):
-    self.Type = "toren.datastores.DatabasePostgreSQL"
-    self.Name = "PostgreSQL"
-    self.Description = "PostgreSQL"
-    self.ID = "be3f92e2-e2ff-491d-9ca0-eaefb72cc6bf"
+  class PropertName(Database.PropertName):
+    pass
 
-
-  def initialize(self, name: str, 
-                 description: str, 
-                 id: str):
-    self.Type = "toren.datastores.DatabasePostgreSQL"
-    self.Name = name
-    self.Description = description
-    self.ID = id
-    return self
+  class PropertID(Database.PropertID):
+    pass
   
+  def __init__(self):
+    super().__init__()
+
+  def getName(self):
+    return "PostgreSQL"
+  
+  def getDescription(self):
+    return "PostgreSQL"
+
+  def getType(self):
+    return "toren.datastores.DatabasePostgreSQL"
+  
+  def getID(self):
+    return "be3f92e2-e2ff-491d-9ca0-eaefb72cc6bf"
+
   def CSharpDependencies(self):
     return ["using Npgsql;"]
   

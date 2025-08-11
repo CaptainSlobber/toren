@@ -98,7 +98,7 @@ class PythonClassWriter(ClassWriter):
     def writeParentClassParameters(self, s:PythonStringWriter):
         if self.Class.InheritsFrom is not None:
             for propertyid, property in self.Class.InheritsFrom.Properties.Data.items():
-                s.wln(f"{property.Name.lower()}: {property.Python()} = {property.Python_DefaultValue()},")
+                s.wln(f"{property.Name.lower()}: {property.Python_Type()} = {property.Python_DefaultValue()},")
         return s
 
     def writeClassInitializer(self, s: PythonStringWriter):
@@ -107,7 +107,7 @@ class PythonClassWriter(ClassWriter):
         s.o().o()
         s = self.writeParentClassParameters(s)
         for propertyid, property in self.Class.Properties.Data.items():
-            s.wln(f"{property.Name.lower()}: {property.Python()} = {property.Python_DefaultValue()},")
+            s.wln(f"{property.Name.lower()}: {property.Python_Type()} = {property.Python_DefaultValue()},")
         
         s.rem(2).c().wln("):").ret()
 

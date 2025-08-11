@@ -47,7 +47,7 @@ class DatatypeDatetime(Datatype):
     _datatype = super().to_dict()
     return _datatype
   
-  def Python(self, *args) -> str:
+  def Python_Type(self, *args) -> str:
     return "datetime" 
   
   def Python_Dependencies(self) -> list:
@@ -60,7 +60,7 @@ class DatatypeDatetime(Datatype):
         default_value = f"datetime.fromisoformat('{self.DefaultValue}')"
     return default_value
   
-  def CSharp(self, *args) -> str:
+  def CSharp_Type(self, *args) -> str:
     return "Datetime"
   
   def CSharp_Dependencies(self) -> list:

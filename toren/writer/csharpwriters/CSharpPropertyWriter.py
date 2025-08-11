@@ -43,7 +43,7 @@ class CSharpPropertyWriter(PropertyWriter):
         
         s.wln("/*")
         s.wln(f" property: {self.Property.Name}")
-        s.wln(f" type: {self.Property.CSharp()} = {self.Property.Type}")
+        s.wln(f" type: {self.Property.CSharp_Type()} = {self.Property.Type}")
         s.wln(f" description: {self.Property.Description}")
         s.wln("*/")
 
@@ -51,8 +51,8 @@ class CSharpPropertyWriter(PropertyWriter):
         s.w(f"public string get{self.Property.Name}PID() ").o()
         s.wln(f'return "{self.Property.ID}";')
         s.c()
-        s.wln(f"private {self.Property.CSharp()} _{self.Property.Name.lower()};")
-        s.w(f"public {self.Property.CSharp()} {self.Property.Name} ").o()
+        s.wln(f"private {self.Property.CSharp_Type()} _{self.Property.Name.lower()};")
+        s.w(f"public {self.Property.CSharp_Type()} {self.Property.Name} ").o()
         s.wln(f"get {{ return this._{self.Property.Name.lower()}; }}")
         s.wln(f"set {{ this._{self.Property.Name.lower()} = value; }}")
         s.c().ret()

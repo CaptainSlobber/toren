@@ -61,7 +61,7 @@ class DatatypeNumeric(Datatype):
     _datatype[self.PropertName.DIMENSIONALITY] = self.Dimensinality
     return _datatype
   
-  def Python(self, *args) -> str:
+  def Python_Type(self, *args) -> str:
     return "float"
   
   def Python_Dependencies(self) -> list:
@@ -74,8 +74,7 @@ class DatatypeNumeric(Datatype):
         default_value = f"float({self.DefaultValue})"
     return default_value
   
-
-  def CSharp(self, *args) -> str:
+  def CSharp_Type(self, *args) -> str:
     if len(self.Dimensinality) > 0:
       commas = ","*(len(self.Dimensinality)-1)  
       return f"double[{commas}]" #multidimensional array

@@ -57,7 +57,7 @@ class DatatypeString(Datatype):
     _datatypeString[self.PropertName.REGEX] = self.Regex # Handle Escape
     return _datatypeString
   
-  def Python(self, *args) -> str:
+  def Python_Type(self, *args) -> str:
     return "str"
   
   def Python_Dependencies(self) -> list:
@@ -70,7 +70,7 @@ class DatatypeString(Datatype):
         default_value = f"\"{self.DefaultValue}\""
     return default_value
 
-  def CSharp(self, *args) -> str:
+  def CSharp_Type(self, *args) -> str:
     return "string"
   
   def CSharp_Dependencies(self) -> list:

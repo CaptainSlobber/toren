@@ -112,7 +112,7 @@ class CSharpClassWriter(ClassWriter):
     def writeParentClassParameters(self, s:CSharpStringWriter):
         if self.Class.InheritsFrom is not None:
             for propertyid, property in self.Class.InheritsFrom.Properties.Data.items():
-                s.wln(f"{property.CSharp()} {property.Name.lower()} = {property.CSharp_DefaultValue()},")
+                s.wln(f"{property.CSharp_Type()} {property.Name.lower()} = {property.CSharp_DefaultValue()},")
         return s
 
     def writeClassInitializer(self, s: CSharpStringWriter):
@@ -122,7 +122,7 @@ class CSharpClassWriter(ClassWriter):
 
         s = self.writeParentClassParameters(s)
         for propertyid, property in self.Class.Properties.Data.items():
-            s.wln(f"{property.CSharp()} {property.Name.lower()} = {property.CSharp_DefaultValue()},")
+            s.wln(f"{property.CSharp_Type()} {property.Name.lower()} = {property.CSharp_DefaultValue()},")
         
         s.rem(2).newline()
         s.Dec()
@@ -199,7 +199,7 @@ class CSharpClassWriter(ClassWriter):
 
     def getCollectionObject(self, collectionType="SortedDictionary"):
         pkproperty = self.getPrimaryKeyProperty()
-        csharpCollectionObject = f"{collectionType}<{pkproperty.CSharp()}, {self.Class.Name}>"
+        csharpCollectionObject = f"{collectionType}<{pkproperty.CSharp_Type()}, {self.Class.Name}>"
         return csharpCollectionObject
 
 
@@ -214,14 +214,14 @@ class CSharpClassWriter(ClassWriter):
     
     def writeClassCollectionRemoveItem(self, s:CSharpStringWriter):
         pkproperty = self.getPrimaryKeyProperty()
-        s.w(f"public bool removeItem({pkproperty.CSharp()} {pkproperty.Name.lower()}) ").o()
+        s.w(f"public bool removeItem({pkproperty.CSharp_Type()} {pkproperty.Name.lower()}) ").o()
         s.wln(f"return this._data.Remove({pkproperty.Name.lower()});")
         s.c().ret()
         return s
     
     def writeClassCollectionGetItem(self, s:CSharpStringWriter):
         pkproperty = self.getPrimaryKeyProperty()
-        s.w(f"public {self.Class.Name} getItem({pkproperty.CSharp()} {pkproperty.Name.lower()}) ").o()
+        s.w(f"public {self.Class.Name} getItem({pkproperty.CSharp_Type()} {pkproperty.Name.lower()}) ").o()
         #s.w(f"if (this.Data.ContainsKey({pkcls.Name.lower()})").o()
         s.wln(f"return this.Data[{pkproperty.Name.lower()}];")
         #s.c()

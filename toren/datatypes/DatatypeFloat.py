@@ -52,7 +52,7 @@ class DatatypeFloat(DatatypeNumeric):
     _datatype = super().to_dict()
     return _datatype
 
-  def Python(self, *args) -> str:
+  def Python_Type(self, *args) -> str:
     if len(self.Dimensinality) > 0:
       return f"npt.NDArray[np.float32]" #np.array/np.ndarray
     else:
@@ -74,7 +74,7 @@ class DatatypeFloat(DatatypeNumeric):
           default_value = f"float({self.DefaultValue})"
       return default_value
     
-  def CSharp(self, *args) -> str:
+  def CSharp_Type(self, *args) -> str:
     if len(self.Dimensinality) > 0:
       commas = ","*(len(self.Dimensinality)-1)  
       return f"float[{commas}]" #multidimensional array
