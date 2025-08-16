@@ -58,25 +58,25 @@ class DatatypeBinary(Datatype):
     return "BLOB"
   
   def SQLite_DefaultValue(self, *args):
-    return "0x00"
+    return self.defaultBlob()
   
   def PostgreSQL_Type(self, *args):
     return "BYTEA"
   
   def PostgreSQL_DefaultValue(self, *args):
-    return "0x00"
+    return self.defaultBlob()
     
   def Oracle_Type(self, *args):
      return "BLOB"
   
   def Oracle_DefaultValue(self, *args):
-    return "0x00"
+    return self.defaultBlob()
     
   def MicrosoftSQL_Type(self, *args):
     return "VARBINARY(MAX)"
   
   def MicrosoftSQL_DefaultValue(self, *args):
-    return "0x00"
+    return self.defaultBlob()
   
   ##########################################################################
   # Python methods for converting to and from various database types
@@ -89,11 +89,9 @@ class DatatypeBinary(Datatype):
     return [""]
   
   def Python_DefaultValue(self, *args) -> str:
-    default_value = "bytearray()"
-    if self.DefaultValue:
-      if len(self.DefaultValue) > 0:
-        default_value = f"bytearray({self.DefaultValue})"
-    return default_value
+    if self.hasDefaultValue():
+      return f"bytearray({self.DefaultValue})"
+    return "bytearray()"
   
   ##########################################################################
   # C# methods for converting to and from various database types
@@ -107,8 +105,6 @@ class DatatypeBinary(Datatype):
     return [""]
   
   def CSharp_DefaultValue(self, *args) -> str:
-    default_value = "new byte[] {}"
-    if self.DefaultValue:
-      if len(self.DefaultValue) > 0:
-        default_value = f"new byte[] {{{self.DefaultValue}}}"
-    return default_value
+    if self.hasDefaultValue():
+      return f"new byte[] {{{self.DefaultValue}}}"
+    return "new byte[] {}"

@@ -44,6 +44,60 @@ class DatatypeNetworkAddress(Datatype):
   def to_dict(self):
     _datatype = super().to_dict()
     return _datatype
+
+  def _Default_Address(self):
+    return '127.0.0.1'
+
+  def _Default_Address_Integer(self, address: str) -> int:
+    a = ""
+    s = address.split('.'  )
+    for i in s:
+      a = a + f'{i:03}'
+    return int(a.join())
+  
+  def _Default_Address_Str(self, address: str) -> str:
+    return str(self._Default_Address_Integer(address))
+
+  ##########################################################################
+  # Database Property Types and Default Values
+  ##########################################################################
+   
+  def SQLite_Type(self, *args):
+    return "BIGINT"
+  
+  def SQLite_DefaultValue(self, *args):
+    if self.hasDefaultValue():
+        return self._Default_Address_Str(self.DefaultValue)
+    return self._Default_Address_Str(self._Default_Address())
+
+  def PostgreSQL_Type(self, *args):
+    # Consider: https://www.postgresql.org/docs/current/datatype-net-types.html
+    return "BIGINT"
+  
+  def PostgreSQL_DefaultValue(self, *args):
+    if self.hasDefaultValue():
+        return self._Default_Address_Str(self.DefaultValue)
+    return self._Default_Address_Str(self._Default_Address())
+    
+  def Oracle_Type(self, *args):
+     return "BIGINT"
+  
+  def Oracle_DefaultValue(self, *args):
+    if self.hasDefaultValue():
+        return self._Default_Address_Str(self.DefaultValue)
+    return self._Default_Address_Str(self._Default_Address())
+    
+  def MicrosoftSQL_Type(self, *args):
+    return "BIGINT"
+  
+  def MicrosoftSQL_DefaultValue(self, *args):
+    if self.hasDefaultValue():
+        return self._Default_Address_Str(self.DefaultValue)
+    return self._Default_Address_Str(self._Default_Address())
+  
+  ##########################################################################
+  # Python methods for converting to and from various database types
+  ##########################################################################
   
   def Python_Type(self, *args) -> str:
     return "IPv4Address" # TODO: Change to IPv6Address when the time comes
@@ -52,12 +106,13 @@ class DatatypeNetworkAddress(Datatype):
     return ["import ipaddress", "from ipaddress import IPv4Address"]
   
   def Python_DefaultValue(self, *args) -> str:
-    default_value = "ipaddress.ip_address('127.0.0.1')"
-    if self.DefaultValue:
-      if len(self.DefaultValue) > 0:
-        default_value = f"ipaddress.ip_address('{self.DefaultValue}')"
-    return default_value
+    if self.hasDefaultValue():
+        return f"ipaddress.ip_address('{self.DefaultValue}')"
+    return f"ipaddress.ip_address('{self._Default_Address()}')" 
   
+  ##########################################################################
+  # C# methods for converting to and from various database types
+  ##########################################################################
 
   def CSharp_Type(self, *args) -> str:
     return "IPAddress"
@@ -66,8 +121,6 @@ class DatatypeNetworkAddress(Datatype):
     return ["using System;", "using System.Net;"] 
   
   def CSharp_DefaultValue(self, *args) -> str:
-    default_value = 'IPAddress.Parse("127.0.0.1")'
-    if self.DefaultValue:
-      if len(self.DefaultValue) > 0:
-        default_value = f'IPAddress.Parse("{self.DefaultValue}")'
-    return default_value
+    if self.hasDefaultValue():
+        return f'IPAddress.Parse("{self.DefaultValue}")'
+    return f'IPAddress.Parse("{self._Default_Address()}")'

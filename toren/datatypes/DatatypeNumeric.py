@@ -46,6 +46,9 @@ class DatatypeNumeric(Datatype):
     self.Type = self.getType()
     return self
   
+  def hasHigherDimensionality(self) -> bool:
+    return len(self.Dimensinality) > 0
+  
   def from_dict(self, datatype):
     super().from_dict(datatype)
     self.Minimumn = float(datatype[self.PropertName.MINIMUM])
@@ -60,39 +63,4 @@ class DatatypeNumeric(Datatype):
     _datatype[self.PropertName.MAXIMUM] = self.Maximum
     _datatype[self.PropertName.DIMENSIONALITY] = self.Dimensinality
     return _datatype
-  
-  def Python_Type(self, *args) -> str:
-    return "float"
-  
-  def Python_Dependencies(self) -> list:
-    return [""]
-  
-  def Python_DefaultValue(self, *args) -> str:
-    default_value = "0.0" 
-    if self.DefaultValue:
-      if len(self.DefaultValue) > 0:
-        default_value = f"float({self.DefaultValue})"
-    return default_value
-  
-  def CSharp_Type(self, *args) -> str:
-    if len(self.Dimensinality) > 0:
-      commas = ","*(len(self.Dimensinality)-1)  
-      return f"double[{commas}]" #multidimensional array
-    else:
-      return "double"
-  
-  def CSharp_Dependencies(self) -> list:
-    if len(self.Dimensinality) > 0:
-      return ["using System;"] # Consider: System.Numerics.Vectors
-    else:
-      return [""]
-  
-  def CSharp_DefaultValue(self, *args) -> str:
-    if len(self.Dimensinality) > 0:
-      return f"new double[{','.join(list(map(str, self.Dimensinality)))}]"
-    else:
-      default_value = "0.0"
-      if self.DefaultValue:
-        if len(self.DefaultValue) > 0:
-          default_value = f"{self.DefaultValue}"
-      return default_value
+

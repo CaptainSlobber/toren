@@ -54,7 +54,7 @@ class DatatypeCharacter(Datatype):
     return "TEXT"  # SQLite uses TEXT for string/character data
 
   def SQLite_DefaultValue(self, *args):
-    if self.DefaultValue and len(self.DefaultValue) > 0:
+    if self.hasDefaultValue():
       return f"\"{self.DefaultValue[0]}\""
     return "\"\""
 
@@ -62,7 +62,7 @@ class DatatypeCharacter(Datatype):
     return "CHAR(1)"  # Single character
 
   def PostgreSQL_DefaultValue(self, *args):
-    if self.DefaultValue and len(self.DefaultValue) > 0:
+    if self.hasDefaultValue():
       return f"\"{self.DefaultValue[0]}\""
     return "\"\""
 
@@ -70,7 +70,7 @@ class DatatypeCharacter(Datatype):
     return "CHAR(1)"
 
   def Oracle_DefaultValue(self, *args):
-    if self.DefaultValue and len(self.DefaultValue) > 0:
+    if self.hasDefaultValue():
       return f"\"{self.DefaultValue[0]}\""
     return "\"\""
 
@@ -78,7 +78,7 @@ class DatatypeCharacter(Datatype):
     return "CHAR(1)"
 
   def MicrosoftSQL_DefaultValue(self, *args):
-    if self.DefaultValue and len(self.DefaultValue) > 0:
+    if self.hasDefaultValue():
       return f"\"{self.DefaultValue[0]}\""
     return "\"\""
   
@@ -93,11 +93,9 @@ class DatatypeCharacter(Datatype):
     return []
   
   def Python_DefaultValue(self, *args) -> str:
-    default_value = "\"\""
-    if self.DefaultValue:
-      if len(self.DefaultValue) > 0:
-        default_value = f"\"{self.DefaultValue[0]}\"" # First character only
-    return default_value
+    if self.hasDefaultValue():
+        return f"\"{self.DefaultValue[0]}\"" # First character only
+    return "\"\""
   
   ##########################################################################
   # C# methods for converting to and from various database types
@@ -110,9 +108,7 @@ class DatatypeCharacter(Datatype):
     return [""]
   
   def CSharp_DefaultValue(self, *args) -> str:
-    default_value = "new char[1]"
-    if self.DefaultValue:
-      if len(self.DefaultValue) > 0:
-        #default_value = f"new char[1] {{{self.DefaultValue}}}"
-        default_value = f"['{self.DefaultValue}']"
-    return default_value
+    if self.hasDefaultValue():
+        #return f"new char[1] {{{self.DefaultValue}}}"
+        return f"['{self.DefaultValue}']"
+    return "new char[1]"

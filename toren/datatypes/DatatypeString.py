@@ -57,6 +57,48 @@ class DatatypeString(Datatype):
     _datatypeString[self.PropertName.REGEX] = self.Regex # Handle Escape
     return _datatypeString
   
+
+  ##########################################################################
+  # Database Property Types and Default Values
+  ##########################################################################
+   
+  def SQLite_Type(self, *args):
+    return f"NVARCHAR({int(self.MaxLength)})" # UTF-16
+  
+  def SQLite_DefaultValue(self, *args):
+    if self.hasDefaultValue():
+        return self._DefaultValueSingleQuote()
+    return self._SingleQuote("")
+
+  def PostgreSQL_Type(self, *args):
+    return f"VARCHAR({int(self.MaxLength)})" # TEXT
+  
+  def PostgreSQL_DefaultValue(self, *args):
+    if self.hasDefaultValue():
+        return self._DefaultValueSingleQuote()
+    return self._SingleQuote("")
+    
+  def Oracle_Type(self, *args):
+     return f"NVARCHAR2({int(self.MaxLength)})" # UTF-16
+  
+  def Oracle_DefaultValue(self, *args):
+    if self.hasDefaultValue():
+        return self._DefaultValueSingleQuote()
+    return self._SingleQuote("")
+  
+  def MicrosoftSQL_Type(self, *args):
+    return f"NVARCHAR({int(self.MaxLength)})" # UTF-16
+  
+  def MicrosoftSQL_DefaultValue(self, *args):
+    if self.hasDefaultValue():
+        return self._DefaultValueSingleQuote()
+    return self._SingleQuote("")
+
+
+  ##########################################################################
+  # Python methods for converting to and from various database types
+  ##########################################################################
+
   def Python_Type(self, *args) -> str:
     return "str"
   
@@ -64,11 +106,13 @@ class DatatypeString(Datatype):
     return [] # import re
   
   def Python_DefaultValue(self, *args) -> str:
-    default_value = "\"\""
-    if self.DefaultValue:
-      if len(self.DefaultValue) > 0:
-        default_value = f"\"{self.DefaultValue}\""
-    return default_value
+    if self.hasDefaultValue():
+        return self._DefaultValueDoubleQuote()
+    return self._DoubleQuote("")
+
+  ##########################################################################
+  # C# methods for converting to and from various database types
+  ##########################################################################
 
   def CSharp_Type(self, *args) -> str:
     return "string"
@@ -77,8 +121,6 @@ class DatatypeString(Datatype):
     return ["using System;"] 
   
   def CSharp_DefaultValue(self, *args) -> str:
-    default_value = 'String.Empty'
-    if self.DefaultValue:
-      if len(self.DefaultValue) > 0:
-        default_value = f'"{self.DefaultValue}"'
-    return default_value
+    if self.hasDefaultValue():
+      return self._DefaultValueDoubleQuote()
+    return "String.Empty"

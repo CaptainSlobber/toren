@@ -53,24 +53,33 @@ class DatatypeBoolean(Datatype):
     return "BOOLEAN"
   
   def SQLite_DefaultValue(self, *args):
+    if self.hasDefaultValue():
+        return f"{str(int(self.DefaultValue.capitalize() == 'True'))}"
     return "0"
+
   
   def PostgreSQL_Type(self, *args):
     return "BOOLEAN"
   
   def PostgreSQL_DefaultValue(self, *args):
+    if self.hasDefaultValue():
+      return f"{self.DefaultValue.upper()}"
     return "FALSE" # "0"
     
   def Oracle_Type(self, *args):
      return "NUMBER(1)"
   
   def Oracle_DefaultValue(self, *args):
+    if self.hasDefaultValue():
+      return f"{str(int(self.DefaultValue.capitalize() == 'True'))}"
     return "0"
     
   def MicrosoftSQL_Type(self, *args):
     return "BIT"
   
   def MicrosoftSQL_DefaultValue(self, *args):
+    if self.hasDefaultValue():
+      return f"{str(int(self.DefaultValue.capitalize() == 'True'))}"
     return "0"
   
   ##########################################################################
@@ -84,11 +93,9 @@ class DatatypeBoolean(Datatype):
     return []
   
   def Python_DefaultValue(self, *args) -> str:
-    default_value = "False"
-    if self.DefaultValue:
-      if len(self.DefaultValue) > 0:
-        default_value = f"{self.DefaultValue.capitalize()}"
-    return default_value
+    if self.hasDefaultValue():
+      return f"{self.DefaultValue.capitalize()}"
+    return "False"
   
 
   ##########################################################################
@@ -102,8 +109,6 @@ class DatatypeBoolean(Datatype):
     return [""]
   
   def CSharp_DefaultValue(self, *args) -> str:
-    default_value = "false"
-    if self.DefaultValue:
-      if len(self.DefaultValue) > 0:
-        default_value = f"{self.DefaultValue.lower()}"
-    return default_value
+    if self.hasDefaultValue():
+      return f"{self.DefaultValue.lower()}"
+    return "false"

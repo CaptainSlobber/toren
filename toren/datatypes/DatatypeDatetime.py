@@ -42,11 +42,57 @@ class DatatypeDatetime(Datatype):
     super().from_dict(datatype)
     self.Type = self.getType()
     return self
+  
+  def unixEpochStart(self):
+    # Default to Unix epoch start
+    return datetime(1970, 1, 1, 0, 0, 0).strftime("%Y-%m-%d %H:%M:%S")
+  
+  ##########################################################################
+  # Database Property Types and Default Values
+  ##########################################################################
+
+  def SQLite_Type(self, *args):
+    return "BIGINT"  # SQLite uses TEXT for string/character data
+
+  def SQLite_DefaultValue(self, *args):
+    if self.hasDefaultValue():
+      return f"CAST(strftime('%s', '{self.DefaultValue[0]}') AS INT)"
+    return "0"
+
+  def PostgreSQL_Type(self, *args):
+    return "TIMESTAMPT"  # TIMESTAMPZ ? 
+
+  def PostgreSQL_DefaultValue(self, *args):
+    if self.hasDefaultValue():
+      return f"TO_TIMESTAMP('{self.DefaultValue[0]}', 'YYYY-MM-DD hh24:mi:ss')"
+    return f"TO_TIMESTAMP('{self.unixEpochStart()}', 'YYYY-MM-DD hh24:mi:ss')"
+
+  def Oracle_Type(self, *args):
+    return "TIMESTAMP"
+
+  def Oracle_DefaultValue(self, *args):
+    if self.hasDefaultValue():
+      return f"TO_TIMESTAMP('{self.DefaultValue[0]}', 'YYYY-MM-DD 24HH:MI:SS')"
+    return f"TO_TIMESTAMP('{self.unixEpochStart()}', 'YYYY-MM-DD 24HH:MI:SS')" # SELECT CURRENT_TIMESTAMP FROM DUAL
+
+  def MicrosoftSQL_Type(self, *args):
+    return "DATETIME2"
+
+  def MicrosoftSQL_DefaultValue(self, *args):
+    if self.hasDefaultValue():
+      # 120: yyyy-mm-dd hh:mi:ss (ODBC canonical)
+      # 121: yyyy-mm-dd hh:mi:ss.mmm (ODBC canonical with milliseconds)
+      return f"CONVERT(DATETIME2, '{self.DefaultValue[0]}', 120)"
+    return f"CONVERT(DATETIME2, '{self.unixEpochStart()}', 120)" # "GETDATE()"
 
   def to_dict(self):
     _datatype = super().to_dict()
     return _datatype
   
+  ##########################################################################
+  # Python methods for converting to and from various database types
+  ##########################################################################
+
   def Python_Type(self, *args) -> str:
     return "datetime" 
   
@@ -54,11 +100,13 @@ class DatatypeDatetime(Datatype):
     return ["from datetime import datetime"]
   
   def Python_DefaultValue(self, *args) -> str:
-    default_value = "datetime(1970, 1, 1, 0, 0, 0)" 
-    if self.DefaultValue:
-      if len(self.DefaultValue) > 0:
-        default_value = f"datetime.fromisoformat('{self.DefaultValue}')"
-    return default_value
+    if self.hasDefaultValue():
+      return f"datetime.fromisoformat('{self.DefaultValue}')"
+    return "datetime(1970, 1, 1, 0, 0, 0)" 
+
+  ##########################################################################
+  # C# methods for converting to and from various database types
+  ##########################################################################
   
   def CSharp_Type(self, *args) -> str:
     return "Datetime"
@@ -67,8 +115,12 @@ class DatatypeDatetime(Datatype):
     return ["using System.Globalization;"]
   
   def CSharp_DefaultValue(self, *args) -> str:
-    default_value = "DateTime.Now"
-    if self.DefaultValue:
-      if len(self.DefaultValue) > 0:
-        default_value = f'DateTime.Parse("{self.DefaultValue}", null, DateTimeStyles.RoundtripKind)'
+    #default_value = "DateTime.Now"
+    #default_value = "DateTime.Parse(\"1970-01-01 00:00:00\", null, DateTimeStyles.RoundtripKind)"
+    default_value = 'DateTime.ParseExact("1970-01-01 00:00:00", "yyyy-MM-dd HH:mm:ss", System.Globalization.CultureInfo.InvariantCulture)'
+    if self.hasDefaultValue():
+        #default_value = f'DateTime.Parse("{self.DefaultValue}", null, DateTimeStyles.RoundtripKind)'
+        default_value = f'DateTime.ParseExact("{self.DefaultValue}", "yyyy-MM-dd HH:mm:ss", System.Globalization.CultureInfo.InvariantCulture)'
     return default_value
+
+    

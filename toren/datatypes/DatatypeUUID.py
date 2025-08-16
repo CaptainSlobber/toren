@@ -1,6 +1,7 @@
 from .Datatype import Datatype
 from .ForeignKey import ForeignKey
 import collections
+import uuid
 
 class DatatypeUUID(Datatype):
 
@@ -45,6 +46,54 @@ class DatatypeUUID(Datatype):
     _datatype = super().to_dict()
     return _datatype
   
+
+  def isUUID(uuidstr, version=4):
+    try:
+        uuid_obj = uuid.UUID(uuidstr, version=version)
+    except ValueError:
+        return False
+    return str(uuid_obj) == uuidstr
+  
+  ##########################################################################
+  # Database Property Types and Default Values
+  ##########################################################################
+   
+  def SQLite_Type(self, *args):
+    return f"NVARCHAR(36)" 
+  
+  def SQLite_DefaultValue(self, *args):
+    if self.hasDefaultValue() and self.isUUID(self.DefaultValue):
+        return self._DefaultValueSingleQuote()
+    return self._SingleQuote("")
+
+  def PostgreSQL_Type(self, *args):
+    return f"UUID"
+  
+  def PostgreSQL_DefaultValue(self, *args):
+    if self.hasDefaultValue() and self.isUUID(self.DefaultValue):
+        return f"CAST({self._SingleQuote(self.DefaultValue)} AS uuid)" # f"{self._SingleQuote(self.DefaultValue)}::uuid" 
+    return "uuid_generate_v4()" # gen_random_uuid()
+    
+  def Oracle_Type(self, *args):
+     return f"NVARCHAR2(36)" # RAW(16) ?
+  
+  def Oracle_DefaultValue(self, *args):
+    if self.hasDefaultValue() and self.isUUID(self.DefaultValue):
+        return self._DefaultValueSingleQuote()
+    return self._SingleQuote("")
+  
+  def MicrosoftSQL_Type(self, *args):
+    return f"UNIQUEIDENTIFIER"
+  
+  def MicrosoftSQL_DefaultValue(self, *args):
+    if self.hasDefaultValue() and self.isUUID(self.DefaultValue):
+        return f"CONVERT(UNIQUEIDENTIFIER, {self._DefaultValueSingleQuote()})" 
+    return "NEWID()" # NEWSEQUENTIALID()
+  
+  ##########################################################################
+  # Python methods for converting to and from various database types
+  ##########################################################################
+
   def Python_Type(self, *args) -> str:
     return "uuid.UUID"
   
@@ -52,12 +101,14 @@ class DatatypeUUID(Datatype):
     return ['import uuid']
   
   def Python_DefaultValue(self, *args) -> str:
-    default_value = "uuid.uuid4()"
-    if self.DefaultValue:
-      if len(self.DefaultValue) > 0:
-        default_value = f"uuid.UUID('{self.DefaultValue}')"
-    return default_value
+    if self.hasDefaultValue() and self.isUUID(self.DefaultValue):
+        return f"uuid.UUID({self._DefaultValueSingleQuote()})"
+    return "uuid.uuid4()"
   
+  ##########################################################################
+  # C# methods for converting to and from various database types
+  ##########################################################################
+
   def CSharp_Type(self, *args) -> str:
     return "System.Guid"
   
@@ -65,8 +116,6 @@ class DatatypeUUID(Datatype):
     return ["using System;"] 
   
   def CSharp_DefaultValue(self, *args) -> str:
-    default_value = 'System.Guid.NewGuid()'
-    if self.DefaultValue:
-      if len(self.DefaultValue) > 0: # TODO: Validate if string is a valid UUID
-        default_value = f'System.Guid.NewGuid("{self.DefaultValue}")'
-    return default_value
+    if self.hasDefaultValue() and self.isUUID(self.DefaultValue):
+        return f'System.Guid.NewGuid({self._DefaultValueDoubleQuote})'
+    return 'System.Guid.NewGuid()'

@@ -54,57 +54,64 @@ class DatatypeBigInt(DatatypeNumeric):
     _datatypeString = super().to_dict()
     return _datatypeString
   
-
   ##########################################################################
   # Database Property Types and Default Values
   ##########################################################################
   
   def SQLite_Type(self, *args):
-    if len(self.Dimensinality) > 0:
+    if self.hasHigherDimensionality():
       return "BLOB"
     else:
       return "BIGINT"
   
   def SQLite_DefaultValue(self, *args):
-    if len(self.Dimensinality) > 0:
-      return "[]"
+    if self.hasHigherDimensionality():
+      return self.defaultBlob()
     else:
+      if self.hasDefaultValue():
+        return f"{str(int(self.DefaultValue))}"
       return "0"
   
   def PostgreSQL_Type(self, *args):
-    if len(self.Dimensinality) > 0:
+    if self.hasHigherDimensionality():
       return "BYTEA"
     else:
       return "BIGINT"
   
   def PostgreSQL_DefaultValue(self, *args):
-    if len(self.Dimensinality) > 0:
-      return "[]"
+    if self.hasHigherDimensionality():
+      return self.defaultBlob()
     else:
+      if self.hasDefaultValue():
+        return f"{str(int(self.DefaultValue))}"
       return "0"
     
   def Oracle_Type(self, *args):
-    if len(self.Dimensinality) > 0:
+    if self.hasHigherDimensionality():
       return "BLOB"
     else:
       return "BIGINT"
   
   def Oracle_DefaultValue(self, *args):
-    if len(self.Dimensinality) > 0:
-      return "[]"
+    if self.hasHigherDimensionality():
+      return self.defaultBlob()
     else:
+      if self.hasDefaultValue():
+        return f"{str(int(self.DefaultValue))}"
       return "0"
     
   def MicrosoftSQL_Type(self, *args):
-    if len(self.Dimensinality) > 0:
+    if self.hasHigherDimensionality():
       return "VARBINARY(MAX)"
     else:
       return "BIGINT"
   
   def MicrosoftSQL_DefaultValue(self, *args):
-    if len(self.Dimensinality) > 0:
-      return "[]"
+    if self.hasHigherDimensionality():
+      return self.defaultBlob()
     else:
+      if self.hasDefaultValue():
+        return f"{str(int(self.DefaultValue))}"
       return "0"
 
   ##########################################################################
@@ -112,25 +119,24 @@ class DatatypeBigInt(DatatypeNumeric):
   ##########################################################################
   
   def Python_Type(self, *args) -> str:
-    if len(self.Dimensinality) > 0:
+    if self.hasHigherDimensionality():
       return f"npt.NDArray[np.int64]" #np.array/np.ndarray
     else:
       return "int"
   
   def Python_Dependencies(self) -> list:
-    if len(self.Dimensinality) > 0:
+    if self.hasHigherDimensionality():
       return ["import numpy as np", "import numpy.typing as npt"]
     else:
       return [""]
   
   def Python_DefaultValue(self, *args) -> str:
-    if len(self.Dimensinality) > 0:
+    if self.hasHigherDimensionality():
       return f"np.zeros({str(self.Dimensinality)}, dtype=np.int64)"
     else:
       default_value = "0"
-      if self.DefaultValue:
-        if len(self.DefaultValue) > 0:
-          default_value = f"{str(int(self.DefaultValue))}"
+      if self.hasDefaultValue():
+        default_value = f"{str(int(self.DefaultValue))}"
       return default_value
     
   ##########################################################################
@@ -138,25 +144,22 @@ class DatatypeBigInt(DatatypeNumeric):
   ##########################################################################
     
   def CSharp_Type(self, *args) -> str:
-    if len(self.Dimensinality) > 0:
+    if self.hasHigherDimensionality():
       commas = ","*(len(self.Dimensinality)-1)  
       return f"long[{commas}]" #multidimensional array
     else:
       return "long"
   
   def CSharp_Dependencies(self) -> list:
-    if len(self.Dimensinality) > 0:
+    if self.hasHigherDimensionality():
       return ["using System;"] # Consider: System.Numerics.Vectors
     else:
       return [""]
   
   def CSharp_DefaultValue(self, *args) -> str:
-    if len(self.Dimensinality) > 0:
-      
+    if self.hasHigherDimensionality():
       return f"new long[{','.join(list(map(str, self.Dimensinality)))}]"
     else:
-      default_value = "0"
-      if self.DefaultValue:
-        if len(self.DefaultValue) > 0:
-          default_value = f"{str(int(self.DefaultValue))}"
-      return default_value
+      if self.hasDefaultValue():
+        return f"{str(int(self.DefaultValue))}"
+      return "0"

@@ -52,48 +52,113 @@ class DatatypeDouble(DatatypeNumeric):
     _datatype = super().to_dict()
     return _datatype
   
+  ##########################################################################
+  # Database Property Types and Default Values
+  ##########################################################################
+  
+  def SQLite_Type(self, *args):
+    if self.hasHigherDimensionality():
+      return "BLOB"
+    else:
+      return "REAL" # https://www.sqlite.org/datatype3.html
+  
+  def SQLite_DefaultValue(self, *args):
+    if self.hasHigherDimensionality():
+      return self.defaultBlob()
+    else:
+      if self.hasDefaultValue():
+        return f"{self.DefaultValue}"
+      return "0.0"
+  
+  def PostgreSQL_Type(self, *args):
+    if self.hasHigherDimensionality():
+      return "BYTEA"
+    else:
+      return f"FLOAT" # FLOAT8 and FLOAT are synonyms for DOUBLE PRECISION
+  
+  def PostgreSQL_DefaultValue(self, *args):
+    if self.hasHigherDimensionality():
+      return self.defaultBlob()
+    else:
+      if self.hasDefaultValue():
+        return f"{self.DefaultValue}"
+      return "0.0"
+    
+  def Oracle_Type(self, *args):
+    if self.hasHigherDimensionality():
+      return "BLOB"
+    else:
+      return f"BINARY_DOUBLE"
+  
+  def Oracle_DefaultValue(self, *args):
+    if self.hasHigherDimensionality():
+      return self.defaultBlob()
+    else:
+      if self.hasDefaultValue():
+        return f"{self.DefaultValue}"
+      return "0.0"
+    
+  def MicrosoftSQL_Type(self, *args):
+    if self.hasHigherDimensionality():
+      return "VARBINARY(MAX)"
+    else:
+      # https://learn.microsoft.com/en-us/dotnet/framework/data/adonet/sql-server-data-type-mappings
+      return f"FLOAT"
+  
+  def MicrosoftSQL_DefaultValue(self, *args):
+    if self.hasHigherDimensionality():
+      return self.defaultBlob()
+    else:
+      if self.hasDefaultValue():
+        return f"{self.DefaultValue}"
+      return "0.0"
+
+  ##########################################################################
+  # Python methods for converting to and from various database types
+  ##########################################################################
+  
   def Python_Type(self, *args) -> str:
-    if len(self.Dimensinality) > 0:
+    if self.hasHigherDimensionality():
       return f"npt.NDArray[np.float64]" #np.array/np.ndarray
     else:
       # float type = 64-bit double-precision floating-point number in Python
       return "float"
   
   def Python_Dependencies(self) -> list:
-    if len(self.Dimensinality) > 0:
+    if self.hasHigherDimensionality():
       return ["import numpy as np", "import numpy.typing as npt"]
     else:
       return [""]
   
   def Python_DefaultValue(self, *args) -> str:
-    if len(self.Dimensinality) > 0:
+    if self.hasHigherDimensionality():
       return f"np.zeros({str(self.Dimensinality)}, dtype=np.float64)"
     else:
-      default_value = "0.0" 
-      if self.DefaultValue:
-        if len(self.DefaultValue) > 0:
-          default_value = f"float({self.DefaultValue})"
-      return default_value
-    
+      if self.hasDefaultValue():
+          return f"float({self.DefaultValue})"
+      return "0.0" 
+
+  ##########################################################################
+  # C# methods for converting to and from various database types
+  ##########################################################################
+
   def CSharp_Type(self, *args) -> str:
-    if len(self.Dimensinality) > 0:
+    if self.hasHigherDimensionality():
       commas = ","*(len(self.Dimensinality)-1)  
       return f"double[{commas}]" #multidimensional array
     else:
       return "double"
   
   def CSharp_Dependencies(self) -> list:
-    if len(self.Dimensinality) > 0:
+    if self.hasHigherDimensionality():
       return ["using System;"] # Consider: System.Numerics.Vectors
     else:
       return [""]
   
   def CSharp_DefaultValue(self, *args) -> str:
-    if len(self.Dimensinality) > 0:
+    if self.hasHigherDimensionality():
       return f"new double[{','.join(list(map(str, self.Dimensinality)))}]"
     else:
-      default_value = "0.0"
-      if self.DefaultValue:
-        if len(self.DefaultValue) > 0:
-          default_value = f"{self.DefaultValue}"
-      return default_value
+      if self.hasDefaultValue():
+        return f"{self.DefaultValue}"
+      return "0.0"

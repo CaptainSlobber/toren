@@ -65,49 +65,113 @@ class DatatypeDecimal(DatatypeNumeric):
     _datatype[self.PropertName.PRECISION] = self.Precision
     _datatype[self.PropertName.SCALE] = self.Scale
     return _datatype
+  
+
+  ##########################################################################
+  # Database Property Types and Default Values
+  ##########################################################################
+  
+  def SQLite_Type(self, *args):
+    if self.hasHigherDimensionality():
+      return "BLOB"
+    else:
+      return "REAL"
+  
+  def SQLite_DefaultValue(self, *args):
+    if self.hasHigherDimensionality():
+      return self.defaultBlob()
+    else:
+      if self.hasDefaultValue():
+        return f"{self.DefaultValue}"
+      return "0.0"
+  
+  def PostgreSQL_Type(self, *args):
+    if self.hasHigherDimensionality():
+      return "BYTEA"
+    else:
+      return f"DECIMAL({int(self.Precision)}, {int(self.Scale)})"
+  
+  def PostgreSQL_DefaultValue(self, *args):
+    if self.hasHigherDimensionality():
+      return self.defaultBlob()
+    else:
+      if self.hasDefaultValue():
+        return f"{self.DefaultValue}"
+      return "0.0"
+    
+  def Oracle_Type(self, *args):
+    if self.hasHigherDimensionality():
+      return "BLOB"
+    else:
+      return f"DECIMAL({int(self.Precision)}, {int(self.Scale)})"
+  
+  def Oracle_DefaultValue(self, *args):
+    if self.hasHigherDimensionality():
+      return self.defaultBlob()
+    else:
+      if self.hasDefaultValue():
+        return f"{self.DefaultValue}"
+      return "0.0"
+    
+  def MicrosoftSQL_Type(self, *args):
+    if self.hasHigherDimensionality():
+      return "VARBINARY(MAX)"
+    else:
+      return f"DECIMAL({int(self.Precision)}, {int(self.Scale)})"
+  
+  def MicrosoftSQL_DefaultValue(self, *args):
+    if self.hasHigherDimensionality():
+      return self.defaultBlob()
+    else:
+      if self.hasDefaultValue():
+        return f"{self.DefaultValue}"
+      return "0.0"
+
+  ##########################################################################
+  # Python methods for converting to and from various database types
+  ##########################################################################
 
   def Python_Type(self, *args) -> str:
-    if len(self.Dimensinality) > 0:
+    if self.hasHigherDimensionality():
       return f"npt.NDArray[np.float128]" # Sorta 
     else:
       return "Decimal"
   
   def Python_Dependencies(self) -> list:
-    if len(self.Dimensinality) > 0:
+    if self.hasHigherDimensionality():
       return ["import numpy as np", "import numpy.typing as npt"]
     else:
       return ['from decimal import Decimal']
   
   def Python_DefaultValue(self, *args) -> str:
-    if len(self.Dimensinality) > 0:
+    if self.hasHigherDimensionality():
       return f"np.zeros({str(self.Dimensinality)}, dtype=np.float128)" # Kinda 
     else:
-      default_value = "Decimal(0.0)"
-      if self.DefaultValue:
-        if len(self.DefaultValue) > 0:
-          default_value = f"Decimal('{self.DefaultValue}')"
-      return default_value
+      if self.hasDefaultValue():
+          return f"Decimal('{self.DefaultValue}')"
+      return "Decimal(0.0)"
+
+  ##########################################################################
+  # C# methods for converting to and from various database types
+  ##########################################################################
 
   def CSharp_Type(self, *args) -> str:
-    if len(self.Dimensinality) > 0:
+    if self.hasHigherDimensionality():
       commas = ","*(len(self.Dimensinality)-1)  
       return f"decimal[{commas}]" #multidimensional array
     else:
       return "decimal"
   
   def CSharp_Dependencies(self) -> list:
-    if len(self.Dimensinality) > 0:
+    if self.hasHigherDimensionality():
       return ["using System;"] # Consider: System.Numerics.Vectors
     else:
       return [""]
   
   def CSharp_DefaultValue(self, *args) -> str:
-    if len(self.Dimensinality) > 0:
-      
+    if self.hasHigherDimensionality():
       return f"new decimal[{','.join(list(map(str, self.Dimensinality)))}]"
     else:
-      default_value = "0.0m" #"(decimal) 0m"
-      if self.DefaultValue:
-        if len(self.DefaultValue) > 0:
-          default_value = f"{self.DefaultValue}m" #f"(decimal) {self.DefaultValue}M"
-      return default_value
+      if self.hasDefaultValue():
+          return f"{self.DefaultValue}m" #f"(decimal) {self.DefaultValue}M"
+      return "0.0m" #"(decimal) 0m"

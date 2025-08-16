@@ -130,7 +130,38 @@ class Datatype(TorenObject):
     self.from_dict(_datatype)
     return self
   
+  ##########################################################################
+  # Common Operations
+  ##########################################################################
 
+  def defaultBlob(self):
+    return "0x00"
+
+  def hasDefaultValue(self):
+    if self.DefaultValue is not None:
+      if len(self.DefaultValue) > 0:
+        return True
+    return False
+  
+  def _Escape_String(self, value: str) -> str:
+    if value is None:
+      return ""
+    if isinstance(value, str):
+      return value.replace("'", "''").replace("\"","\"")  # Escape single quotes for SQL
+    return ""
+    
+  def _DefaultValueSingleQuote(self) -> str:
+    return  self._SingleQuote(self.DefaultValue)
+  
+  def _DefaultValueDoubleQuote(self) -> str:
+    return  self._DoubleQuote(self.DefaultValue)
+  
+  def _SingleQuote(self, val: str)-> str:
+    return  f"'{self._Escape_String(val)}'"
+  
+  def _DoubleQuote(self, val: str)-> str:
+    return  f"\"{self._Escape_String(val)}\""
+  
   ##########################################################################
   # To
   ##########################################################################

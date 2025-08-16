@@ -52,48 +52,112 @@ class DatatypeSmallInt(DatatypeNumeric):
   def to_dict(self):
     _datatype = super().to_dict()
     return _datatype
+
+  ##########################################################################
+  # Database Property Types and Default Values
+  ##########################################################################
+  
+  def SQLite_Type(self, *args):
+    if self.hasHigherDimensionality():
+      return "BLOB"
+    else:
+      return "SMALLINT" # https://www.sqlite.org/datatype3.html
+  
+  def SQLite_DefaultValue(self, *args):
+    if self.hasHigherDimensionality():
+      return self.defaultBlob()
+    else:
+      if self.hasDefaultValue():
+        return f"{str(int(self.DefaultValue))}"
+      return "0"
+  
+  def PostgreSQL_Type(self, *args):
+    if self.hasHigherDimensionality():
+      return "BYTEA"
+    else:
+      return f"SMALLINT"
+  
+  def PostgreSQL_DefaultValue(self, *args):
+    if self.hasHigherDimensionality():
+      return self.defaultBlob()
+    else:
+      if self.hasDefaultValue():
+        return f"{str(int(self.DefaultValue))}"
+      return "0"
+    
+  def Oracle_Type(self, *args):
+    if self.hasHigherDimensionality():
+      return "BLOB"
+    else:
+      return f"SMALLINT"
+  
+  def Oracle_DefaultValue(self, *args):
+    if self.hasHigherDimensionality():
+      return self.defaultBlob()
+    else:
+      if self.hasDefaultValue():
+        return f"{str(int(self.DefaultValue))}"
+      return "0"
+    
+  def MicrosoftSQL_Type(self, *args):
+    if self.hasHigherDimensionality():
+      return "VARBINARY(MAX)"
+    else:
+      # https://learn.microsoft.com/en-us/dotnet/framework/data/adonet/sql-server-data-type-mappings
+      return f"SMALLINT"
+  
+  def MicrosoftSQL_DefaultValue(self, *args):
+    if self.hasHigherDimensionality():
+      return self.defaultBlob()
+    else:
+      if self.hasDefaultValue():
+        return f"{str(int(self.DefaultValue))}"
+      return "0"
+
+  ##########################################################################
+  # Python methods for converting to and from various database types
+  ##########################################################################
   
   def Python_Type(self, *args) -> str:
-    if len(self.Dimensinality) > 0:
+    if self.hasHigherDimensionality():
       return f"npt.NDArray[np.int16]" #np.array/np.ndarray
     else:
       return "int"
   
   def Python_Dependencies(self) -> list:
-    if len(self.Dimensinality) > 0:
+    if self.hasHigherDimensionality():
       return ["import numpy as np", "import numpy.typing as npt"]
     else:
       return [""]
   
   def Python_DefaultValue(self, *args) -> str:
-    if len(self.Dimensinality) > 0:
+    if self.hasHigherDimensionality():
       return f"np.zeros({str(self.Dimensinality)}, dtype=np.int16)"
     else:
-      default_value = "0"
-      if self.DefaultValue:
-        if len(self.DefaultValue) > 0:
-          default_value = f"{self.DefaultValue}"
-      return default_value
-
+      if self.hasDefaultValue():
+          return f"{self.DefaultValue}"
+      return "0"
+    
+  ##########################################################################
+  # C# methods for converting to and from various database types
+  ##########################################################################
   def CSharp_Type(self, *args) -> str:
-    if len(self.Dimensinality) > 0:
+    if self.hasHigherDimensionality():
       commas = ","*(len(self.Dimensinality)-1)  
       return f"int16[{commas}]" #multidimensional array
     else:
       return "int16"
   
   def CSharp_Dependencies(self) -> list:
-    if len(self.Dimensinality) > 0:
+    if self.hasHigherDimensionality():
       return ["using System;"] # Consider: System.Numerics.Vectors
     else:
       return [""]
   
   def CSharp_DefaultValue(self, *args) -> str:
-    if len(self.Dimensinality) > 0:
+    if self.hasHigherDimensionality():
       return f"new int16[{','.join(list(map(str, self.Dimensinality)))}]"
     else:
-      default_value = "0"
-      if self.DefaultValue:
-        if len(self.DefaultValue) > 0:
-          default_value = f"{self.DefaultValue}"
-      return default_value
+      if self.hasDefaultValue():
+          return f"{self.DefaultValue}"
+      return "0"

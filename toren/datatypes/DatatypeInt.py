@@ -52,6 +52,71 @@ class DatatypeInt(DatatypeNumeric):
   def to_dict(self):
     _datatype = super().to_dict()
     return _datatype
+
+  ##########################################################################
+  # Database Property Types and Default Values
+  ##########################################################################
+  
+  def SQLite_Type(self, *args):
+    if self.hasHigherDimensionality():
+      return "BLOB"
+    else:
+      return "INT" # https://www.sqlite.org/datatype3.html
+  
+  def SQLite_DefaultValue(self, *args):
+    if self.hasHigherDimensionality():
+      return self.defaultBlob()
+    else:
+      if self.hasDefaultValue():
+        return f"{str(int(self.DefaultValue))}"
+      return "0"
+  
+  def PostgreSQL_Type(self, *args):
+    if self.hasHigherDimensionality():
+      return "BYTEA"
+    else:
+      return f"INT"
+  
+  def PostgreSQL_DefaultValue(self, *args):
+    if self.hasHigherDimensionality():
+      return self.defaultBlob()
+    else:
+      if self.hasDefaultValue():
+        return f"{str(int(self.DefaultValue))}"
+      return "0"
+    
+  def Oracle_Type(self, *args):
+    if self.hasHigherDimensionality():
+      return "BLOB"
+    else:
+      return f"INT" # INTEGER
+  
+  def Oracle_DefaultValue(self, *args):
+    if self.hasHigherDimensionality():
+      return self.defaultBlob()
+    else:
+      if self.hasDefaultValue():
+        return f"{str(int(self.DefaultValue))}"
+      return "0"
+    
+  def MicrosoftSQL_Type(self, *args):
+    if self.hasHigherDimensionality():
+      return "VARBINARY(MAX)"
+    else:
+      # https://learn.microsoft.com/en-us/dotnet/framework/data/adonet/sql-server-data-type-mappings
+      return f"INT"
+  
+  def MicrosoftSQL_DefaultValue(self, *args):
+    if self.hasHigherDimensionality():
+      return self.defaultBlob()
+    else:
+      if self.hasDefaultValue():
+        return f"{str(int(self.DefaultValue))}"
+      return "0"
+
+  ##########################################################################
+  # Python methods for converting to and from various database types
+  ##########################################################################
   
   def Python_Type(self, *args) -> str:
     if len(self.Dimensinality) > 0:
@@ -69,11 +134,13 @@ class DatatypeInt(DatatypeNumeric):
     if len(self.Dimensinality) > 0:
       return f"np.zeros({str(self.Dimensinality)}, dtype=np.int32)"
     else:
-      default_value = "0"
-      if self.DefaultValue:
-        if len(self.DefaultValue) > 0:
-          default_value = f"{str(int(self.DefaultValue))}"
-      return default_value
+      if self.hasDefaultValue():
+        return f"{str(int(self.DefaultValue))}"
+      return "0"
+    
+  ##########################################################################
+  # C# methods for converting to and from various database types
+  ##########################################################################
     
   def CSharp_Type(self, *args) -> str:
     if len(self.Dimensinality) > 0:
@@ -92,9 +159,7 @@ class DatatypeInt(DatatypeNumeric):
     if len(self.Dimensinality) > 0:
       return f"new int[{','.join(list(map(str, self.Dimensinality)))}]"
     else:
-      default_value = "0"
-      if self.DefaultValue:
-        if len(self.DefaultValue) > 0:
-          default_value = f"{str(int(self.DefaultValue))}"
-      return default_value
+      if self.hasDefaultValue():
+        return f"{str(int(self.DefaultValue))}"
+      return "0"
     
