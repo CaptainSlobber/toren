@@ -58,13 +58,13 @@ class DatatypeBigInt(DatatypeNumeric):
   # Database Property Types and Default Values
   ##########################################################################
   
-  def SQLite_Type(self, *args):
+  def SQLite_Type(self, *args) -> str:
     if self.hasHigherDimensionality():
       return "BLOB"
     else:
       return "BIGINT"
   
-  def SQLite_DefaultValue(self, *args):
+  def SQLite_DefaultValue(self, *args) -> str:
     if self.hasHigherDimensionality():
       return self.defaultBlob()
     else:
@@ -72,13 +72,13 @@ class DatatypeBigInt(DatatypeNumeric):
         return f"{str(int(self.DefaultValue))}"
       return "0"
   
-  def PostgreSQL_Type(self, *args):
+  def PostgreSQL_Type(self, *args) -> str:
     if self.hasHigherDimensionality():
       return "BYTEA"
     else:
       return "BIGINT"
   
-  def PostgreSQL_DefaultValue(self, *args):
+  def PostgreSQL_DefaultValue(self, *args) -> str:
     if self.hasHigherDimensionality():
       return self.defaultBlob()
     else:
@@ -86,7 +86,7 @@ class DatatypeBigInt(DatatypeNumeric):
         return f"{str(int(self.DefaultValue))}"
       return "0"
     
-  def Oracle_Type(self, *args):
+  def Oracle_Type(self, *args) -> str:
     if self.hasHigherDimensionality():
       return "BLOB"
     else:
@@ -100,13 +100,13 @@ class DatatypeBigInt(DatatypeNumeric):
         return f"{str(int(self.DefaultValue))}"
       return "0"
     
-  def MicrosoftSQL_Type(self, *args):
+  def MicrosoftSQL_Type(self, *args) -> str:
     if self.hasHigherDimensionality():
       return "VARBINARY(MAX)"
     else:
       return "BIGINT"
   
-  def MicrosoftSQL_DefaultValue(self, *args):
+  def MicrosoftSQL_DefaultValue(self, *args) -> str:
     if self.hasHigherDimensionality():
       return self.defaultBlob()
     else:

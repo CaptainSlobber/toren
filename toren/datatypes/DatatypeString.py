@@ -62,34 +62,34 @@ class DatatypeString(Datatype):
   # Database Property Types and Default Values
   ##########################################################################
    
-  def SQLite_Type(self, *args):
+  def SQLite_Type(self, *args) -> str:
     return f"NVARCHAR({int(self.MaxLength)})" # UTF-16
   
-  def SQLite_DefaultValue(self, *args):
+  def SQLite_DefaultValue(self, *args) -> str:
     if self.hasDefaultValue():
         return self._DefaultValueSingleQuote()
     return self._SingleQuote("")
 
-  def PostgreSQL_Type(self, *args):
+  def PostgreSQL_Type(self, *args) -> str:
     return f"VARCHAR({int(self.MaxLength)})" # TEXT
   
-  def PostgreSQL_DefaultValue(self, *args):
+  def PostgreSQL_DefaultValue(self, *args) -> str:
     if self.hasDefaultValue():
         return self._DefaultValueSingleQuote()
     return self._SingleQuote("")
     
-  def Oracle_Type(self, *args):
+  def Oracle_Type(self, *args) -> str:
      return f"NVARCHAR2({int(self.MaxLength)})" # UTF-16
   
-  def Oracle_DefaultValue(self, *args):
+  def Oracle_DefaultValue(self, *args) -> str:
     if self.hasDefaultValue():
         return self._DefaultValueSingleQuote()
     return self._SingleQuote("")
   
-  def MicrosoftSQL_Type(self, *args):
+  def MicrosoftSQL_Type(self, *args) -> str:
     return f"NVARCHAR({int(self.MaxLength)})" # UTF-16
   
-  def MicrosoftSQL_DefaultValue(self, *args):
+  def MicrosoftSQL_DefaultValue(self, *args) -> str:
     if self.hasDefaultValue():
         return self._DefaultValueSingleQuote()
     return self._SingleQuote("")

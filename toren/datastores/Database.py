@@ -104,6 +104,27 @@ class Database(TorenObject):
     self.from_dict(_database)
     return self
   
+  ##########################################################################
+  # DB Specific Query Syntax
+  ##########################################################################
+
+  def OB(self):
+    return self.OpenBrackets()
+  
+  def CB(self):
+    return self.CloseBrackets()
+
+  def OpenBrackets(self):
+    return "["
+  
+  def CloseBrackets(self):
+    return "]"
+  
+  def IfNotExists(self):
+    return "IF NOT EXISTS "
+  
+  def EndQuery(self):
+    return ";"
 
   ##########################################################################
   # Dependencies

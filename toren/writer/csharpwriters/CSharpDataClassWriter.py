@@ -87,17 +87,35 @@ class CSharpDataClassWriter(DataClassWriter):
         s.ret()
         return s
     
+
+    def writeCreateTableColumn(self, s:CSharpStringWriter, property):
+        db = self.Database
+        NOTNULL = "NOT NULL "
+        if property.AllowNulls:
+            NOTNULL = ""
+        PRIMARYKEY = ""
+        if property.IsPrimaryKey: 
+            PRIMARYKEY = " PRIMARY KEY"
+        UNIQUE = ""
+        if property.IsUnique:
+            UNIQUE = "UNIQUE "
+        DATATYPE = property.DatabasePropertyType(db)
+        
+        s.wln(f'createquery = createquery + "{db.OB()}{property.Name}{db.CB()}{DATATYPE}{NOTNULL}{UNIQUE} {PRIMARYKEY}";')
+        return s
+
+
+    
     def writeCreateTable(self, s:CSharpStringWriter):
-
-
-
+        db = self.Database
         s.w(f"private static string create{self.Class.Name}TableQuery ()").o()
+        s.wln(f'string createquery = "CREATE TABLE {db.IfNotExists()} {db.OB()}{self.Class.Name}{db.CB()} (";')
         if self.Class.InheritsFrom is not None:
             for propertyid, property in self.Class.InheritsFrom.Properties.Data.items():
-                pass
+                s = self.writeCreateTableColumn(s, property)
         for propertyid, property in self.Class.Properties.Data.items():
-            pass
-
+            s = self.writeCreateTableColumn(s, property)
+        s.wln("return createquery;")
         s.c().ret()
 
         s.w(f"public static bool create{self.Class.Name}Table () ").o()

@@ -54,28 +54,28 @@ class DatatypeBinary(Datatype):
   # Database Property Types and Default Values
   ##########################################################################
 
-  def SQLite_Type(self, *args):
+  def SQLite_Type(self, *args) -> str:
     return "BLOB"
   
-  def SQLite_DefaultValue(self, *args):
+  def SQLite_DefaultValue(self, *args) -> str:
     return self.defaultBlob()
   
-  def PostgreSQL_Type(self, *args):
+  def PostgreSQL_Type(self, *args) -> str:
     return "BYTEA"
   
-  def PostgreSQL_DefaultValue(self, *args):
+  def PostgreSQL_DefaultValue(self, *args) -> str:
     return self.defaultBlob()
     
-  def Oracle_Type(self, *args):
+  def Oracle_Type(self, *args) -> str:
      return "BLOB"
   
-  def Oracle_DefaultValue(self, *args):
+  def Oracle_DefaultValue(self, *args) -> str:
     return self.defaultBlob()
     
-  def MicrosoftSQL_Type(self, *args):
+  def MicrosoftSQL_Type(self, *args) -> str:
     return "VARBINARY(MAX)"
   
-  def MicrosoftSQL_DefaultValue(self, *args):
+  def MicrosoftSQL_DefaultValue(self, *args) -> str:
     return self.defaultBlob()
   
   ##########################################################################

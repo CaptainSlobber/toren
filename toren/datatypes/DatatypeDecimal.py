@@ -71,13 +71,13 @@ class DatatypeDecimal(DatatypeNumeric):
   # Database Property Types and Default Values
   ##########################################################################
   
-  def SQLite_Type(self, *args):
+  def SQLite_Type(self, *args) -> str:
     if self.hasHigherDimensionality():
       return "BLOB"
     else:
       return "REAL"
   
-  def SQLite_DefaultValue(self, *args):
+  def SQLite_DefaultValue(self, *args) -> str:
     if self.hasHigherDimensionality():
       return self.defaultBlob()
     else:
@@ -85,13 +85,13 @@ class DatatypeDecimal(DatatypeNumeric):
         return f"{self.DefaultValue}"
       return "0.0"
   
-  def PostgreSQL_Type(self, *args):
+  def PostgreSQL_Type(self, *args) -> str:
     if self.hasHigherDimensionality():
       return "BYTEA"
     else:
       return f"DECIMAL({int(self.Precision)}, {int(self.Scale)})"
   
-  def PostgreSQL_DefaultValue(self, *args):
+  def PostgreSQL_DefaultValue(self, *args) -> str:
     if self.hasHigherDimensionality():
       return self.defaultBlob()
     else:
@@ -99,13 +99,13 @@ class DatatypeDecimal(DatatypeNumeric):
         return f"{self.DefaultValue}"
       return "0.0"
     
-  def Oracle_Type(self, *args):
+  def Oracle_Type(self, *args) -> str:
     if self.hasHigherDimensionality():
       return "BLOB"
     else:
       return f"DECIMAL({int(self.Precision)}, {int(self.Scale)})"
   
-  def Oracle_DefaultValue(self, *args):
+  def Oracle_DefaultValue(self, *args) -> str:
     if self.hasHigherDimensionality():
       return self.defaultBlob()
     else:
@@ -113,13 +113,13 @@ class DatatypeDecimal(DatatypeNumeric):
         return f"{self.DefaultValue}"
       return "0.0"
     
-  def MicrosoftSQL_Type(self, *args):
+  def MicrosoftSQL_Type(self, *args) -> str:
     if self.hasHigherDimensionality():
       return "VARBINARY(MAX)"
     else:
       return f"DECIMAL({int(self.Precision)}, {int(self.Scale)})"
   
-  def MicrosoftSQL_DefaultValue(self, *args):
+  def MicrosoftSQL_DefaultValue(self, *args) -> str:
     if self.hasHigherDimensionality():
       return self.defaultBlob()
     else:

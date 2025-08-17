@@ -23,6 +23,20 @@ class DatabaseOracle(Database):
   
   def getID(self):
     return "1a188e6f-f5d3-4f18-9e19-7cbfb3eb7d42"
+  
+  ##########################################################################
+  # DB Specific Query Syntax
+  ##########################################################################
+
+  def OpenBrackets(self):
+    return "\""
+  
+  def CloseBrackets(self):
+    return "\""
+  
+  ##########################################################################
+  # Dependencies
+  ##########################################################################
 
   def CSharpDependencies(self):
     return ["using Oracle.DataAccess.Client;", "using Oracle.ManagedDataAccess.Client;"] #System.Data.OracleClient

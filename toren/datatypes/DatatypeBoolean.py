@@ -49,35 +49,35 @@ class DatatypeBoolean(Datatype):
   # Database Property Types and Default Values
   ##########################################################################
    
-  def SQLite_Type(self, *args):
+  def SQLite_Type(self, *args) -> str:
     return "BOOLEAN"
   
-  def SQLite_DefaultValue(self, *args):
+  def SQLite_DefaultValue(self, *args) -> str:
     if self.hasDefaultValue():
         return f"{str(int(self.DefaultValue.capitalize() == 'True'))}"
     return "0"
 
   
-  def PostgreSQL_Type(self, *args):
+  def PostgreSQL_Type(self, *args) -> str:
     return "BOOLEAN"
   
-  def PostgreSQL_DefaultValue(self, *args):
+  def PostgreSQL_DefaultValue(self, *args) -> str:
     if self.hasDefaultValue():
       return f"{self.DefaultValue.upper()}"
     return "FALSE" # "0"
     
-  def Oracle_Type(self, *args):
+  def Oracle_Type(self, *args) -> str:
      return "NUMBER(1)"
   
-  def Oracle_DefaultValue(self, *args):
+  def Oracle_DefaultValue(self, *args) -> str:
     if self.hasDefaultValue():
       return f"{str(int(self.DefaultValue.capitalize() == 'True'))}"
     return "0"
     
-  def MicrosoftSQL_Type(self, *args):
+  def MicrosoftSQL_Type(self, *args) -> str:
     return "BIT"
   
-  def MicrosoftSQL_DefaultValue(self, *args):
+  def MicrosoftSQL_DefaultValue(self, *args) -> str:
     if self.hasDefaultValue():
       return f"{str(int(self.DefaultValue.capitalize() == 'True'))}"
     return "0"

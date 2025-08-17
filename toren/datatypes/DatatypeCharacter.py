@@ -50,34 +50,34 @@ class DatatypeCharacter(Datatype):
   # Database Property Types and Default Values
   ##########################################################################
 
-  def SQLite_Type(self, *args):
+  def SQLite_Type(self, *args) -> str:
     return "TEXT"  # SQLite uses TEXT for string/character data
 
-  def SQLite_DefaultValue(self, *args):
+  def SQLite_DefaultValue(self, *args) -> str:
     if self.hasDefaultValue():
       return f"\"{self.DefaultValue[0]}\""
     return "\"\""
 
-  def PostgreSQL_Type(self, *args):
+  def PostgreSQL_Type(self, *args) -> str:
     return "CHAR(1)"  # Single character
 
-  def PostgreSQL_DefaultValue(self, *args):
+  def PostgreSQL_DefaultValue(self, *args) -> str:
     if self.hasDefaultValue():
       return f"\"{self.DefaultValue[0]}\""
     return "\"\""
 
-  def Oracle_Type(self, *args):
+  def Oracle_Type(self, *args) -> str:
     return "CHAR(1)"
 
-  def Oracle_DefaultValue(self, *args):
+  def Oracle_DefaultValue(self, *args) -> str:
     if self.hasDefaultValue():
       return f"\"{self.DefaultValue[0]}\""
     return "\"\""
 
-  def MicrosoftSQL_Type(self, *args):
+  def MicrosoftSQL_Type(self, *args) -> str:
     return "CHAR(1)"
 
-  def MicrosoftSQL_DefaultValue(self, *args):
+  def MicrosoftSQL_DefaultValue(self, *args) -> str:
     if self.hasDefaultValue():
       return f"\"{self.DefaultValue[0]}\""
     return "\"\""

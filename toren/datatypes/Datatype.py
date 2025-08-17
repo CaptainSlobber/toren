@@ -28,6 +28,7 @@ class Datatype(TorenObject):
     ISUNIQUE = "IsUnique"
     DEFAULTVALUE = "DefaultValue"
     FOREIGNKEY = "ForeignKey"
+    ALLOWNULLS = "AllowNulls"
 
 
   class PropertID():
@@ -40,6 +41,7 @@ class Datatype(TorenObject):
     ISUNIQUE = "01a9e2b8-3a64-4832-bb01-ce05120fb9f8"
     DEFAULTVALUE = "e9009d06-73ed-4e73-a5bb-4836badf4037"
     FOREIGNKEY = "f3553d5e-f65f-4a70-b45f-1db6ccb714b1"
+    ALLOWNULLS = "23222ba3-c0e0-4d4b-bdba-5c34ec13016d"
 
   def getType(self):
     return "toren.datatypes.Datatype"
@@ -54,6 +56,7 @@ class Datatype(TorenObject):
     self.IsUnique = False
     self.DefaultValue = ""
     self.ForeignKey = None
+    self.AllowNulls = False
 
 
   def initialize(self, name: str, 
@@ -72,6 +75,7 @@ class Datatype(TorenObject):
     self.IsUnique = isunique
     self.DefaultValue = defaultvalue
     self.ForeignKey = foreignKey
+    self.AllowNulls = False
     return self
   
 
@@ -101,6 +105,7 @@ class Datatype(TorenObject):
     self.ID = str(datatype[self.PropertName.ID])
     self.IsPrimaryKey = bool(datatype[self.PropertName.ISPRIMARYKEY])
     self.IsUnique = bool(datatype[self.PropertName.ISUNIQUE])
+    self.AllowNulls = bool(datatype[self.PropertName.ALLOWNULLS])
     self.DefaultValue = str(datatype[self.PropertName.DEFAULTVALUE])
     
     if self.PropertName.FOREIGNKEY in datatype: 
@@ -115,6 +120,7 @@ class Datatype(TorenObject):
     _datatype[self.PropertName.ID] = self.ID
     _datatype[self.PropertName.ISPRIMARYKEY] = self.IsPrimaryKey
     _datatype[self.PropertName.ISUNIQUE] = self.IsUnique
+    _datatype[self.PropertName.ALLOWNULLS] = self.AllowNulls
     _datatype[self.PropertName.DEFAULTVALUE] = self.DefaultValue
 
     if self.ForeignKey is not None: 
@@ -166,121 +172,121 @@ class Datatype(TorenObject):
   # To
   ##########################################################################
 
-  def To(self, language: Language, database: Database):
+  def To(self, language: Language, database: Database) -> str:
     _to = {}
-    _to[f"{LanguagePython.getID()}{DatabaseSQLite.getID()}"] = self.Python_to_SQLite
-    _to[f"{LanguagePython.getID()}{DatabasePostgreSQL.getID()}"] = self.Python_to_PostgreSQL
-    _to[f"{LanguagePython.getID()}{DatabaseMicrosoftSQL.getID()}"] = self.Python_to_MicrosftSQL
-    _to[f"{LanguagePython.getID()}{DatabaseOracle.getID()}"] = self.Python_to_Oracle
+    _to[f"{LanguagePython().getID()}{DatabaseSQLite().getID()}"] = self.Python_to_SQLite
+    _to[f"{LanguagePython().getID()}{DatabasePostgreSQL().getID()}"] = self.Python_to_PostgreSQL
+    _to[f"{LanguagePython().getID()}{DatabaseMicrosoftSQL().getID()}"] = self.Python_to_MicrosoftSQL
+    _to[f"{LanguagePython().getID()}{DatabaseOracle().getID()}"] = self.Python_to_Oracle
 
-    _to[f"{LanguageCSharp.getID()}{DatabaseSQLite.getID()}"] = self.CSharp_to_SQLite
-    _to[f"{LanguageCSharp.getID()}{DatabasePostgreSQL.getID()}"] = self.CSharp_to_PostgreSQL
-    _to[f"{LanguageCSharp.getID()}{DatabaseMicrosoftSQL.getID()}"] = self.CSharp_to_MicrosftSQL
-    _to[f"{LanguageCSharp.getID()}{DatabaseOracle.getID()}"] = self.CSharp_to_Oracle
+    _to[f"{LanguageCSharp().getID()}{DatabaseSQLite().getID()}"] = self.CSharp_to_SQLite
+    _to[f"{LanguageCSharp().getID()}{DatabasePostgreSQL().getID()}"] = self.CSharp_to_PostgreSQL
+    _to[f"{LanguageCSharp().getID()}{DatabaseMicrosoftSQL().getID()}"] = self.CSharp_to_MicrosoftSQL
+    _to[f"{LanguageCSharp().getID()}{DatabaseOracle().getID()}"] = self.CSharp_to_Oracle
 
-    _to[f"{LanguageJava.getID()}{DatabaseSQLite.getID()}"] = self.Java_to_SQLite
-    _to[f"{LanguageJava.getID()}{DatabasePostgreSQL.getID()}"] = self.Java_to_PostgreSQL
-    _to[f"{LanguageJava.getID()}{DatabaseMicrosoftSQL.getID()}"] = self.Java_to_MicrosftSQL
-    _to[f"{LanguageJava.getID()}{DatabaseOracle.getID()}"] = self.Java_to_Oracle
+    _to[f"{LanguageJava().getID()}{DatabaseSQLite().getID()}"] = self.Java_to_SQLite
+    _to[f"{LanguageJava().getID()}{DatabasePostgreSQL().getID()}"] = self.Java_to_PostgreSQL
+    _to[f"{LanguageJava().getID()}{DatabaseMicrosoftSQL().getID()}"] = self.Java_to_MicrosoftSQL
+    _to[f"{LanguageJava().getID()}{DatabaseOracle().getID()}"] = self.Java_to_Oracle
 
-    _to[f"{LanguageGo.getID()}{DatabaseSQLite.getID()}"] = self.Go_to_SQLite
-    _to[f"{LanguageGo.getID()}{DatabasePostgreSQL.getID()}"] = self.Go_to_PostgreSQL
-    _to[f"{LanguageGo.getID()}{DatabaseMicrosoftSQL.getID()}"] = self.Go_to_MicrosftSQL
-    _to[f"{LanguageGo.getID()}{DatabaseOracle.getID()}"] = self.Go_to_Oracle
+    _to[f"{LanguageGo().getID()}{DatabaseSQLite().getID()}"] = self.Go_to_SQLite
+    _to[f"{LanguageGo().getID()}{DatabasePostgreSQL().getID()}"] = self.Go_to_PostgreSQL
+    _to[f"{LanguageGo().getID()}{DatabaseMicrosoftSQL().getID()}"] = self.Go_to_MicrosoftSQL
+    _to[f"{LanguageGo().getID()}{DatabaseOracle().getID()}"] = self.Go_to_Oracle
 
-    _to[f"{LanguageJavaScript.getID()}{DatabaseSQLite.getID()}"] = self.JavaScript_to_SQLite
-    _to[f"{LanguageJavaScript.getID()}{DatabasePostgreSQL.getID()}"] = self.JavaScript_to_PostgreSQL
-    _to[f"{LanguageJavaScript.getID()}{DatabaseMicrosoftSQL.getID()}"] = self.JavaScript_to_MicrosftSQL
-    _to[f"{LanguageJavaScript.getID()}{DatabaseOracle.getID()}"] = self.JavaScript_to_Oracle
+    _to[f"{LanguageJavaScript().getID()}{DatabaseSQLite().getID()}"] = self.JavaScript_to_SQLite
+    _to[f"{LanguageJavaScript().getID()}{DatabasePostgreSQL().getID()}"] = self.JavaScript_to_PostgreSQL
+    _to[f"{LanguageJavaScript().getID()}{DatabaseMicrosoftSQL().getID()}"] = self.JavaScript_to_MicrosoftSQL
+    _to[f"{LanguageJavaScript().getID()}{DatabaseOracle().getID()}"] = self.JavaScript_to_Oracle
 
-    return _to[f"{language.getID()}{database.getID()}"]
+    return _to[f"{language.getID()}{database.getID()}"]()
 
 
   ##########################################################################
   # From
   ##########################################################################
 
-  def From(self, language: Language, database: Database):
+  def From(self, language: Language, database: Database) -> str:
     _from = {}
-    _from[f"{LanguagePython.getID()}{DatabaseSQLite.getID()}"] = self.Python_from_SQLite
-    _from[f"{LanguagePython.getID()}{DatabasePostgreSQL.getID()}"] = self.Python_from_PostgreSQL
-    _from[f"{LanguagePython.getID()}{DatabaseMicrosoftSQL.getID()}"] = self.Python_from_MicrosftSQL
-    _from[f"{LanguagePython.getID()}{DatabaseOracle.getID()}"] = self.Python_from_Oracle
+    _from[f"{LanguagePython().getID()}{DatabaseSQLite().getID()}"] = self.Python_from_SQLite
+    _from[f"{LanguagePython().getID()}{DatabasePostgreSQL().getID()}"] = self.Python_from_PostgreSQL
+    _from[f"{LanguagePython().getID()}{DatabaseMicrosoftSQL().getID()}"] = self.Python_from_MicrosoftSQL
+    _from[f"{LanguagePython().getID()}{DatabaseOracle().getID()}"] = self.Python_from_Oracle
 
-    _from[f"{LanguageCSharp.getID()}{DatabaseSQLite.getID()}"] = self.CSharp_from_SQLite
-    _from[f"{LanguageCSharp.getID()}{DatabasePostgreSQL.getID()}"] = self.CSharp_from_PostgreSQL
-    _from[f"{LanguageCSharp.getID()}{DatabaseMicrosoftSQL.getID()}"] = self.CSharp_from_MicrosftSQL
-    _from[f"{LanguageCSharp.getID()}{DatabaseOracle.getID()}"] = self.CSharp_from_Oracle
+    _from[f"{LanguageCSharp().getID()}{DatabaseSQLite().getID()}"] = self.CSharp_from_SQLite
+    _from[f"{LanguageCSharp().getID()}{DatabasePostgreSQL().getID()}"] = self.CSharp_from_PostgreSQL
+    _from[f"{LanguageCSharp().getID()}{DatabaseMicrosoftSQL().getID()}"] = self.CSharp_from_MicrosoftSQL
+    _from[f"{LanguageCSharp().getID()}{DatabaseOracle().getID()}"] = self.CSharp_from_Oracle
 
-    _from[f"{LanguageJava.getID()}{DatabaseSQLite.getID()}"] = self.Java_from_SQLite
-    _from[f"{LanguageJava.getID()}{DatabasePostgreSQL.getID()}"] = self.Java_from_PostgreSQL
-    _from[f"{LanguageJava.getID()}{DatabaseMicrosoftSQL.getID()}"] = self.Java_from_MicrosftSQL
-    _from[f"{LanguageJava.getID()}{DatabaseOracle.getID()}"] = self.Java_from_Oracle
+    _from[f"{LanguageJava().getID()}{DatabaseSQLite().getID()}"] = self.Java_from_SQLite
+    _from[f"{LanguageJava().getID()}{DatabasePostgreSQL().getID()}"] = self.Java_from_PostgreSQL
+    _from[f"{LanguageJava().getID()}{DatabaseMicrosoftSQL().getID()}"] = self.Java_from_MicrosoftSQL
+    _from[f"{LanguageJava().getID()}{DatabaseOracle().getID()}"] = self.Java_from_Oracle
 
-    _from[f"{LanguageGo.getID()}{DatabaseSQLite.getID()}"] = self.Go_from_SQLite
-    _from[f"{LanguageGo.getID()}{DatabasePostgreSQL.getID()}"] = self.Go_from_PostgreSQL
-    _from[f"{LanguageGo.getID()}{DatabaseMicrosoftSQL.getID()}"] = self.Go_from_MicrosftSQL
-    _from[f"{LanguageGo.getID()}{DatabaseOracle.getID()}"] = self.Go_from_Oracle
+    _from[f"{LanguageGo().getID()}{DatabaseSQLite().getID()}"] = self.Go_from_SQLite
+    _from[f"{LanguageGo().getID()}{DatabasePostgreSQL().getID()}"] = self.Go_from_PostgreSQL
+    _from[f"{LanguageGo().getID()}{DatabaseMicrosoftSQL().getID()}"] = self.Go_from_MicrosoftSQL
+    _from[f"{LanguageGo().getID()}{DatabaseOracle.getID()}"] = self.Go_from_Oracle
 
-    _from[f"{LanguageJavaScript.getID()}{DatabaseSQLite.getID()}"] = self.JavaScript_from_SQLite
-    _from[f"{LanguageJavaScript.getID()}{DatabasePostgreSQL.getID()}"] = self.JavaScript_from_PostgreSQL
-    _from[f"{LanguageJavaScript.getID()}{DatabaseMicrosoftSQL.getID()}"] = self.JavaScript_from_MicrosftSQL
-    _from[f"{LanguageJavaScript.getID()}{DatabaseOracle.getID()}"] = self.JavaScript_from_Oracle
+    _from[f"{LanguageJavaScript().getID()}{DatabaseSQLite().getID()}"] = self.JavaScript_from_SQLite
+    _from[f"{LanguageJavaScript().getID()}{DatabasePostgreSQL().getID()}"] = self.JavaScript_from_PostgreSQL
+    _from[f"{LanguageJavaScript().getID()}{DatabaseMicrosoftSQL().getID()}"] = self.JavaScript_from_MicrosoftSQL
+    _from[f"{LanguageJavaScript().getID()}{DatabaseOracle().getID()}"] = self.JavaScript_from_Oracle
 
-    return _from[f"{language.ID}{database.ID}"]
+    return _from[f"{language.ID}{database.ID}"]()
   
   ##########################################################################
   # Dependencies
   ##########################################################################
 
-  def Dependencies(self, language: Language):
+  def Dependencies(self, language: Language) -> str:
     _dep = {}
-    _dep[LanguagePython.getID()] = self.Python_Dependencies
-    _dep[LanguageCSharp.getID()] = self.CSharp_Dependencies
-    _dep[LanguageJava.getID()] = self.Java_Dependencies
-    _dep[LanguageGo.getID()] = self.Go_Dependencies
-    _dep[LanguageJavaScript.getID()] = self.JavaScript_Dependencies
-    return _dep[language.ID]
+    _dep[LanguagePython().getID()] = self.Python_Dependencies
+    _dep[LanguageCSharp().getID()] = self.CSharp_Dependencies
+    _dep[LanguageJava().getID()] = self.Java_Dependencies
+    _dep[LanguageGo().getID()] = self.Go_Dependencies
+    _dep[LanguageJavaScript().getID()] = self.JavaScript_Dependencies
+    return _dep[language.ID]()
   
   ##########################################################################
   # Language Default fValue
   ##########################################################################
 
-  def LanguageDefaultfValue(self, language: Language):
+  def LanguageDefaultfValue(self, language: Language) -> str:
     _dv = {}
-    _dv[LanguagePython.getID()] = self.Python_DefaultValue
-    _dv[LanguageCSharp.getID()] = self.CSharp_DefaultValue
-    _dv[LanguageJava.getID()] = self.Java_DefaultValue
-    _dv[LanguageGo.getID()] = self.Go_DefaultValue
-    _dv[LanguageJavaScript.getID()] = self.JavaScript_DefaultValue
-    return _dv[language.ID]
+    _dv[LanguagePython().getID()] = self.Python_DefaultValue
+    _dv[LanguageCSharp().getID()] = self.CSharp_DefaultValue
+    _dv[LanguageJava().getID()] = self.Java_DefaultValue
+    _dv[LanguageGo().getID()] = self.Go_DefaultValue
+    _dv[LanguageJavaScript().getID()] = self.JavaScript_DefaultValue
+    return _dv[language.ID]()
   
   ##########################################################################
   # Property Type
   ##########################################################################
 
-  def PropertyType(self, language: Language):
+  def PropertyType(self, language: Language) -> str:
     _pt = {}
-    _pt[LanguagePython.getID()] = self.Python_Type
-    _pt[LanguageCSharp.getID()] = self.CSharp_Type
-    _pt[LanguageJava.getID()] = self.Java_Type
-    _pt[LanguageGo.getID()] = self.Go_Type
-    _pt[LanguageJavaScript.getID()] = self.JavaScript_Type
-    return _pt[language.ID]
+    _pt[LanguagePython().getID()] = self.Python_Type
+    _pt[LanguageCSharp().getID()] = self.CSharp_Type
+    _pt[LanguageJava().getID()] = self.Java_Type
+    _pt[LanguageGo().getID()] = self.Go_Type
+    _pt[LanguageJavaScript().getID()] = self.JavaScript_Type
+    return _pt[language.ID]()
   
 
   ##########################################################################
   # Database Property Types
   ##########################################################################
-  def DatabasePropertyType(self, database: Database):
+  def DatabasePropertyType(self, database: Database) -> str:
     _pt = {}
-    _pt[DatabaseMicrosoftSQL.getID()] = self.MicrosftSQL_Type
-    _pt[DatabaseOracle.getID()] = self.Oracle_Type
-    _pt[DatabasePostgreSQL.getID()] = self.PostgreSQL_Type
-    _pt[DatabaseSQLite.getID()] = self.SQLite_Type
-    return _pt[database.ID]
+    _pt[DatabaseMicrosoftSQL().getID()] = self.MicrosoftSQL_Type
+    _pt[DatabaseOracle().getID()] = self.Oracle_Type
+    _pt[DatabasePostgreSQL().getID()] = self.PostgreSQL_Type
+    _pt[DatabaseSQLite().getID()] = self.SQLite_Type
+    return _pt[database.ID]()
 
-  def MicrosftSQL_Type(self, *args) -> str:
+  def MicrosoftSQL_Type(self, *args) -> str:
     raise NotImplementedError
   
   def Oracle_Type(self, *args) -> str:
@@ -295,15 +301,15 @@ class Datatype(TorenObject):
   ##########################################################################
   # Database Default Value
   ##########################################################################
-  def DatabaseDefaultValue(self, database: Database):
+  def DatabaseDefaultValue(self, database: Database) -> str:
     _dv = {}
-    _dv[DatabaseMicrosoftSQL.getID()] = self.MicrosftSQL_DefaultValue
+    _dv[DatabaseMicrosoftSQL.getID()] = self.MicrosoftSQL_DefaultValue
     _dv[DatabaseOracle.getID()] = self.Oracle_DefaultValue
     _dv[DatabasePostgreSQL.getID()] = self.PostgreSQL_DefaultValue
     _dv[DatabaseSQLite.getID()] = self.SQLite_DefaultValue
     return _dv[database.ID]
 
-  def MicrosftSQL_DefaultValue(self, *args) -> str:
+  def MicrosoftSQL_DefaultValue(self, *args) -> str:
     raise NotImplementedError
   
   def Oracle_DefaultValue(self, *args) -> str:
@@ -330,7 +336,7 @@ class Datatype(TorenObject):
   def Python_to_Oracle(self, *args) -> str:
     raise NotImplementedError
   
-  def Python_to_MicrosftSQL(self, *args) -> str:
+  def Python_to_MicrosoftSQL(self, *args) -> str:
     raise NotImplementedError
   
   def Python_to_PostgreSQL(self, *args) -> str:
@@ -342,7 +348,7 @@ class Datatype(TorenObject):
   def Python_from_Oracle(self, *args) -> str:
     raise NotImplementedError
   
-  def Python_from_MicrosftSQL(self, *args) -> str:
+  def Python_from_MicrosoftSQL(self, *args) -> str:
     raise NotImplementedError
   
   def Python_from_PostgreSQL(self, *args) -> str:
@@ -366,7 +372,7 @@ class Datatype(TorenObject):
   def Java_to_Oracle(self, *args) -> str:
     raise NotImplementedError
   
-  def Java_to_MicrosftSQL(self, *args) -> str:
+  def Java_to_MicrosoftSQL(self, *args) -> str:
     raise NotImplementedError
   
   def Java_to_PostgreSQL(self, *args) -> str:
@@ -378,7 +384,7 @@ class Datatype(TorenObject):
   def Java_from_Oracle(self, *args) -> str:
     raise NotImplementedError
   
-  def Java_from_MicrosftSQL(self, *args) -> str:
+  def Java_from_MicrosoftSQL(self, *args) -> str:
     raise NotImplementedError
   
   def Java_from_PostgreSQL(self, *args) -> str:
@@ -402,7 +408,7 @@ class Datatype(TorenObject):
   def CSharp_to_Oracle(self, *args) -> str:
     raise NotImplementedError
   
-  def CSharp_to_MicrosftSQL(self, *args) -> str:
+  def CSharp_to_MicrosoftSQL(self, *args) -> str:
     raise NotImplementedError
   
   def CSharp_to_PostgreSQL(self, *args) -> str:
@@ -414,7 +420,7 @@ class Datatype(TorenObject):
   def CSharp_from_Oracle(self, *args) -> str:
     raise NotImplementedError
   
-  def CSharp_from_MicrosftSQL(self, *args) -> str:
+  def CSharp_from_MicrosoftSQL(self, *args) -> str:
     raise NotImplementedError
   
   def CSharp_from_PostgreSQL(self, *args) -> str:
@@ -438,7 +444,7 @@ class Datatype(TorenObject):
   def Go_to_Oracle(self, *args) -> str:
     raise NotImplementedError
   
-  def Go_to_MicrosftSQL(self, *args) -> str:
+  def Go_to_MicrosoftSQL(self, *args) -> str:
     raise NotImplementedError
   
   def Go_to_PostgreSQL(self, *args) -> str:
@@ -450,7 +456,7 @@ class Datatype(TorenObject):
   def Go_from_Oracle(self, *args) -> str:
     raise NotImplementedError
   
-  def Go_from_MicrosftSQL(self, *args) -> str:
+  def Go_from_MicrosoftSQL(self, *args) -> str:
     raise NotImplementedError
   
   def Go_from_PostgreSQL(self, *args) -> str:
@@ -474,7 +480,7 @@ class Datatype(TorenObject):
   def JavaScript_to_Oracle(self, *args) -> str:
     raise NotImplementedError
   
-  def JavaScript_to_MicrosftSQL(self, *args) -> str:
+  def JavaScript_to_MicrosoftSQL(self, *args) -> str:
     raise NotImplementedError
   
   def JavaScript_to_PostgreSQL(self, *args) -> str:
@@ -486,7 +492,7 @@ class Datatype(TorenObject):
   def JavaScript_from_Oracle(self, *args) -> str:
     raise NotImplementedError
   
-  def JavaScript_from_MicrosftSQL(self, *args) -> str:
+  def JavaScript_from_MicrosoftSQL(self, *args) -> str:
     raise NotImplementedError
   
   def JavaScript_from_PostgreSQL(self, *args) -> str:

@@ -58,34 +58,34 @@ class DatatypeUUID(Datatype):
   # Database Property Types and Default Values
   ##########################################################################
    
-  def SQLite_Type(self, *args):
+  def SQLite_Type(self, *args) -> str:
     return f"NVARCHAR(36)" 
   
-  def SQLite_DefaultValue(self, *args):
+  def SQLite_DefaultValue(self, *args) -> str:
     if self.hasDefaultValue() and self.isUUID(self.DefaultValue):
         return self._DefaultValueSingleQuote()
     return self._SingleQuote("")
 
-  def PostgreSQL_Type(self, *args):
+  def PostgreSQL_Type(self, *args) -> str:
     return f"UUID"
   
-  def PostgreSQL_DefaultValue(self, *args):
+  def PostgreSQL_DefaultValue(self, *args) -> str:
     if self.hasDefaultValue() and self.isUUID(self.DefaultValue):
         return f"CAST({self._SingleQuote(self.DefaultValue)} AS uuid)" # f"{self._SingleQuote(self.DefaultValue)}::uuid" 
     return "uuid_generate_v4()" # gen_random_uuid()
     
-  def Oracle_Type(self, *args):
+  def Oracle_Type(self, *args) -> str:
      return f"NVARCHAR2(36)" # RAW(16) ?
   
-  def Oracle_DefaultValue(self, *args):
+  def Oracle_DefaultValue(self, *args) -> str:
     if self.hasDefaultValue() and self.isUUID(self.DefaultValue):
         return self._DefaultValueSingleQuote()
     return self._SingleQuote("")
   
-  def MicrosoftSQL_Type(self, *args):
+  def MicrosoftSQL_Type(self, *args) -> str:
     return f"UNIQUEIDENTIFIER"
   
-  def MicrosoftSQL_DefaultValue(self, *args):
+  def MicrosoftSQL_DefaultValue(self, *args) -> str:
     if self.hasDefaultValue() and self.isUUID(self.DefaultValue):
         return f"CONVERT(UNIQUEIDENTIFIER, {self._DefaultValueSingleQuote()})" 
     return "NEWID()" # NEWSEQUENTIALID()

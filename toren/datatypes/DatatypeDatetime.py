@@ -43,6 +43,10 @@ class DatatypeDatetime(Datatype):
     self.Type = self.getType()
     return self
   
+  def to_dict(self):
+    _datatype = super().to_dict()
+    return _datatype
+  
   def unixEpochStart(self):
     # Default to Unix epoch start
     return datetime(1970, 1, 1, 0, 0, 0).strftime("%Y-%m-%d %H:%M:%S")
@@ -51,44 +55,40 @@ class DatatypeDatetime(Datatype):
   # Database Property Types and Default Values
   ##########################################################################
 
-  def SQLite_Type(self, *args):
+  def SQLite_Type(self, *args) -> str:
     return "BIGINT"  # SQLite uses TEXT for string/character data
 
-  def SQLite_DefaultValue(self, *args):
+  def SQLite_DefaultValue(self, *args) -> str:
     if self.hasDefaultValue():
       return f"CAST(strftime('%s', '{self.DefaultValue[0]}') AS INT)"
     return "0"
 
-  def PostgreSQL_Type(self, *args):
+  def PostgreSQL_Type(self, *args) -> str:
     return "TIMESTAMPT"  # TIMESTAMPZ ? 
 
-  def PostgreSQL_DefaultValue(self, *args):
+  def PostgreSQL_DefaultValue(self, *args) -> str:
     if self.hasDefaultValue():
       return f"TO_TIMESTAMP('{self.DefaultValue[0]}', 'YYYY-MM-DD hh24:mi:ss')"
     return f"TO_TIMESTAMP('{self.unixEpochStart()}', 'YYYY-MM-DD hh24:mi:ss')"
 
-  def Oracle_Type(self, *args):
+  def Oracle_Type(self, *args) -> str:
     return "TIMESTAMP"
 
-  def Oracle_DefaultValue(self, *args):
+  def Oracle_DefaultValue(self, *args) -> str:
     if self.hasDefaultValue():
       return f"TO_TIMESTAMP('{self.DefaultValue[0]}', 'YYYY-MM-DD 24HH:MI:SS')"
     return f"TO_TIMESTAMP('{self.unixEpochStart()}', 'YYYY-MM-DD 24HH:MI:SS')" # SELECT CURRENT_TIMESTAMP FROM DUAL
 
-  def MicrosoftSQL_Type(self, *args):
+  def MicrosoftSQL_Type(self, *args) -> str:
     return "DATETIME2"
 
-  def MicrosoftSQL_DefaultValue(self, *args):
+  def MicrosoftSQL_DefaultValue(self, *args) -> str:
     if self.hasDefaultValue():
       # 120: yyyy-mm-dd hh:mi:ss (ODBC canonical)
       # 121: yyyy-mm-dd hh:mi:ss.mmm (ODBC canonical with milliseconds)
       return f"CONVERT(DATETIME2, '{self.DefaultValue[0]}', 120)"
     return f"CONVERT(DATETIME2, '{self.unixEpochStart()}', 120)" # "GETDATE()"
 
-  def to_dict(self):
-    _datatype = super().to_dict()
-    return _datatype
-  
   ##########################################################################
   # Python methods for converting to and from various database types
   ##########################################################################

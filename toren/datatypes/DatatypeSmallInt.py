@@ -57,13 +57,13 @@ class DatatypeSmallInt(DatatypeNumeric):
   # Database Property Types and Default Values
   ##########################################################################
   
-  def SQLite_Type(self, *args):
+  def SQLite_Type(self, *args) -> str:
     if self.hasHigherDimensionality():
       return "BLOB"
     else:
       return "SMALLINT" # https://www.sqlite.org/datatype3.html
   
-  def SQLite_DefaultValue(self, *args):
+  def SQLite_DefaultValue(self, *args) -> str:
     if self.hasHigherDimensionality():
       return self.defaultBlob()
     else:
@@ -71,13 +71,13 @@ class DatatypeSmallInt(DatatypeNumeric):
         return f"{str(int(self.DefaultValue))}"
       return "0"
   
-  def PostgreSQL_Type(self, *args):
+  def PostgreSQL_Type(self, *args) -> str:
     if self.hasHigherDimensionality():
       return "BYTEA"
     else:
       return f"SMALLINT"
   
-  def PostgreSQL_DefaultValue(self, *args):
+  def PostgreSQL_DefaultValue(self, *args) -> str:
     if self.hasHigherDimensionality():
       return self.defaultBlob()
     else:
@@ -85,13 +85,13 @@ class DatatypeSmallInt(DatatypeNumeric):
         return f"{str(int(self.DefaultValue))}"
       return "0"
     
-  def Oracle_Type(self, *args):
+  def Oracle_Type(self, *args) -> str:
     if self.hasHigherDimensionality():
       return "BLOB"
     else:
       return f"SMALLINT"
   
-  def Oracle_DefaultValue(self, *args):
+  def Oracle_DefaultValue(self, *args) -> str:
     if self.hasHigherDimensionality():
       return self.defaultBlob()
     else:
@@ -99,14 +99,14 @@ class DatatypeSmallInt(DatatypeNumeric):
         return f"{str(int(self.DefaultValue))}"
       return "0"
     
-  def MicrosoftSQL_Type(self, *args):
+  def MicrosoftSQL_Type(self, *args) -> str:
     if self.hasHigherDimensionality():
       return "VARBINARY(MAX)"
     else:
       # https://learn.microsoft.com/en-us/dotnet/framework/data/adonet/sql-server-data-type-mappings
       return f"SMALLINT"
   
-  def MicrosoftSQL_DefaultValue(self, *args):
+  def MicrosoftSQL_DefaultValue(self, *args) -> str:
     if self.hasHigherDimensionality():
       return self.defaultBlob()
     else:

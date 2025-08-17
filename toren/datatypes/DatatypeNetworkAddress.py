@@ -62,35 +62,35 @@ class DatatypeNetworkAddress(Datatype):
   # Database Property Types and Default Values
   ##########################################################################
    
-  def SQLite_Type(self, *args):
+  def SQLite_Type(self, *args) -> str:
     return "BIGINT"
   
-  def SQLite_DefaultValue(self, *args):
+  def SQLite_DefaultValue(self, *args) -> str:
     if self.hasDefaultValue():
         return self._Default_Address_Str(self.DefaultValue)
     return self._Default_Address_Str(self._Default_Address())
 
-  def PostgreSQL_Type(self, *args):
+  def PostgreSQL_Type(self, *args) -> str:
     # Consider: https://www.postgresql.org/docs/current/datatype-net-types.html
     return "BIGINT"
   
-  def PostgreSQL_DefaultValue(self, *args):
+  def PostgreSQL_DefaultValue(self, *args) -> str:
     if self.hasDefaultValue():
         return self._Default_Address_Str(self.DefaultValue)
     return self._Default_Address_Str(self._Default_Address())
     
-  def Oracle_Type(self, *args):
+  def Oracle_Type(self, *args) -> str:
      return "BIGINT"
   
-  def Oracle_DefaultValue(self, *args):
+  def Oracle_DefaultValue(self, *args) -> str:
     if self.hasDefaultValue():
         return self._Default_Address_Str(self.DefaultValue)
     return self._Default_Address_Str(self._Default_Address())
     
-  def MicrosoftSQL_Type(self, *args):
+  def MicrosoftSQL_Type(self, *args) -> str:
     return "BIGINT"
   
-  def MicrosoftSQL_DefaultValue(self, *args):
+  def MicrosoftSQL_DefaultValue(self, *args) -> str:
     if self.hasDefaultValue():
         return self._Default_Address_Str(self.DefaultValue)
     return self._Default_Address_Str(self._Default_Address())
