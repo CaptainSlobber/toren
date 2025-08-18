@@ -90,7 +90,7 @@ class CSharpDataClassWriter(DataClassWriter):
 
     def writeCreateTableColumn(self, s:CSharpStringWriter, property):
         db = self.Database
-        NOTNULL = "NOT NULL "
+        NOTNULL = " NOT NULL"
         if property.AllowNulls:
             NOTNULL = ""
         PRIMARYKEY = ""
@@ -98,10 +98,10 @@ class CSharpDataClassWriter(DataClassWriter):
             PRIMARYKEY = " PRIMARY KEY"
         UNIQUE = ""
         if property.IsUnique:
-            UNIQUE = "UNIQUE "
+            UNIQUE = " UNIQUE"
         DATATYPE = property.DatabasePropertyType(db)
         
-        s.wln(f'createquery = createquery + "{db.OB()}{property.Name}{db.CB()}{DATATYPE}{NOTNULL}{UNIQUE} {PRIMARYKEY}";')
+        s.wln(f'createquery += "{db.OB()}{property.Name}{db.CB()} {DATATYPE}{NOTNULL}{UNIQUE}{PRIMARYKEY},";')
         return s
 
 
@@ -109,12 +109,13 @@ class CSharpDataClassWriter(DataClassWriter):
     def writeCreateTable(self, s:CSharpStringWriter):
         db = self.Database
         s.w(f"private static string create{self.Class.Name}TableQuery ()").o()
-        s.wln(f'string createquery = "CREATE TABLE {db.IfNotExists()} {db.OB()}{self.Class.Name}{db.CB()} (";')
+        s.wln(f'string createquery = "CREATE TABLE{db.IfNotExists()} {db.OB()}{self.Class.Name}{db.CB()} (";')
         if self.Class.InheritsFrom is not None:
             for propertyid, property in self.Class.InheritsFrom.Properties.Data.items():
                 s = self.writeCreateTableColumn(s, property)
         for propertyid, property in self.Class.Properties.Data.items():
             s = self.writeCreateTableColumn(s, property)
+        s.wln(f'createquery += "){db.EndQuery()}";')
         s.wln("return createquery;")
         s.c().ret()
 

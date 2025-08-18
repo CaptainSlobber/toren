@@ -121,7 +121,7 @@ class Database(TorenObject):
     return "]"
   
   def IfNotExists(self):
-    return "IF NOT EXISTS "
+    return " IF NOT EXISTS"
   
   def EndQuery(self):
     return ";"

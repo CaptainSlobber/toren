@@ -72,6 +72,7 @@ class DataClassWriter(WriterObject):
         return s
     
     def writeDLClassOperations(self, s:StringWriter):
+        s = self.checkTableExistence(s)
         s = self.writeCreateTable(s)
         s = self.writeInsert(s)     
         s = self.writeInsertCollection(s)
@@ -79,6 +80,9 @@ class DataClassWriter(WriterObject):
         s = self.writeDelete(s)
         s = self.writeSelectSingleRecordByPK(s)
         s = self.writeSelectWhere(s)
+        return s
+    
+    def checkTableExistence(self, s:StringWriter):
         return s
     
     def writeCreateTable(self, s:StringWriter):

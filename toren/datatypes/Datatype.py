@@ -307,7 +307,7 @@ class Datatype(TorenObject):
     _dv[DatabaseOracle.getID()] = self.Oracle_DefaultValue
     _dv[DatabasePostgreSQL.getID()] = self.PostgreSQL_DefaultValue
     _dv[DatabaseSQLite.getID()] = self.SQLite_DefaultValue
-    return _dv[database.ID]
+    return _dv[database.ID]()
 
   def MicrosoftSQL_DefaultValue(self, *args) -> str:
     raise NotImplementedError

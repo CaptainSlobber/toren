@@ -29,10 +29,10 @@ class DatabaseOracle(Database):
   ##########################################################################
 
   def OpenBrackets(self):
-    return "\""
+    return "\\\"" # Double Escaped
   
   def CloseBrackets(self):
-    return "\""
+    return "\\\"" # Double Escaped
   
   ##########################################################################
   # Dependencies

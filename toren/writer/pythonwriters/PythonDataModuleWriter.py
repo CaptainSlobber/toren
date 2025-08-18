@@ -8,6 +8,7 @@ from ...datastores.Database import Database
 from ..DataModuleWriter import DataModuleWriter
 from .PythonDataClassWriter import PythonDataClassWriter
 from .PythonStringWriter import PythonStringWriter
+from .PythonClassWriter import PythonClassWriter
 from ...Project import Project
 from ...Module import Module
 
@@ -30,6 +31,7 @@ class PythonDataModuleWriter(DataModuleWriter):
         self.Module = module
         self.Language = language
         self.Database = database
+        self.ClassWriterClass = PythonClassWriter
         self.DataClassWriterClass = PythonDataClassWriter
         self.StringWriterClass = PythonStringWriter
         self.HeaderFileName = f"{self.Module.Name}_header"

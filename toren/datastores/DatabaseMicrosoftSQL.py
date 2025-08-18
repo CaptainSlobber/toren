@@ -24,6 +24,17 @@ class DatabaseMicrosoftSQL(Database):
   
   def getID(self):
     return "4164e939-2725-4a26-8ae0-b28eccf0e997"
+  
+  ##########################################################################
+  # DB Specific Query Syntax
+  ##########################################################################
+
+  def IfNotExists(self):
+    return ""
+
+  ##########################################################################
+  # Dependencies
+  ##########################################################################
 
   def CSharpDependencies(self):
     return ["using System.Data.SqlClient;"]

@@ -6,6 +6,7 @@ from pathlib import Path
 from typing import List
 from ...datastores.Database import Database
 from ..DataModuleWriter import DataModuleWriter
+from .CSharpClassWriter import CSharpClassWriter
 from .CSharpDataClassWriter import CSharpDataClassWriter
 from .CSharpStringWriter import CSharpStringWriter
 from ...Project import Project
@@ -30,6 +31,7 @@ class CSharpDataModuleWriter(DataModuleWriter):
         self.Module = module
         self.Language = language
         self.Database = database
+        self.ClassWriterClass = CSharpClassWriter
         self.DataClassWriterClass = CSharpDataClassWriter
         self.StringWriterClass = CSharpStringWriter
         self.HeaderFileName = f"{self.Module.Name}_header"
