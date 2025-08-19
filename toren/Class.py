@@ -17,6 +17,7 @@ class Class(TorenObject):
     INHERITSFROMID = "InheritsFromID"
     INHERITSFROM = "InheritsFrom"
     PLURALNAME = "PluralName"
+    SETDESCRIPTION = "SetDescription"
 
   class PropertID():
     TYPE = "1fefc4f1-a3da-4c55-a5c5-2332e1330a07"
@@ -28,24 +29,29 @@ class Class(TorenObject):
     INHERITSFROMID = "987d435c-3726-488e-a627-34080d055bc5"
     INHERITSFROM = "d23ce36a-2950-49a7-a008-1c935f7678b4"
     PLURALNAME = "c28bb6ff-6de2-4180-a379-207626961090"
+    SETDESCRIPTION = "74a0b9e3-2589-4e6a-93eb-6baa5f3eff8a"
   
   def __init__(self):
     self.Type = "toren.Class"
     self.Name = ""
     self.Description = ""
+    self.SetDescription = self.getSetDescription(self.Name)
     self.ID = ""
     self.ParentModule = None
     self.Properties = DatatypeCollection()
     self.Children = {}
     self.setInheritsFrom(None)
     self.PluralName = self.getDefaultPluralName(self.Name, None)
+    
 
   def getDefaultPluralName(self, name, pluralname=None):
     if pluralname is not None:
       return pluralname
     return f"{name}Set"
 
-  
+  def getSetDescription(self, name):
+    return f"{name}Collection"
+
   def initialize(self, 
                  name: str, 
                  description: str, 
@@ -55,8 +61,10 @@ class Class(TorenObject):
                  children = {},
                  pluralname = None):
     self.Type = "toren.Class"
+    self.IsInReservedNames(name)
     self.Name = name
     self.Description = description
+    self.SetDescription = self.getSetDescription(self.Name)
     self.PluralName = self.getDefaultPluralName(self.Name, pluralname)
     self.ID = id
     self.ParentModule = None
@@ -73,9 +81,16 @@ class Class(TorenObject):
 
     return _properties
     
+  def IsInReservedNames(self, name):
+    if name in self.ReservedClassNames():
+      raise Exception(f"Class name '{name}' is in reserved list") 
+      return True
+    
+    return False
 
+  def ReservedClassNames(self):
+    return ["Connection", "Class", "Common"]
   
-
   def getProperties(self, includeInheritance=False):
     properties = self.Properties
     if includeInheritance:
@@ -117,11 +132,11 @@ class Class(TorenObject):
     _class[self.PropertName.TYPE] = self.Type
     _class[self.PropertName.NAME] = self.Name
     _class[self.PropertName.PLURALNAME] = self.PluralName
+    _class[self.PropertName.SETDESCRIPTION] = self.SetDescription
     _class[self.PropertName.DESCRIPTION] = self.Description
     _class[self.PropertName.ID]  = self.ID
     _class[self.PropertName.INHERITSFROMID] = self.InheritsFromID
     _class[self.PropertName.PROPERTIES] = self.Properties.to_list_of_dict()
-
     return _class
   
   def from_dict(self, _class):
@@ -129,6 +144,7 @@ class Class(TorenObject):
     self.Name = str(_class[self.PropertName.NAME])
     self.PluralName = str(_class[self.PropertName.PLURALNAME])
     self.Description = str(_class[self.PropertName.DESCRIPTION])
+    self.SetDescription = str(_class[self.PropertName.SETDESCRIPTION])
     self.ID = str(_class[self.PropertName.ID])
     self.InheritsFromID = _class[self.PropertName.INHERITSFROMID] if self.PropertName.INHERITSFROMID in _class else None
     self.Properties = DatatypeCollection().initialize(_class[self.PropertName.PROPERTIES], self)

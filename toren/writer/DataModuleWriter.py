@@ -35,6 +35,8 @@ class DataModuleWriter(WriterObject):
         self.DataClassWriterClass = DataClassWriter
         self.StringWriterClass = StringWriter
         self.HeaderFileName = f"{self.Module.Name}_header"
+        self.ConnectionObjectClassName = "Connection"
+        self.CommonFunctionsClassName = "Common"
         self.S = self.StringWriterClass(self.Language)
         self.setLogger(logger)
 
@@ -49,24 +51,36 @@ class DataModuleWriter(WriterObject):
                                                 self.Project.Name, 
                                                 self.Project.Name, 
                                                 dbmod)
-        self.writePath(data_module_path)
+        self.writeDirectory(data_module_path, clear=True)
 
 
 
         headerfn = f"{self.HeaderFileName}.{self.Language.DefaultFileExtension}"
-        self.writeModuleHeader(data_module_path, headerfn)
+        self.writeDataModuleHeader(data_module_path, headerfn)
 
-        self.writeConnectionObject(data_module_path, "DLConnectionObject")
+        con = f"{self.getDLPrefix()}{ self.ConnectionObjectClassName}{self.getDLSuffix()}"
+        cfn = f"{self.getDLPrefix()}{ self.CommonFunctionsClassName}{self.getDLSuffix()}"
+        self.writeConnectionObject(data_module_path, con)
+        self.writeCommonDataFunctions(data_module_path, cfn)
         for classid, _class in self.Module.Classes.Data.items():
+            dlclassname = f"{self.getDLPrefix()}{ _class.Name}{self.getDLSuffix()}"
             c = self.DataClassWriterClass(project=self.Project,
                           module=self.Module,
                           class_=_class,
                           language=self.Language,
                           database=self.Database,
+                          dlclassname=dlclassname,
                           logger=self.Logger)
             c.write()
 
-    def writeModuleHeader(self, path, filename):
+
+    def getDLPrefix(self):
+        return "DL"
+    
+    def getDLSuffix(self):
+        return ""
+    
+    def writeDataModuleHeader(self, path, filename):
         s = self.S
         for classid, _class in self.Module.Classes.Data.items():
             pass
@@ -127,6 +141,7 @@ class DataModuleWriter(WriterObject):
                           logger=self.Logger)
         c.write()
 
-    def writeCommon(self, path, filename):
+    def writeCommonDataFunctions(self, path, classname):
         s = self.S
+        s.clear()
         pass

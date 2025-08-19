@@ -31,8 +31,8 @@ class ProjectWriter(WriterObject):
         self.writeDataLayer(project=self.Project)
 
     def writeProjectDirectory(self, project:Project):
-        self.writeDirectory(self.Language.OutputDirectory, project.Name)
-        self.writeDirectory(os.path.join(self.Language.OutputDirectory, project.Name), project.Name)
+        self.writeDirectoryToPath(self.Language.OutputDirectory, project.Name)
+        self.writeDirectoryToPath(os.path.join(self.Language.OutputDirectory, project.Name), project.Name)
 
 
 

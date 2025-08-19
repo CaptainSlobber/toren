@@ -28,7 +28,6 @@ class ClassWriter(WriterObject):
         self.PropertyWritersClass = PropertyWriter
         self.Language = language
         self.ParentClassName = self.getParentClassName()
-        self.SetDescription = self.getSetDescription()
         self.setLogger(logger)
         self.S = self.StringWriterClass(self.Language)
     
@@ -142,7 +141,7 @@ class ClassWriter(WriterObject):
 
 
     def writeClassCollectionOpen(self, s):
-        s.write(f"class {self.Class.Name}{self.SetDescription}").write(" {").o()
+        s.write(f"class {self.Class.SetDescription}").write(" {").o()
         s.wln(f" ")
         s.wln(f"// {self.Class.Description}")
         s.wln(f" ")
@@ -217,13 +216,13 @@ class ClassWriter(WriterObject):
         dependency_map = {}
         return dependency_map
 
-    def getSetDescription(self):
+    # def getSetDescription(self):
 
-        # Collection, Array, Set etc
-        return "Collection"
+    #     # Collection, Array, Set etc
+    #     return "Collection"
     
 
     def createClassCollectionFile(self, s:StringWriter):
         module_path = self.getParentModulePath(self.Language, self.Project, self.Module)
-        fn = f"{self.Class.Name}{self.SetDescription}.{self.Language.DefaultFileExtension}"
+        fn = f"{self.Class.SetDescription}.{self.Language.DefaultFileExtension}"
         self.writeFile(module_path, fn, s.toString())

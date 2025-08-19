@@ -21,8 +21,10 @@ class DataClassWriter(WriterObject):
                  class_: Class,
                  language: Language,
                  database: Database, 
-                 logger:Logger=None):
+                 dlclassname: str,
+                 logger:Logger=None,):
         super().__init__()
+        self.DLCLassName = dlclassname
         self.Project = project
         self.Module = module
         self.StringWriterClass = StringWriter
@@ -127,19 +129,9 @@ class DataClassWriter(WriterObject):
         s = self.writeDLClassClose(s)
         self.createDLClassFile(s)
 
-    def getDLPrefix(self):
-        return "DL"
-    
-    def getDLSuffix(self):
-        return ""
-    
-    def getDLClassName(self):
-        return f"{self.getDLPrefix()}{self.Class.Name}{self.getDLSuffix()}"
-    
-    def getDatalayerName(self):
-        return "data"
-    
 
+    def getDLClassName(self):
+        return f"{self.DLCLassName}"
 
     def createDLClassFile(self, s:StringWriter):
 

@@ -63,7 +63,7 @@ class PythonClassWriter(ClassWriter):
             for _propertyid, _property in _class.Properties.Data.items():
                 if _property.ForeignKey is not None:
                     if _property.ForeignKey.FKClassID == self.Class.ID:
-                        coll = f"{_class.Name}{self.SetDescription}"
+                        coll = f"{_class.SetDescription}"
                         reference_coll_dep = f"from .{coll} import {coll}"
                         dependency_map[reference_coll_dep] = reference_coll_dep
         return dependency_map
@@ -121,10 +121,10 @@ class PythonClassWriter(ClassWriter):
     
 
     def writeClassCollectionOpen(self, s):
-        s.write(f"class {self.Class.Name}{self.SetDescription}:").o()
+        s.write(f"class {self.Class.SetDescription}:").o()
         s.ret()
         s.wln("\"\"\"")
-        s.wln(f" {self.Class.Description} {self.SetDescription}")
+        s.wln(f" {self.Class.SetDescription}")
         s.wln("\"\"\"")
         s.ret()
 
@@ -223,7 +223,7 @@ class PythonClassWriter(ClassWriter):
         s.wln(f" property: {_class.PluralName} ({_class.Name} Collection)")
         s.wln("\"\"\"")
 
-        s.wln(f"def set{_class.PluralName}(self, {_class.PluralName.lower()}_: {_class.Name}{self.SetDescription}):")
+        s.wln(f"def set{_class.PluralName}(self, {_class.PluralName.lower()}_: {_class.SetDescription}):")
         s.o().wln(f"self._{_class.PluralName.lower()} = {_class.PluralName.lower()}_")
         s.c()
 

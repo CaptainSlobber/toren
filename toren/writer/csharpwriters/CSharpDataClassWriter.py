@@ -20,16 +20,19 @@ class CSharpDataClassWriter(DataClassWriter):
                  class_: Class,
                  language: Language, 
                  database: Database,
+                 dlclassname: str,
                  logger:Logger=None):
         super().__init__(project=project, 
                          module=module, 
                          class_=class_, 
                          database=database,
                          language=language, 
+                         dlclassname=dlclassname, 
                          logger=logger)
         self.Project = project
         self.Module = module
         self.StringWriterClass = CSharpStringWriter
+        self.DLCLassName = dlclassname
         self.Class = class_
         self.Database = database
         self.Language = language
@@ -51,14 +54,14 @@ class CSharpDataClassWriter(DataClassWriter):
     def writeDLClassOpen(self, s:CSharpStringWriter):
 
         p = self.Class.ParentModule.ParentProject.Name
+        e = self.Class.ParentModule.ParentProject.Entity.lower()
         m = self.Class.ParentModule.Name
         b = self.Database.Name.lower()
-        l = self.getDatalayerName()
         c = self.Class.Name
         d = self.getDLClassName()
-        s.wln(f"namespace {p}.{m}.{b};")
+        s.wln(f"namespace {e}.{p}.{m}.{b};")
         s.ret()
-        s.write(f"public class {d} ").o()
+        s.write(f"public static class {d} ").o()
         s.ret()
         s.wln("/*")
         s.wln(f" {self.Database.Name} Data Layer for Class: {self.Class.Name}")
@@ -71,9 +74,9 @@ class CSharpDataClassWriter(DataClassWriter):
         return s
 
     def writeDLClassInitializer(self, s:CSharpStringWriter):
-        d = self.getDLClassName()
-        s.wln(f"public {d}() {{}}")
-        s.ret()
+        #d = self.getDLClassName()
+        #s.wln(f"public {d}() {{}}")
+        #s.ret()
         return s
     
     def writeDLClassProperties(self, s:CSharpStringWriter):

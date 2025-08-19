@@ -1,6 +1,7 @@
 import collections
 import json
 import os
+import shutil
 from pathlib import Path
 
 from typing import List
@@ -23,17 +24,23 @@ class WriterObject():
         else:
             self.Logger = Logger()
         return self.Logger
-    
-    def writePath(self, directory):
+
+    def clearDirectory(self, directory):
+        try:
+            shutil.rmtree(directory)
+        except:
+            print(f"Unable to remove: {directory}")
+              
+    def writeDirectory(self, directory, clear=False):
+        if clear:
+            self.clearDirectory(directory)
         if not os.path.exists(directory):
             os.makedirs(directory)
         return directory
     
-    def writeDirectory(self, path, dirname):
+    def writeDirectoryToPath(self, path, dirname, clear=False):
         directory = os.path.join(path, dirname)
-        if not os.path.exists(directory):
-            os.makedirs(directory)
-        return directory
+        return self.writeDirectory(directory=directory, clear=clear)
 
     def createFile(self, path, filename):
         return self.writeFile(path, filename, "")

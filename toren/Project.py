@@ -21,6 +21,7 @@ class Project(TorenObject):
     LANGUAGES = "Languages"
     DATASTORES = "Datastores"
     TYPE = "Type"
+    ENTITY = "Entity"
 
   class PropertID():
     NAME = "58795c87-1889-4d2c-8e32-6ae2c8da711b"
@@ -31,6 +32,7 @@ class Project(TorenObject):
     LANGUAGES = "ab43f94f-c692-4318-b8c6-548ab511c6ff"
     DATASTORES = "d4f82402-26dd-484c-b6b0-e50ae4aff2b7"
     TYPE = "06402adf-7222-436a-a542-7791eb9d418a"
+    ENTITY = "7843a153-9143-47ed-a740-bd4cf9539ac8"
 
   def __init__(self):
     self.Type = "toren.Project"
@@ -41,9 +43,11 @@ class Project(TorenObject):
     self.Modules = []
     self.Languages = LanguageCollection()
     self.Datastores = DatabaseCollection()
+    self.Entity = "Noone"
 
   def initialize(self, name: str, 
                  description: str, 
+                 entity: str,
                  id: str, 
                  version: str, 
                  modules: list[Module]=None,
@@ -52,6 +56,7 @@ class Project(TorenObject):
     self.Type = "toren.Project"
     self.Name = name
     self.Description = description
+    self.Entity = entity
     self.ID = id
     self.Version = version
     self.Modules = ModuleCollection().initialize(modules, self)
@@ -65,6 +70,7 @@ class Project(TorenObject):
     _project[self.PropertName.TYPE] = self.Type
     _project[self.PropertName.NAME] = self.Name
     _project[self.PropertName.DESCRIPTION] = self.Description
+    _project[self.PropertName.ENTITY] = self.Entity
     _project[self.PropertName.ID] = self.ID
     _project[self.PropertName.VERSION] = self.Version
     _project[self.PropertName.MODULES] = self.Modules.to_list_of_dict()
@@ -86,6 +92,7 @@ class Project(TorenObject):
     #self.ype = str(project[self.PropertName.TYPE])
     self.Name= str(project[self.PropertName.NAME])
     self.Description = str(project[self.PropertName.DESCRIPTION]) 
+    self.Entity = str(project[self.PropertName.ENTITY]) 
     self.ID = str(project[self.PropertName.ID])
     self.Version = str(project[self.PropertName.VERSION])
     self.Modules = ModuleCollection().initialize(project[self.PropertName.MODULES], self)

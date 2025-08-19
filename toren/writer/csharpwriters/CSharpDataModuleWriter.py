@@ -35,5 +35,25 @@ class CSharpDataModuleWriter(DataModuleWriter):
         self.DataClassWriterClass = CSharpDataClassWriter
         self.StringWriterClass = CSharpStringWriter
         self.HeaderFileName = f"{self.Module.Name}_header"
+        self.ConnectionObjectClassName = "Connection"
+        self.CommonFunctionsClassName = "Common"
         self.S = self.StringWriterClass(self.Language)
         self.setLogger(logger)
+
+
+    def writeCommonDataFunctions(self, path, classname):
+        s = self.S
+        s.clear()
+        s.write(f"public static class {classname} ").o()
+
+        s.wln("/*")
+        s.wln(f" Class: {classname}")
+        s.wln(f" Description: Common Datalayer Functions")
+        s.wln("*/")
+        s.ret()
+
+        s.c()
+        s.ret()
+        
+        filename = f"{classname}.{self.Language.DefaultFileExtension}"
+        self.writeFile(path, filename, s.toString())

@@ -35,5 +35,8 @@ class PythonModuleWriter(ModuleWriter):
         s = self.S
         for classid, _class in self.Module.Classes.Data.items():
             s.wln(f"from .{_class.Name} import {_class.Name}")
+
+        for classid, _class in self.Module.Classes.Data.items():
+            s.wln(f"from .{_class.SetDescription} import {_class.SetDescription}")
         self.writeFile(path, filename, s.toString())
         

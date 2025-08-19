@@ -20,17 +20,20 @@ class PythonDataClassWriter(DataClassWriter):
                  class_: Class,
                  language: Language, 
                  database: Database,
+                 dlclassname: str,
                  logger:Logger=None):
         super().__init__(project=project, 
                          module=module, 
                          class_=class_, 
                          database=database,
-                         language=language, 
+                         language=language,
+                         dlclassname=dlclassname, 
                          logger=logger)
         self.Project = project
         self.Module = module
         self.StringWriterClass = PythonStringWriter
         self.Class = class_
+        self.DLCLassName = dlclassname
         self.Database = database
         self.Language = language
         self.ParentClassName = self.getParentClassName()
