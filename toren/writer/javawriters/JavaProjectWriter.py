@@ -4,11 +4,10 @@ import os
 from pathlib import Path
 
 from typing import List
-from ..ModuleWriter import ModuleWriter
+from .JavaModuleWriter import JavaModuleWriter
+from .JavaDataModuleWriter import JavaDataModuleWriter
 from ..ProjectWriter import ProjectWriter
 from ...Project import Project
-from ...Module import Module
-from ...Class import Class
 from ...languages import *
 from ...tracer.Logger import Logger
 
@@ -20,5 +19,8 @@ class JavaProjectWriter(ProjectWriter):
                          logger=logger)
         self.Project = project
         self.Language = language
-        self.ModuleWriterClass = ModuleWriter
+        self.ModuleWriterClass = JavaModuleWriter
+        self.DataModuleWriterClass = JavaDataModuleWriter
         self.setLogger(logger)
+
+ 

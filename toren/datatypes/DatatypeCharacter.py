@@ -83,7 +83,7 @@ class DatatypeCharacter(Datatype):
     return "\"\""
   
   ##########################################################################
-  # Python methods for converting to and from various database types
+  # Python methods
   ##########################################################################
 
   def Python_Type(self, *args) -> str:
@@ -98,17 +98,32 @@ class DatatypeCharacter(Datatype):
     return "\"\""
   
   ##########################################################################
-  # C# methods for converting to and from various database types
+  # C# methods
   ##########################################################################
   
   def CSharp_Type(self, *args) -> str:
     return "char[]"
   
   def CSharp_Dependencies(self) -> list:
-    return [""]
+    return []
   
   def CSharp_DefaultValue(self, *args) -> str:
     if self.hasDefaultValue():
         #return f"new char[1] {{{self.DefaultValue}}}"
         return f"['{self.DefaultValue}']"
+    return "new char[1]"
+  
+  ##########################################################################
+  # Java methods
+  ##########################################################################
+  
+  def Java_Type(self, *args) -> str:
+    return "char[]"
+  
+  def Java_Dependencies(self) -> list:
+    return []
+  
+  def Java_DefaultValue(self, *args) -> str:
+    if self.hasDefaultValue():
+        return f'new String("{self.DefaultValue}").toCharArray()'
     return "new char[1]"

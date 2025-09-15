@@ -90,7 +90,7 @@ class DatatypeDatetime(Datatype):
     return f"CONVERT(DATETIME2, '{self.unixEpochStart()}', 120)" # "GETDATE()"
 
   ##########################################################################
-  # Python methods for converting to and from various database types
+  # Python methods
   ##########################################################################
 
   def Python_Type(self, *args) -> str:
@@ -105,7 +105,7 @@ class DatatypeDatetime(Datatype):
     return "datetime(1970, 1, 1, 0, 0, 0)" 
 
   ##########################################################################
-  # C# methods for converting to and from various database types
+  # C# methods
   ##########################################################################
   
   def CSharp_Type(self, *args) -> str:
@@ -121,6 +121,22 @@ class DatatypeDatetime(Datatype):
     if self.hasDefaultValue():
         #default_value = f'DateTime.Parse("{self.DefaultValue}", null, DateTimeStyles.RoundtripKind)'
         default_value = f'DateTime.ParseExact("{self.DefaultValue}", "yyyy-MM-dd HH:mm:ss", System.Globalization.CultureInfo.InvariantCulture)'
+    return default_value
+
+  ##########################################################################
+  # Java methods
+  ##########################################################################
+  
+  def Java_Type(self, *args) -> str:
+    return "LocalDateTime"
+  
+  def Java_Dependencies(self) -> list:
+    return ["import java.time.LocalDateTime;", "import java.time.format.DateTimeFormatter;"]
+  
+  def Java_DefaultValue(self, *args) -> str:
+    default_value = 'LocalDateTime.parse("1970-01-01 00:00:00", DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"))'
+    if self.hasDefaultValue():
+        default_value = f'LocalDateTime.parse("{self.DefaultValue}", DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"))'
     return default_value
 
     

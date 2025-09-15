@@ -91,7 +91,7 @@ class DatatypeUUID(Datatype):
     return "NEWID()" # NEWSEQUENTIALID()
   
   ##########################################################################
-  # Python methods for converting to and from various database types
+  # Python methods
   ##########################################################################
 
   def Python_Type(self, *args) -> str:
@@ -106,7 +106,7 @@ class DatatypeUUID(Datatype):
     return "uuid.uuid4()"
   
   ##########################################################################
-  # C# methods for converting to and from various database types
+  # C# methods
   ##########################################################################
 
   def CSharp_Type(self, *args) -> str:
@@ -119,3 +119,19 @@ class DatatypeUUID(Datatype):
     if self.hasDefaultValue() and self.isUUID(self.DefaultValue):
         return f'System.Guid.NewGuid({self._DefaultValueDoubleQuote})'
     return 'System.Guid.NewGuid()'
+  
+
+  ##########################################################################
+  # Java methods
+  ##########################################################################
+
+  def Java_Type(self, *args) -> str:
+    return "UUID"
+  
+  def Java_Dependencies(self) -> list:
+    return ["import java.util.UUID;"] 
+  
+  def Java_DefaultValue(self, *args) -> str:
+    if self.hasDefaultValue() and self.isUUID(self.DefaultValue):
+        return f'UUID.fromString({self._DefaultValueDoubleQuote})'
+    return 'UUID.randomUUID()'

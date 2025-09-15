@@ -115,7 +115,7 @@ class DatatypeBigInt(DatatypeNumeric):
       return "0"
 
   ##########################################################################
-  # Python methods for converting to and from various database types
+  # Python methods
   ##########################################################################
   
   def Python_Type(self, *args) -> str:
@@ -128,7 +128,7 @@ class DatatypeBigInt(DatatypeNumeric):
     if self.hasHigherDimensionality():
       return ["import numpy as np", "import numpy.typing as npt"]
     else:
-      return [""]
+      return []
   
   def Python_DefaultValue(self, *args) -> str:
     if self.hasHigherDimensionality():
@@ -140,7 +140,7 @@ class DatatypeBigInt(DatatypeNumeric):
       return default_value
     
   ##########################################################################
-  # C# methods for converting to and from various database types
+  # C# methods
   ##########################################################################
     
   def CSharp_Type(self, *args) -> str:
@@ -154,11 +154,37 @@ class DatatypeBigInt(DatatypeNumeric):
     if self.hasHigherDimensionality():
       return ["using System;"] # Consider: System.Numerics.Vectors
     else:
-      return [""]
+      return []
   
   def CSharp_DefaultValue(self, *args) -> str:
     if self.hasHigherDimensionality():
       return f"new long[{','.join(list(map(str, self.Dimensinality)))}]"
+    else:
+      if self.hasDefaultValue():
+        return f"{str(int(self.DefaultValue))}"
+      return "0"
+
+
+  ##########################################################################
+  # Java methods
+  ##########################################################################
+  def Java_Type(self, *args) -> str:
+    if self.hasHigherDimensionality():
+      brackets = "[]"*(len(self.Dimensinality))  
+
+      return f"long{brackets}" #multidimensional array
+    else:
+      return "long"
+  
+  def Java_Dependencies(self) -> list:
+    if self.hasHigherDimensionality():
+      return []
+    else:
+      return []
+  
+  def Java_DefaultValue(self, *args) -> str:
+    if self.hasHigherDimensionality():
+      return f"new long[{']['.join(list(map(str, self.Dimensinality)))}]"
     else:
       if self.hasDefaultValue():
         return f"{str(int(self.DefaultValue))}"

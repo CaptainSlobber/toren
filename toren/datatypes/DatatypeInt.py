@@ -115,7 +115,7 @@ class DatatypeInt(DatatypeNumeric):
       return "0"
 
   ##########################################################################
-  # Python methods for converting to and from various database types
+  # Python methods
   ##########################################################################
   
   def Python_Type(self, *args) -> str:
@@ -128,7 +128,7 @@ class DatatypeInt(DatatypeNumeric):
     if len(self.Dimensinality) > 0:
       return ["import numpy as np", "import numpy.typing as npt"]
     else:
-      return [""]
+      return []
   
   def Python_DefaultValue(self, *args) -> str:
     if len(self.Dimensinality) > 0:
@@ -139,7 +139,7 @@ class DatatypeInt(DatatypeNumeric):
       return "0"
     
   ##########################################################################
-  # C# methods for converting to and from various database types
+  # C# methods
   ##########################################################################
     
   def CSharp_Type(self, *args) -> str:
@@ -153,7 +153,7 @@ class DatatypeInt(DatatypeNumeric):
     if len(self.Dimensinality) > 0:
       return ["using System;"] # Consider: System.Numerics.Vectors
     else:
-      return [""]
+      return []
   
   def CSharp_DefaultValue(self, *args) -> str:
     if len(self.Dimensinality) > 0:
@@ -163,3 +163,27 @@ class DatatypeInt(DatatypeNumeric):
         return f"{str(int(self.DefaultValue))}"
       return "0"
     
+  ##########################################################################
+  # Java methods
+  ##########################################################################
+  
+  def Java_Type(self, *args) -> str:
+    if self.hasHigherDimensionality():
+      brackets = "[]"*(len(self.Dimensinality)) 
+      return f"int{brackets}" #multidimensional array
+    else:
+      return "int"
+  
+  def Java_Dependencies(self) -> list:
+    if self.hasHigherDimensionality():
+      return []
+    else:
+      return []
+  
+  def Java_DefaultValue(self, *args) -> str:
+    if self.hasHigherDimensionality():
+      return f"new int[{']['.join(list(map(str, self.Dimensinality)))}]"
+    else:
+      if self.hasDefaultValue():
+          return f"{self.DefaultValue}" 
+      return "0" 

@@ -48,7 +48,7 @@ class ClassWriter(WriterObject):
         for dependencyid, dependency in dependency_map.items():
             s.wln(f"{dependency}")
         
-        #s.ret()
+        s.ret()
         return s
     
     def writeClassOpen(self, s:StringWriter):
@@ -115,6 +115,7 @@ class ClassWriter(WriterObject):
         self.S = self.StringWriterClass(self.Language)
         s = self.S
         dependencies = self.getDependencies()
+        s = self.writeNamespace(s)
         s = self.writeDependencies(dependencies, s)
         s = self.writeClassOpen(s)
         s = self.writeClassInitializer(s)
@@ -132,6 +133,7 @@ class ClassWriter(WriterObject):
         self.S = self.StringWriterClass(self.Language)
         s = self.S
         dependencies = self.getClassCollectionDependencies()
+        s = self.writeNamespace(s)
         s = self.writeDependencies(dependencies, s)
         s = self.writeClassCollectionOpen(s)
         s = self.writeClassCollectionInitializer(s)
@@ -148,6 +150,14 @@ class ClassWriter(WriterObject):
         return s
     
 
+    def writeNamespace(self, s:StringWriter):
+        p = self.Class.ParentModule.ParentProject.Name
+        e = self.Class.ParentModule.ParentProject.Entity.lower()
+        m = self.Class.ParentModule.Name
+        b = self.Module.Name.lower()
+        s.wln(f"namespace {e}.{p}.{m}.{b};")
+        s.ret()
+        return s
 
     def writeClassCollectionInitializer(self, s:StringWriter):
 

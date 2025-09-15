@@ -68,6 +68,12 @@ class PythonClassWriter(ClassWriter):
                         dependency_map[reference_coll_dep] = reference_coll_dep
         return dependency_map
 
+    def writeNamespace(self, s:PythonStringWriter):
+        p = self.Class.ParentModule.ParentProject.Name
+        e = self.Class.ParentModule.ParentProject.Entity.lower()
+        m = self.Class.ParentModule.Name
+        b = self.Module.Name.lower()
+        return s
     
     def writeClassOpen(self, s: PythonStringWriter):
         if self.Class.InheritsFrom is not None:

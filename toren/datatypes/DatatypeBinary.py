@@ -79,14 +79,14 @@ class DatatypeBinary(Datatype):
     return self.defaultBlob()
   
   ##########################################################################
-  # Python methods for converting to and from various database types
+  # Python methods
   ##########################################################################
 
   def Python_Type(self, *args) -> str:
     return "bytearray"
   
   def Python_Dependencies(self) -> list:
-    return [""]
+    return []
   
   def Python_DefaultValue(self, *args) -> str:
     if self.hasDefaultValue():
@@ -94,7 +94,7 @@ class DatatypeBinary(Datatype):
     return "bytearray()"
   
   ##########################################################################
-  # C# methods for converting to and from various database types
+  # C# methods
   ##########################################################################
   
   def CSharp_Type(self, *args) -> str:
@@ -102,9 +102,26 @@ class DatatypeBinary(Datatype):
     return "byte[]"
   
   def CSharp_Dependencies(self) -> list:
-    return [""]
+    return []
   
   def CSharp_DefaultValue(self, *args) -> str:
+    if self.hasDefaultValue():
+      return f"new byte[] {{{self.DefaultValue}}}"
+    return "new byte[] {}"
+  
+
+  ##########################################################################
+  # Java methods
+  ##########################################################################
+  
+  def Java_Type(self, *args) -> str:
+    # TODO: Implement length
+    return "byte[]"
+  
+  def Java_Dependencies(self) -> list:
+    return []
+  
+  def Java_DefaultValue(self, *args) -> str:
     if self.hasDefaultValue():
       return f"new byte[] {{{self.DefaultValue}}}"
     return "new byte[] {}"

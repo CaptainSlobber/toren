@@ -83,7 +83,7 @@ class DatatypeBoolean(Datatype):
     return "0"
   
   ##########################################################################
-  # Python methods for converting to and from various database types
+  # Python methods
   ##########################################################################
 
   def Python_Type(self, *args) -> str:
@@ -99,16 +99,30 @@ class DatatypeBoolean(Datatype):
   
 
   ##########################################################################
-  # C# methods for converting to and from various database types
+  # C# methods
   ##########################################################################
-  
   def CSharp_Type(self, *args) -> str:
     return "bool"
   
   def CSharp_Dependencies(self) -> list:
-    return [""]
+    return []
   
   def CSharp_DefaultValue(self, *args) -> str:
+    if self.hasDefaultValue():
+      return f"{self.DefaultValue.lower()}"
+    return "false"
+  
+
+  ##########################################################################
+  # Java methods
+  ##########################################################################
+  def Java_Type(self, *args) -> str:
+    return "boolean" #"boolean"
+  
+  def Java_Dependencies(self) -> list:
+    return []
+  
+  def Java_DefaultValue(self, *args) -> str:
     if self.hasDefaultValue():
       return f"{self.DefaultValue.lower()}"
     return "false"

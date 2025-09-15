@@ -128,7 +128,7 @@ class DatatypeDecimal(DatatypeNumeric):
       return "0.0"
 
   ##########################################################################
-  # Python methods for converting to and from various database types
+  # Python methods
   ##########################################################################
 
   def Python_Type(self, *args) -> str:
@@ -152,7 +152,7 @@ class DatatypeDecimal(DatatypeNumeric):
       return "Decimal(0.0)"
 
   ##########################################################################
-  # C# methods for converting to and from various database types
+  # C# methods
   ##########################################################################
 
   def CSharp_Type(self, *args) -> str:
@@ -166,7 +166,7 @@ class DatatypeDecimal(DatatypeNumeric):
     if self.hasHigherDimensionality():
       return ["using System;"] # Consider: System.Numerics.Vectors
     else:
-      return [""]
+      return []
   
   def CSharp_DefaultValue(self, *args) -> str:
     if self.hasHigherDimensionality():
@@ -175,3 +175,28 @@ class DatatypeDecimal(DatatypeNumeric):
       if self.hasDefaultValue():
           return f"{self.DefaultValue}m" #f"(decimal) {self.DefaultValue}M"
       return "0.0m" #"(decimal) 0m"
+    
+  ##########################################################################
+  # Java methods
+  ##########################################################################
+
+  def Java_Type(self, *args) -> str:
+    if self.hasHigherDimensionality():
+      brackets = "[]"*(len(self.Dimensinality)) 
+      return f"BigDecimal{brackets}" #multidimensional array
+    else:
+      return "BigDecimal"
+  
+  def Java_Dependencies(self) -> list:
+    if self.hasHigherDimensionality():
+      return ["import java.math.BigDecimal;"]
+    else:
+      return ["import java.math.BigDecimal;"]
+  
+  def Java_DefaultValue(self, *args) -> str:
+    if self.hasHigherDimensionality():
+      return f"new BigDecimal[{']['.join(list(map(str, self.Dimensinality)))}]"
+    else:
+      if self.hasDefaultValue():
+          return f"BigDecimal.valueOf({self.DefaultValue})" 
+      return "BigDecimal.valueOf(0.0)" 

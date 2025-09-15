@@ -96,7 +96,7 @@ class DatatypeNetworkAddress(Datatype):
     return self._Default_Address_Str(self._Default_Address())
   
   ##########################################################################
-  # Python methods for converting to and from various database types
+  # Python methods
   ##########################################################################
   
   def Python_Type(self, *args) -> str:
@@ -111,7 +111,7 @@ class DatatypeNetworkAddress(Datatype):
     return f"ipaddress.ip_address('{self._Default_Address()}')" 
   
   ##########################################################################
-  # C# methods for converting to and from various database types
+  # C# methods
   ##########################################################################
 
   def CSharp_Type(self, *args) -> str:
@@ -124,3 +124,30 @@ class DatatypeNetworkAddress(Datatype):
     if self.hasDefaultValue():
         return f'IPAddress.Parse("{self.DefaultValue}")'
     return f'IPAddress.Parse("{self._Default_Address()}")'
+  
+  ##########################################################################
+  # Java methods
+  ##########################################################################
+
+  def Java_Type(self, *args) -> str:
+    return "InetAddress"
+  
+  def Java_Dependencies(self) -> list:
+    return ["import java.net.InetAddress;", "import java.net.UnknownHostException;"] #import java.net.Inet6Address;
+  
+  def Java_DefaultValue(self, *args) -> str:
+    if self.hasDefaultValue():
+        return f'InetAddress.getByName("{self.DefaultValue}")'
+    return f'InetAddress.getByName("{self._Default_Address()}")'
+  
+  # TODO: Add helper function
+  
+  #    private InetAddress setInetAddress(String address) {
+	#    InetAddress _address = null;
+	#    try { 
+	# 	   _address = InetAddress.getByName(address);
+	#    } catch(UnknownHostException e){
+	#         e.printStackTrace();
+	#    }
+	#    return _address;
+  #  }

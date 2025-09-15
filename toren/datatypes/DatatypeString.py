@@ -96,7 +96,7 @@ class DatatypeString(Datatype):
 
 
   ##########################################################################
-  # Python methods for converting to and from various database types
+  # Python methods
   ##########################################################################
 
   def Python_Type(self, *args) -> str:
@@ -111,7 +111,7 @@ class DatatypeString(Datatype):
     return self._DoubleQuote("")
 
   ##########################################################################
-  # C# methods for converting to and from various database types
+  # C# methods
   ##########################################################################
 
   def CSharp_Type(self, *args) -> str:
@@ -124,3 +124,19 @@ class DatatypeString(Datatype):
     if self.hasDefaultValue():
       return self._DefaultValueDoubleQuote()
     return "String.Empty"
+  
+
+  ##########################################################################
+  # Java methods
+  ##########################################################################
+
+  def Java_Type(self, *args) -> str:
+    return "String"
+   
+  def Java_Dependencies(self) -> list:
+    return [] 
+  
+  def Java_DefaultValue(self, *args) -> str:
+    if self.hasDefaultValue():
+      return self._DefaultValueDoubleQuote()
+    return self._DoubleQuote("")
