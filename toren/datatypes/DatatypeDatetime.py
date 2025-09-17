@@ -134,9 +134,19 @@ class DatatypeDatetime(Datatype):
     return ["import java.time.LocalDateTime;", "import java.time.format.DateTimeFormatter;"]
   
   def Java_DefaultValue(self, *args) -> str:
-    default_value = 'LocalDateTime.parse("1970-01-01 00:00:00", DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"))'
+    default_value = 'setLocalDateTime("1970-01-01 00:00:00")'
     if self.hasDefaultValue():
-        default_value = f'LocalDateTime.parse("{self.DefaultValue}", DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"))'
+        default_value = f'setLocalDateTime("{self.DefaultValue}")'
     return default_value
 
+  def Java_Helper_Functions(self, s):
+
+    #s.wln("// Helper function to convert String to LocalDateTime")
+    s.w("private LocalDateTime setLocalDateTime(String datetimestr) ").o()
+    s.wln('DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");')
+    s.wln("return LocalDateTime.parse(datetimestr, formatter);")
+    s.c()
+    s.ret()
+
+    return s
     

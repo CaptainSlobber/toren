@@ -78,6 +78,18 @@ class ClassWriter(WriterObject):
             c.write()
         return s
     
+    def writeHelperFunctions(self, s:StringWriter):
+        typeregister = {}
+
+        for propertyid, property in self.Class.Properties.Data.items():
+            if property.Type not in typeregister:
+                typeregister[property.Type] = property.Type
+                s = self.writePropertyHelperFunctions(property, s)
+        return s
+    
+    def writePropertyHelperFunctions(self, property, s:StringWriter):
+
+        return s
 
     def writeClassClose(self, s:StringWriter):
         s.c()
@@ -119,6 +131,7 @@ class ClassWriter(WriterObject):
         s = self.writeDependencies(dependencies, s)
         s = self.writeClassOpen(s)
         s = self.writeClassInitializer(s)
+        s = self.writeHelperFunctions(s)
         s = self.writeClassProperties(s)
         s = self.writeClassReferenceCollections(s)
         s = self.writeClassClose(s)

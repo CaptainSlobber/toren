@@ -158,7 +158,10 @@ class JavaClassWriter(ClassWriter):
         s.ret()
         return s
     
-
+    def writePropertyHelperFunctions(self, property, s:JavaStringWriter):
+        s = property.Java_Helper_Functions(s)
+        return s
+    
     def writeClassReferenceCollection(self, _class, s: JavaStringWriter):
         s.wln("/*")
         s.wln(f" property: {_class.PluralName} ({_class.Name} Collection)")

@@ -324,6 +324,9 @@ class Datatype(TorenObject):
   ##########################################################################
   # Python methods for converting to and from various database types
   ##########################################################################
+  def Python_Helper_Functions(self, s):
+    return s
+  
   def Python_Type(self, *args) -> str:
     raise NotImplementedError
   
@@ -360,6 +363,9 @@ class Datatype(TorenObject):
   ##########################################################################
   # Java methods for converting to and from various database types
   ##########################################################################
+  def Java_Helper_Functions(self, s):
+    return s
+  
   def Java_Type(self, *args) -> str:
     raise NotImplementedError
   
@@ -396,6 +402,9 @@ class Datatype(TorenObject):
   ##########################################################################
   # C# methods for converting to and from various database types
   ##########################################################################
+  def CSharp_Helper_Functions(self, s):
+    return s
+  
   def CSharp_Type(self, *args) -> str:
     raise NotImplementedError
   
@@ -432,6 +441,9 @@ class Datatype(TorenObject):
   #########################################################################
   # Go methods for converting to and from various database types
   ##########################################################################
+  def Go_Helper_Functions(self, s):
+    return s
+  
   def Go_Type(self, *args) -> str:
     raise NotImplementedError
   
@@ -468,6 +480,9 @@ class Datatype(TorenObject):
   #########################################################################
   # JavaScript methods for converting to and from various database types
   ##########################################################################
+  def JavaScript_Helper_Functions(self, s):
+    return s
+  
   def JavaScript_Type(self, *args) -> str:
     raise NotImplementedError
   

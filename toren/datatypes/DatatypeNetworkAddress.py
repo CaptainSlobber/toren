@@ -137,17 +137,21 @@ class DatatypeNetworkAddress(Datatype):
   
   def Java_DefaultValue(self, *args) -> str:
     if self.hasDefaultValue():
-        return f'InetAddress.getByName("{self.DefaultValue}")'
-    return f'InetAddress.getByName("{self._Default_Address()}")'
+        return f'setInetAddress("{self.DefaultValue}")'
+    return f'setInetAddress("{self._Default_Address()}")'
   
-  # TODO: Add helper function
-  
-  #    private InetAddress setInetAddress(String address) {
-	#    InetAddress _address = null;
-	#    try { 
-	# 	   _address = InetAddress.getByName(address);
-	#    } catch(UnknownHostException e){
-	#         e.printStackTrace();
-	#    }
-	#    return _address;
-  #  }
+  def Java_Helper_Functions(self, s):
+
+    #s.wln("// Helper function to convert String to InetAddress")
+    s.w("private InetAddress setInetAddress(String address) ").o()
+    s.wln("InetAddress _address = null;")
+    s.w("try ").o()
+    s.wln("_address = InetAddress.getByName(address);")
+    s.c().rem(1)
+    s.w("catch(UnknownHostException e) ").o()
+    s.wln("e.printStackTrace();")
+    s.c()
+    s.wln("return _address;")
+    s.c()
+    s.ret()
+    return s

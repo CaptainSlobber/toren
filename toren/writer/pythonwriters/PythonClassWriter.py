@@ -126,6 +126,10 @@ class PythonClassWriter(ClassWriter):
         return s
     
 
+    def writePropertyHelperFunctions(self, property, s:PythonStringWriter):
+        s = property.Python_Helper_Functions(s)
+        return s
+
     def writeClassCollectionOpen(self, s):
         s.write(f"class {self.Class.SetDescription}:").o()
         s.ret()

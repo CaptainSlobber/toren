@@ -144,6 +144,9 @@ class CSharpClassWriter(ClassWriter):
         s.ret()
         return s
     
+    def writePropertyHelperFunctions(self, property, s:CSharpStringWriter):
+        s = property.CSharp_Helper_Functions(s)
+        return s
 
     def writeClassReferenceCollection(self, _class, s: CSharpStringWriter):
         s.wln("/*")
