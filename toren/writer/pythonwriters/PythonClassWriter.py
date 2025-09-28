@@ -45,7 +45,7 @@ class PythonClassWriter(ClassWriter):
                     dependency_map[dependency] = dependency
 
         if self.Class.InheritsFrom is not None:
-            for propertyid, property in self.Class.InheritsFrom.Properties.Data.items():
+            for propertyid, property in self.Class.InheritedProperties.Data.items():
                 for dependency in property.Python_Dependencies():
                     if dependency not in dependency_map:
                         dependency_map[dependency] = dependency
@@ -94,7 +94,7 @@ class PythonClassWriter(ClassWriter):
     def writeParentClassInitializer(self, s:PythonStringWriter):
         if self.Class.InheritsFrom is not None:
             s.wln(f"super().__init__(").o()
-            for propertyid, property in self.Class.InheritsFrom.Properties.Data.items():
+            for propertyid, property in self.Class.InheritedProperties.Data.items():
                 s.wln(f"{property.Name.lower()}={property.Name.lower()},")
 
             s.rem(2).c().wln(")").ret()
@@ -103,7 +103,7 @@ class PythonClassWriter(ClassWriter):
 
     def writeParentClassParameters(self, s:PythonStringWriter):
         if self.Class.InheritsFrom is not None:
-            for propertyid, property in self.Class.InheritsFrom.Properties.Data.items():
+            for propertyid, property in self.Class.InheritedProperties.Data.items():
                 s.wln(f"{property.Name.lower()}: {property.Python_Type()} = {property.Python_DefaultValue()},")
         return s
 

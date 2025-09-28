@@ -73,13 +73,27 @@ class Class(TorenObject):
     self.Children = children
     return self
   
-  def getInheritedProperties(self, _properties):
-    if self.InheritsFrom is not None:
-      _properties = _properties.addCollection(self.InheritsFrom.Properties)
-      _properties = self.InheritsFrom.getInheritedProperties(_properties)
+  def getInheritedProperties_(self, _class, _properties):
+    if _class.InheritsFrom is not None:
+      _properties = _properties.addCollection(_class.InheritsFrom.Properties)
+      _properties = _class.InheritsFrom.getInheritedProperties(_class.InheritsFrom, _properties)
       return _properties
 
     return _properties
+  
+  def getInheritedProperties(self, _class, _properties):
+    inheritance_chain = _class.getInheritanceChain()
+    for parent_class in reversed(inheritance_chain):
+      _properties = _properties.addCollection(parent_class.Properties)
+    return _properties
+  
+  def getInheritanceChain(self):
+    inheritance_chain = []
+    if self.InheritsFrom is not None:
+      inheritance_chain.append(self.InheritsFrom)
+      inheritance_chain.extend(self.InheritsFrom.getInheritanceChain())
+    
+    return inheritance_chain
     
   def IsInReservedNames(self, name):
     if name in self.ReservedClassNames():
@@ -94,7 +108,7 @@ class Class(TorenObject):
   def getProperties(self, includeInheritance=False):
     properties = self.Properties
     if includeInheritance:
-      properties = self.getInheritedProperties(properties)
+      properties = self.getInheritedProperties(self, properties)
     return properties
   
 
@@ -106,7 +120,7 @@ class Class(TorenObject):
       inheritsFromClass.Children[self.ID] = self
       self.InheritsFrom = inheritsFromClass
       self.InheritsFromID = inheritsFromClass.ID
-      self.InheritedProperties = self.getInheritedProperties(DatatypeCollection())
+      self.InheritedProperties = self.getInheritedProperties(self, DatatypeCollection())
       #self.InheritedProperties = self.getProperties(True)
     else:
       self.InheritsFrom = inheritsFromClass

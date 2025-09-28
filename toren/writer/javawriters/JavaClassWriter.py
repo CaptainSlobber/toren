@@ -43,7 +43,8 @@ class JavaClassWriter(ClassWriter):
                     dependency_map[dependency] = dependency
 
         if self.Class.InheritsFrom is not None:
-            for propertyid, property in self.Class.InheritsFrom.Properties.Data.items():
+            #for propertyid, property in self.Class.InheritsFrom.Properties.Data.items():
+            for propertyid, property in self.Class.InheritedProperties.Data.items():
                 for dependency in property.Java_Dependencies():
                     if dependency not in dependency_map:
                         dependency_map[dependency] = dependency
@@ -110,7 +111,7 @@ class JavaClassWriter(ClassWriter):
 
     def writeParentClassInitializer_(self, s:JavaStringWriter):
         if self.Class.InheritsFrom is not None:
-            for propertyid, property in self.Class.InheritsFrom.Properties.Data.items():
+            for propertyid, property in self.Class.InheritedProperties.Data.items():
                 #s.wln(f"if ({property.Name.lower()}==null) {{ {property.Name.lower()} = {property.Java_DefaultValue()}; }}")
                 s.wln(f"this._{property.Name} = {property.Name.lower()};")
 
@@ -119,7 +120,7 @@ class JavaClassWriter(ClassWriter):
     def writeParentClassInitializer(self, s:JavaStringWriter):
         if self.Class.InheritsFrom is not None:
             s.wln(f"super(").Inc(1)
-            for propertyid, property in self.Class.InheritsFrom.Properties.Data.items():
+            for propertyid, property in self.Class.InheritedProperties.Data.items():
                 s.wln(f"{property.Name.lower()},")
             s.rem(2).a(");").ret()
             s.Dec(1)
@@ -129,7 +130,7 @@ class JavaClassWriter(ClassWriter):
 
     def writeParentClassParameters(self, s:JavaStringWriter):
         if self.Class.InheritsFrom is not None:
-            for propertyid, property in self.Class.InheritsFrom.Properties.Data.items():
+            for propertyid, property in self.Class.InheritedProperties.Data.items():
                 s.wln(f"{property.Java_Type()} {property.Name.lower()},")
         return s
 

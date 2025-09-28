@@ -43,7 +43,7 @@ class CSharpClassWriter(ClassWriter):
                     dependency_map[dependency] = dependency
 
         if self.Class.InheritsFrom is not None:
-            for propertyid, property in self.Class.InheritsFrom.Properties.Data.items():
+            for propertyid, property in self.Class.InheritedProperties.Data.items():
                 for dependency in property.CSharp_Dependencies():
                     if dependency not in dependency_map:
                         dependency_map[dependency] = dependency
@@ -110,7 +110,7 @@ class CSharpClassWriter(ClassWriter):
 
     def writeParentClassInitializer(self, s:CSharpStringWriter):
         if self.Class.InheritsFrom is not None:
-            for propertyid, property in self.Class.InheritsFrom.Properties.Data.items():
+            for propertyid, property in self.Class.InheritedProperties.Data.items():
                 s.wln(f"this._{property.Name} = {property.Name.lower()};")
 
         return s
@@ -118,7 +118,7 @@ class CSharpClassWriter(ClassWriter):
 
     def writeParentClassParameters(self, s:CSharpStringWriter):
         if self.Class.InheritsFrom is not None:
-            for propertyid, property in self.Class.InheritsFrom.Properties.Data.items():
+            for propertyid, property in self.Class.InheritedProperties.Data.items():
                 s.wln(f"{property.CSharp_Type()} {property.Name.lower()} = {property.CSharp_DefaultValue()},")
         return s
 
