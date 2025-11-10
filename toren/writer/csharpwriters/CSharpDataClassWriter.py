@@ -21,18 +21,24 @@ class CSharpDataClassWriter(DataClassWriter):
                  language: Language, 
                  database: Database,
                  dlclassname: str,
+                 connectionobjectclassname: str,
+                 commonfunctionsclassname: str,
                  logger:Logger=None):
         super().__init__(project=project, 
                          module=module, 
                          class_=class_, 
                          database=database,
                          language=language, 
-                         dlclassname=dlclassname, 
+                         dlclassname=dlclassname,
+                         connectionobjectclassname=connectionobjectclassname,
+                         commonfunctionsclassname=commonfunctionsclassname,
                          logger=logger)
         self.Project = project
         self.Module = module
         self.StringWriterClass = CSharpStringWriter
         self.DLCLassName = dlclassname
+        self.ConnectionObjectClassName = connectionobjectclassname
+        self.CommonFunctionsClassName = commonfunctionsclassname
         self.Class = class_
         self.Database = database
         self.Language = language

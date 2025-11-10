@@ -70,6 +70,8 @@ class DataModuleWriter(WriterObject):
                           language=self.Language,
                           database=self.Database,
                           dlclassname=dlclassname,
+                          connectionobjectclassname=con,
+                          commonfunctionsclassname=cfn,
                           logger=self.Logger)
             c.write()
 
@@ -145,3 +147,16 @@ class DataModuleWriter(WriterObject):
         s = self.S
         s.clear()
         pass
+
+    def getDataDependencies(self):
+        dependency_map = {}
+        return dependency_map
+
+
+    def writeDataDependencies(self, dependency_map, s:StringWriter):
+        
+        for dependencyid, dependency in dependency_map.items():
+            s.wln(f"{dependency}")
+        
+        s.ret()
+        return s

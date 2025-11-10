@@ -22,6 +22,8 @@ class DataClassWriter(WriterObject):
                  language: Language,
                  database: Database, 
                  dlclassname: str,
+                 connectionobjectclassname: str,
+                 commonfunctionsclassname: str,
                  logger:Logger=None,):
         super().__init__()
         self.DLCLassName = dlclassname
@@ -31,6 +33,8 @@ class DataClassWriter(WriterObject):
         self.Class = class_
         self.Language = language
         self.Database = database
+        self.ConnectionObjectClassName = connectionobjectclassname
+        self.CommonFunctionsClassName = commonfunctionsclassname
         self.ParentClassName = self.getParentClassName()
         self.setLogger(logger)
         self.S = self.StringWriterClass(self.Language)

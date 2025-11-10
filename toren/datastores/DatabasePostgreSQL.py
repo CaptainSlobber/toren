@@ -30,6 +30,9 @@ class DatabasePostgreSQL(Database):
   def PythonDependencies(self):
     return ["import psycopg2"]
   
+  def PythonConnectionClass(self):
+    return "psycopg2"
+  
   def JavaDependencies(self):
     return ["import java.sql.Connection;", "import java.sql.DriverManager;", "import java.sql.SQLException;"]
   

@@ -30,6 +30,9 @@ class DatabaseSQLite(Database):
   def PythonDependencies(self):
     return ["import sqlite3"]
   
+  def PythonConnectionClass(self):
+    return "sqlite3"
+  
   def JavaDependencies(self):
     return ["import java.sql.Connection;", "import java.sql.DriverManager;", "import java.sql.SQLException;"]
   

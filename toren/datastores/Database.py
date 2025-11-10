@@ -54,13 +54,13 @@ class Database(TorenObject):
     return "1a0d0741-65e5-4937-8682-34255fcde015"
 
   def initialize(self, instanceName: str, 
-                 dinstanceDescription: str, 
+                 instanceDescription: str, 
                  instanceID: str):
     
 
     self.Type = self.getType()
     self.InstanceName = instanceName
-    self.InstanceDescription = dinstanceDescription
+    self.InstanceDescription = instanceDescription
     self.InstanceID = instanceID
     self.Name = self.getName()
     self.Description = self.getDescription()
@@ -132,24 +132,48 @@ class Database(TorenObject):
 
   def Dependencies(self, language: Language):
     _dep = {}
-    _dep[LanguagePython.getID()] = self.PythonDependencies
-    _dep[LanguageCSharp.getID()] = self.CSharpDependencies
-    _dep[LanguageJava.getID()] = self.JavaDependencies
-    _dep[LanguageGo.getID()] = self.GoDependencies
-    _dep[LanguageJavaScript.getID()] = self.JavaScriptDependencies
-    return _dep[language.ID]
+    _dep[LanguagePython().getID()] = self.PythonDependencies
+    _dep[LanguageCSharp().getID()] = self.CSharpDependencies
+    _dep[LanguageJava().getID()] = self.JavaDependencies
+    _dep[LanguageGo().getID()] = self.GoDependencies
+    _dep[LanguageJavaScript().getID()] = self.JavaScriptDependencies
+    return _dep[language.ID]()
+  
+  def ConnectionClass(self, language: Language):
+    _conn = {}
+    _conn[LanguagePython().getID()] = self.PythonConnectionClass
+    _conn[LanguageCSharp().getID()] = self.CSharpConnectionClass
+    _conn[LanguageJava().getID()] = self.JavaConnectionClass
+    _conn[LanguageGo().getID()] = self.GoConnectionClass
+    _conn[LanguageJavaScript().getID()] = self.JavaScriptConnectionClass
+    return _conn[language.ID]()
 
-  def CSharpDependencies(self):
-    return [""]
+  def CSharpDependencies(self) -> list:
+    raise NotImplementedError()
   
-  def PythonDependencies(self):
-    return [""]
+  def PythonDependencies(self) -> list:
+    raise NotImplementedError()
   
-  def JavaDependencies(self):
-    return [""]
+  def JavaDependencies(self) -> list:
+    raise NotImplementedError()
   
-  def GoDependencies(self):
-    return [""]
+  def GoDependencies(self) -> list:
+    raise NotImplementedError()
   
-  def JavaScriptDependencies(self):
-    return [""]
+  def JavaScriptDependencies(self) -> list:
+    raise NotImplementedError()
+  
+  def CSharpConnectionClass(self):
+    raise NotImplementedError()
+  
+  def PythonConnectionClass(self):
+    raise NotImplementedError()
+  
+  def JavaConnectionClass(self):
+    raise NotImplementedError()  
+  
+  def GoConnectionClass(self):
+    raise NotImplementedError()   
+  
+  def JavaScriptConnectionClass(self):
+    raise NotImplementedError()

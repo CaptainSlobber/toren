@@ -38,15 +38,30 @@ class DatabaseMicrosoftSQL(Database):
 
   def CSharpDependencies(self):
     return ["using System.Data.SqlClient;"]
+  
+  def CSharpConnectionClass(self):
+    return "SqlConnection"
 
   def PythonDependencies(self):
     return ["import pyodbc"]
   
+  def PythonConnectionClass(self):
+    return "pyodbc"
+  
   def JavaDependencies(self):
     return ["import java.sql.Connection;", "import java.sql.DriverManager;", "import java.sql.SQLException;"]
   
+  def JavaConnectionClass(self):
+    return "Connection"
+
   def GoDependencies(self):
     return [""]
   
+  def GoConnectionClass(self):
+    return ""
+  
   def JavaScriptDependencies(self):
     return [""]
+  
+  def JavaScriptConnectionClass(self):
+    return ""

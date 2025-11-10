@@ -53,9 +53,25 @@ class PythonDataModuleWriter(DataModuleWriter):
             s.wln(f"from .{dlclassname} import {dlclassname}")
         self.writeFile(path, filename, s.toString())
 
+
+    def getDataDependencies(self):
+        dependency_map = {}
+        for dependency in self.Database.PythonDependencies():
+            dependency_map[dependency] = dependency
+        return dependency_map
+
     def writeCommonDataFunctions(self, path, classname):
         s = self.S
         s.clear()
+        
+        
+
+        conclass = f"{self.getDLPrefix()}{ self.ConnectionObjectClassName}{self.getDLSuffix()}"
+        dependency_map = self.getDataDependencies()
+        s = self.writeDataDependencies(dependency_map, s)
+
+        s.wln(f"from .{conclass} import {conclass}")
+        s.ret()
         s.write(f"class {classname}():").o()
         s.ret()
         s.wln("\"\"\"")
@@ -64,5 +80,56 @@ class PythonDataModuleWriter(DataModuleWriter):
         s.wln("\"\"\"")
         s.ret()
 
+        s = self.writeCommonCreateConnection(s)
+        s = self.writeCommonExecuteQuery(s)
+
         filename = f"{classname}.{self.Language.DefaultFileExtension}"
         self.writeFile(path, filename, s.toString())
+
+    
+    def writeCommonCreateConnection(self, s:PythonStringWriter):
+        db = self.Database
+        conclass = self.ConnectionObjectClassName
+
+        conclass = f"{self.getDLPrefix()}{ self.ConnectionObjectClassName}{self.getDLSuffix()}"
+        s.wln(f"@staticmethod")
+        s.wln(f"def getConnection(c: {conclass}):").o()
+
+        s.wln(f"connection = {db.ConnectionClass(self.Language)}.connect(").o()
+        s.c()
+        s.wln(f")")
+        s.wln(f"return connection")
+        s.c()
+        s.ret()
+        return s
+    
+    def writeCommonExecuteQuery(self, s:PythonStringWriter):
+        db = self.Database
+        cfn = f"{self.getDLPrefix()}{ self.CommonFunctionsClassName}{self.getDLSuffix()}"
+
+        s.wln(f"@staticmethod")
+        s.wln(f"def ExecuteNonQuery(conn, query: str, close: bool=True):").o()
+        s.wln(f"return {cfn}.ExecuteNonQueries(conn, [query], close)")
+        s.c()
+        s.ret()
+
+        s.wln(f"@staticmethod")
+        s.wln(f"def ExecuteNonQueries(conn, queries: list, close: bool=True):").o()
+
+
+        s.wln(f"cursor = conn.cursor()")
+        s.wln(f"for query in queries:").o()
+        s.wln(f"cursor.execute(query)")
+        s.wln(f"conn.commit()") 
+        s.c()
+
+        s.wln(f"if 'cursor' in locals() and cursor:").o()
+        s.wln("cursor.close()")
+        s.c()
+        s.wln(f"if close:").o()
+        s.wln(f"if 'conn' in locals() and conn:").o()
+        s.wln(f"conn.close()")
+        s.c().c()
+        s.c()
+        s.ret()
+        return s
