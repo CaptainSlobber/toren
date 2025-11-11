@@ -93,7 +93,7 @@ class PythonDataModuleWriter(DataModuleWriter):
 
         conclass = f"{self.getDLPrefix()}{ self.ConnectionObjectClassName}{self.getDLSuffix()}"
         s.wln(f"@staticmethod")
-        s.wln(f"def getConnection(c: {conclass}):").o()
+        s.wln(f"def GetConnection(c: {conclass}):").o()
 
         s.wln(f"connection = {db.ConnectionClass(self.Language)}.connect(").o()
         s.c()

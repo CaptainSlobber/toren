@@ -23,15 +23,16 @@ class DatabasePostgreSQL(Database):
   
   def getID(self):
     return "be3f92e2-e2ff-491d-9ca0-eaefb72cc6bf"
+  
+  ##########################################################################
+  # Dependencies
+  ##########################################################################
 
   def CSharpDependencies(self):
     return ["using Npgsql;"]
   
   def PythonDependencies(self):
     return ["import psycopg2"]
-  
-  def PythonConnectionClass(self):
-    return "psycopg2"
   
   def JavaDependencies(self):
     return ["import java.sql.Connection;", "import java.sql.DriverManager;", "import java.sql.SQLException;"]
@@ -41,3 +42,10 @@ class DatabasePostgreSQL(Database):
   
   def JavaScriptDependencies(self):
     return [""]
+  
+  ##########################################################################
+  # Connection
+  ##########################################################################
+
+  def PythonConnectionClass(self):
+    return "psycopg2"

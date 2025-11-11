@@ -78,8 +78,11 @@ class DataClassWriter(WriterObject):
         return s
     
     def writeDLClassOperations(self, s:StringWriter):
+        s = self.checkSchemaExistence(s)
+        s = self.writeCreateSchema(s)
         s = self.checkTableExistence(s)
         s = self.writeCreateTable(s)
+        s = self.writeDropTable(s)
         s = self.writeInsert(s)     
         s = self.writeInsertCollection(s)
         s = self.writeUpdate(s) 
@@ -88,7 +91,16 @@ class DataClassWriter(WriterObject):
         s = self.writeSelectWhere(s)
         return s
     
+    def checkSchemaExistence(self, s:StringWriter):
+        return s
+    
+    def writeCreateSchema(self, s:StringWriter):
+        return s
+
     def checkTableExistence(self, s:StringWriter):
+        return s
+    
+    def writeDropTable(self, s:StringWriter):
         return s
     
     def writeCreateTable(self, s:StringWriter):

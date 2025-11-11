@@ -72,7 +72,7 @@ class PythonDataClassWriter(DataClassWriter):
         cfn = self.CommonFunctionsClassName
         s.wln(f"from .{con} import {con}")
         s.wln(f"from .{cfn} import {cfn}")
-
+        s.ret()
         s.write(f"class {d}:").o()
         s.ret()
         s.wln("\"\"\"")
@@ -123,12 +123,38 @@ class PythonDataClassWriter(DataClassWriter):
         return s
 
 
+    def writeCreateSchema(self, s:PythonStringWriter):
+        db = self.Database
+        schema_name = self.Class.ParentModule.Name
+        if db.HasSchema():
+            s.wln("@staticmethod")
+            s.wln(f"def CreateSchemaQuery():").o()
+            s.wln(f'createquery = "CREATE SCHEMA {db.OB()}{schema_name}{db.CB()}{db.EndQuery()}"')
+            s.wln("return createquery")
+            s.c().ret()
+
+            s.wln("@staticmethod")
+            s.wln(f"def CreateSchema(conn):").o()
+            s.wln(f"createquery = {self.getDLClassName()}.CreateSchemaQuery()")
+            s.wln(f"{self.CommonFunctionsClassName}.ExecuteNonQuery(conn, createquery)")
+            s.c()
+            s.ret()
+
+        return s
     
+    def getSchema(self):
+        db = self.Database
+        if db.HasSchema():
+            return f"{db.OB()}{self.Class.ParentModule.Name}{db.CB()}."
+        return ""
+
     def writeCreateTable(self, s:PythonStringWriter):
         db = self.Database
+        schema = self.getSchema()
+
         s.wln("@staticmethod")
-        s.wln(f"def create{self.Class.Name}TableQuery():").o()
-        s.wln(f'createquery = "CREATE TABLE{db.IfNotExists()} {db.OB()}{self.Class.Name}{db.CB()} ("')
+        s.wln(f"def Create{self.Class.Name}TableQuery():").o()
+        s.wln(f'createquery = "CREATE TABLE{db.IfNotExists()} {schema}{db.OB()}{self.Class.Name}{db.CB()} ("')
         if self.Class.InheritsFrom is not None:
             for propertyid, property in self.Class.InheritsFrom.Properties.Data.items():
                 s = self.writeCreateTableColumn(s, property)
@@ -139,9 +165,29 @@ class PythonDataClassWriter(DataClassWriter):
         s.c().ret()
 
         s.wln("@staticmethod")
-        s.wln(f"def create{self.Class.Name}Table(conn):").o()
-        s.wln(f"create_query = {self.getDLClassName()}.create{self.Class.Name}TableQuery()")
-        s.wln(f"{self.CommonFunctionsClassName}.ExecuteNonQuery(conn, create_query)")
+        s.wln(f"def Create{self.Class.Name}Table(conn):").o()
+        s.wln(f"createquery = {self.getDLClassName()}.Create{self.Class.Name}TableQuery()")
+        s.wln(f"{self.CommonFunctionsClassName}.ExecuteNonQuery(conn, createquery)")
+        s.c()
+        s.ret()
+        return s
+    
+    def checkTableExistence(self, s:PythonStringWriter):
+        return s
+    
+    def writeDropTable(self, s:PythonStringWriter):
+        db = self.Database
+        schema = self.getSchema()
+        s.wln("@staticmethod")
+        s.wln(f"def Drop{self.Class.Name}TableQuery():").o()
+        s.wln(f'dropquery = "DROP TABLE{db.IfExists()} {schema}{db.OB()}{self.Class.Name}{db.CB()}{db.EndQuery()}"')
+        s.wln("return dropquery")
+        s.c().ret()
+
+        s.wln("@staticmethod")
+        s.wln(f"def Drop{self.Class.Name}Table(conn):").o()
+        s.wln(f"dropquery = {self.getDLClassName()}.Drop{self.Class.Name}TableQuery()")
+        s.wln(f"{self.CommonFunctionsClassName}.ExecuteNonQuery(conn, dropquery)")
         s.c()
         s.ret()
         return s

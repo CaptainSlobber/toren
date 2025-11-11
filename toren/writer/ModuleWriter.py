@@ -18,8 +18,10 @@ class ModuleWriter(WriterObject):
     def __init__(self, project: Project, 
                  module: Module, 
                  language: Language, 
-                 logger:Logger=None):
+                 logger:Logger=None, 
+                 deleteoutputdirectory:bool=False):
         super().__init__()
+        self.DeleteOutputDirectory = deleteoutputdirectory
         self.Project = project
         self.Module = module
         self.Language = language
@@ -32,7 +34,9 @@ class ModuleWriter(WriterObject):
     def write(self):
         self.Logger.Log(f"=> Writing Module: {self.Module.Name}")
         parent_project_path = self.getParentProjectPath(self.Language, self.Project)
-        module_path = self.writeDirectoryToPath(parent_project_path, self.Module.Name, clear=True)
+        module_path = self.writeDirectoryToPath(parent_project_path, 
+                                                self.Module.Name, 
+                                                clear=True)
         headerfn = f"{self.HeaderFileName}.{self.Language.DefaultFileExtension}"
         self.writeModuleHeader(module_path, headerfn)
         for classid, _class in self.Module.Classes.Data.items():

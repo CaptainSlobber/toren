@@ -52,3 +52,10 @@ class DatabaseOracle(Database):
   
   def JavaScriptDependencies(self):
     return [""]
+  
+  ##########################################################################
+  # Connection
+  ##########################################################################
+  
+  def PythonConnectionClass(self):
+    return "oracledb"

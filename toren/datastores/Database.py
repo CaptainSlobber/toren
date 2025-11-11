@@ -123,8 +123,14 @@ class Database(TorenObject):
   def IfNotExists(self):
     return " IF NOT EXISTS"
   
+  def IfExists(self):
+    return " IF EXISTS"
+  
   def EndQuery(self):
     return ";"
+  
+  def HasSchema(self):
+    return True
 
   ##########################################################################
   # Dependencies

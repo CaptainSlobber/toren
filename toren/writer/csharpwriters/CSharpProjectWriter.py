@@ -13,10 +13,15 @@ from ...tracer.Logger import Logger
 
 class CSharpProjectWriter(ProjectWriter):
 
-    def __init__(self, project: Project, language: Language, logger:Logger=None):
+    def __init__(self, project: Project, 
+                 language: Language, 
+                 logger:Logger=None,
+                 deleteoutputdirectory:bool=False):
         super().__init__(project=project, 
                          language=language, 
-                         logger=logger)
+                         logger=logger,
+                         deleteoutputdirectory=deleteoutputdirectory)
+        self.DeleteOutputDirectory = deleteoutputdirectory
         self.Project = project
         self.Language = language
         self.ModuleWriterClass = CSharpModuleWriter

@@ -15,8 +15,12 @@ from ..tracer.Logger import Logger
 
 class ProjectWriter(WriterObject):
 
-    def __init__(self, project: Project, language: Language, logger:Logger=None):
+    def __init__(self, project: Project, 
+                 language: Language, 
+                 logger:Logger=None, 
+                 deleteoutputdirectory:bool=False):
         super().__init__()
+        self.DeleteOutputDirectory = deleteoutputdirectory
         self.Project = project
         self.Language = language
         self.ModuleWriterClass = ModuleWriter
@@ -31,8 +35,12 @@ class ProjectWriter(WriterObject):
         self.writeDataLayer(project=self.Project)
 
     def writeProjectDirectory(self, project:Project):
-        self.writeDirectoryToPath(self.Language.OutputDirectory, project.Name)
-        self.writeDirectoryToPath(os.path.join(self.Language.OutputDirectory, project.Name), project.Name)
+        self.writeDirectoryToPath(path=self.Language.OutputDirectory, 
+                                  dirname=project.Name, 
+                                  clear=self.DeleteOutputDirectory)
+        self.writeDirectoryToPath(path=os.path.join(self.Language.OutputDirectory, project.Name), 
+                                  dirname=project.Name,
+                                  clear=self.DeleteOutputDirectory)
 
 
 
@@ -44,7 +52,11 @@ class ProjectWriter(WriterObject):
 
     def writeModules(self, project:Project):
         for moduleid, module in project.Modules.Data.items():
-            m = self.ModuleWriterClass(project=project, module=module, language=self.Language, logger=self.Logger)
+            m = self.ModuleWriterClass(project=project, 
+                                       module=module, 
+                                       language=self.Language, 
+                                       logger=self.Logger,
+                                       deleteoutputdirectory=self.DeleteOutputDirectory)
             m.write()
 
 

@@ -16,14 +16,17 @@ class JavaModuleWriter(ModuleWriter):
     def __init__(self, project: Project, 
                  module: Module, 
                  language: Language, 
-                 logger:Logger=None):
+                 logger:Logger=None, 
+                 deleteoutputdirectory:bool=False):
         super().__init__(project=project, 
                          module=module, 
                          language=language, 
-                         logger=logger)
+                         logger=logger,
+                         deleteoutputdirectory=deleteoutputdirectory)
         self.Project = project
         self.Module = module
         self.Language = language
+        self.DeleteOutputDirectory = deleteoutputdirectory
         self.ClassWriterClass = JavaClassWriter
         self.HeaderFileName = f""
         self.setLogger(logger)

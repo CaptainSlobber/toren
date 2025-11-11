@@ -24,14 +24,22 @@ class DatabaseSQLite(Database):
   def getID(self):
     return "febd77a2-29dc-44ac-8b1b-247ac6b4d45f"
   
+  ##########################################################################
+  # DB Specific Query Syntax
+  ##########################################################################
+
+  def HasSchema(self):
+    return False
+  
+  ##########################################################################
+  # Dependencies
+  ##########################################################################
+  
   def CSharpDependencies(self):
     return ["using Microsoft.Data.Sqlite;"]
   
   def PythonDependencies(self):
     return ["import sqlite3"]
-  
-  def PythonConnectionClass(self):
-    return "sqlite3"
   
   def JavaDependencies(self):
     return ["import java.sql.Connection;", "import java.sql.DriverManager;", "import java.sql.SQLException;"]
@@ -41,3 +49,10 @@ class DatabaseSQLite(Database):
   
   def JavaScriptDependencies(self):
     return [""]
+  
+  ##########################################################################
+  # Connection
+  ##########################################################################
+
+  def PythonConnectionClass(self):
+    return "sqlite3"

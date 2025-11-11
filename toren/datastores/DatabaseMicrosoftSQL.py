@@ -29,8 +29,14 @@ class DatabaseMicrosoftSQL(Database):
   # DB Specific Query Syntax
   ##########################################################################
 
+  # Note: The IF EXISTS clause for DROP TABLE is supported in SQL Server 2016 and later versions. 
+  # For older versions, alternative methods like checking OBJECT_ID or INFORMATION_SCHEMA.TABLES are required.
+
   def IfNotExists(self):
     return ""
+  
+  def IfExists(self):
+    return " IF EXISTS"
 
   ##########################################################################
   # Dependencies
@@ -39,29 +45,33 @@ class DatabaseMicrosoftSQL(Database):
   def CSharpDependencies(self):
     return ["using System.Data.SqlClient;"]
   
-  def CSharpConnectionClass(self):
-    return "SqlConnection"
-
   def PythonDependencies(self):
     return ["import pyodbc"]
-  
-  def PythonConnectionClass(self):
-    return "pyodbc"
   
   def JavaDependencies(self):
     return ["import java.sql.Connection;", "import java.sql.DriverManager;", "import java.sql.SQLException;"]
   
-  def JavaConnectionClass(self):
-    return "Connection"
-
   def GoDependencies(self):
     return [""]
   
-  def GoConnectionClass(self):
-    return ""
-  
   def JavaScriptDependencies(self):
     return [""]
+
+  ##########################################################################
+  # Connection
+  ##########################################################################
+
+  def CSharpConnectionClass(self):
+    return "SqlConnection"
   
+  def PythonConnectionClass(self):
+    return "pyodbc"
+  
+  def JavaConnectionClass(self):
+    return "Connection"
+  
+  def GoConnectionClass(self):
+    return ""
+    
   def JavaScriptConnectionClass(self):
     return ""
