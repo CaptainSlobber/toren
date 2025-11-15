@@ -31,6 +31,10 @@ class DatabaseSQLite(Database):
   def HasSchema(self):
     return False
   
+  # SQLite parameters can be prefixed with either :, @, or $.
+  def GetParameter(self, parmeterNo: int, parameterName: str = ""):
+    return f"@{parameterName}"
+  
   ##########################################################################
   # Dependencies
   ##########################################################################

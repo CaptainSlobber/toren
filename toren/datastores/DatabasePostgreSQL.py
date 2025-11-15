@@ -25,6 +25,13 @@ class DatabasePostgreSQL(Database):
     return "be3f92e2-e2ff-491d-9ca0-eaefb72cc6bf"
   
   ##########################################################################
+  # DB Specific Query Syntax
+  ##########################################################################
+  
+  def GetParameter(self, parmeterNo: int, parameterName: str = ""):
+    return f"@{parameterName}"
+  
+  ##########################################################################
   # Dependencies
   ##########################################################################
 

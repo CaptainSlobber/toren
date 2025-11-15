@@ -83,7 +83,9 @@ class DataClassWriter(WriterObject):
         s = self.checkTableExistence(s)
         s = self.writeCreateTable(s)
         s = self.writeDropTable(s)
-        s = self.writeInsert(s)     
+        s = self.writeGetColumnNames(s)
+        s = self.writeGetColumnParameters(s)
+        s = self.writeInsertItem(s)     
         s = self.writeInsertCollection(s)
         s = self.writeUpdate(s) 
         s = self.writeDelete(s)
@@ -91,6 +93,12 @@ class DataClassWriter(WriterObject):
         s = self.writeSelectWhere(s)
         return s
     
+    def writeGetColumnNames(self, s:StringWriter):
+        return s
+    
+    def writeGetColumnParameters(self, s:StringWriter):
+        return s
+
     def checkSchemaExistence(self, s:StringWriter):
         return s
     
@@ -106,7 +114,7 @@ class DataClassWriter(WriterObject):
     def writeCreateTable(self, s:StringWriter):
         return s
     
-    def writeInsert(self, s:StringWriter):
+    def writeInsertItem(self, s:StringWriter):
         return s
     
     def writeInsertCollection(self, s:StringWriter):

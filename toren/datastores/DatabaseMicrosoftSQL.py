@@ -37,6 +37,9 @@ class DatabaseMicrosoftSQL(Database):
   
   def IfExists(self):
     return " IF EXISTS"
+  
+  def GetParameter(self, parmeterNo: int, parameterName: str = ""):
+    return f"@{parameterName}"
 
   ##########################################################################
   # Dependencies

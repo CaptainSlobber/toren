@@ -192,7 +192,56 @@ class PythonDataClassWriter(DataClassWriter):
         s.ret()
         return s
     
-    def writeInsert(self, s:PythonStringWriter):
+    def writeGetColumnNames(self, s:PythonStringWriter):
+        db = self.Database
+        columns = []
+        if self.Class.InheritsFrom is not None:
+            for propertyid, property in self.Class.InheritedProperties.Data.items():
+                columns.append(f"{db.OB()}{property.Name}{db.CB()}")
+        for propertyid, property in self.Class.Properties.Data.items():
+            columns.append(f"{db.OB()}{property.Name}{db.CB()}")
+        columns_string = ", ".join(columns)
+        s.wln("@staticmethod")
+        s.wln(f"def Get{self.Class.Name}ColumnNames():").o()
+        s.wln(f'columns = "{columns_string}"')
+        s.wln("return columns")
+        s.c()
+        s.ret()
+        return s
+    
+
+    
+    def writeGetColumnParameters(self, s:PythonStringWriter):
+        db = self.Database
+        params = []
+        n = 0
+        if self.Class.InheritsFrom is not None:
+            for propertyid, property in self.Class.InheritedProperties.Data.items():
+                n = n + 1
+                params.append(f"{db.GetParameter(n, property.Name.lower())}")
+        for propertyid, property in self.Class.Properties.Data.items():
+            n = n + 1
+            params.append(f"{db.GetParameter(n, property.Name.lower())}")
+        params_string = ", ".join(params)
+        s.wln("@staticmethod")
+        s.wln(f"def Get{self.Class.Name}ColumnParameters():").o()
+        s.wln(f'params = "{params_string}"')
+        s.wln("return params")
+        s.c()
+        s.ret()
+        return s
+    
+    def writeInsertItem(self, s:PythonStringWriter):
+
+        db = self.Database
+        schema = self.getSchema()
+        s.wln("@staticmethod")
+        s.wln(f"def Get{self.Class.Name}InsertQuery():").o()
+        s.wln(f'columns = {self.getDLClassName()}.Get{self.Class.Name}ColumnNames()')
+        s.wln(f"params = {self.getDLClassName()}.Get{self.Class.Name}ColumnParameters()")
+        s.wln(f'insertquery = f"INSERT INTO {schema}{db.OB()}{self.Class.Name}{db.CB()} ({{columns}}) VALUES ({{params}}){db.EndQuery()}"')
+        s.wln("return insertquery")
+        s.c().ret()
         return s
     
     def writeInsertCollection(self, s:PythonStringWriter):

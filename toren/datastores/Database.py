@@ -131,6 +131,9 @@ class Database(TorenObject):
   
   def HasSchema(self):
     return True
+  
+  def GetParameter(self, parmeterNo: int):
+    return "*"
 
   ##########################################################################
   # Dependencies
