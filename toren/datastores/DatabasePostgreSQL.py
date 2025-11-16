@@ -28,7 +28,7 @@ class DatabasePostgreSQL(Database):
   # DB Specific Query Syntax
   ##########################################################################
   
-  def GetParameter(self, parmeterNo: int, parameterName: str = ""):
+  def GetParameter(self, parameterName: str = "", index: int = -1):
     return f"@{parameterName}"
   
   ##########################################################################

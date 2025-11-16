@@ -112,7 +112,23 @@ class Class(TorenObject):
     return properties
   
 
-   
+  def hasPrimaryKeyPoperty(self):
+    for propertyid, property in self.InheritedProperties.Data.items():
+      if property.IsPrimaryKey:
+        return True
+    for propertyid, property in self.Properties.Data.items():
+      if property.IsPrimaryKey:
+        return True
+    return False
+  
+  def getPrimaryKeyProperty(self):
+    for propertyid, property in self.InheritedProperties.Data.items():
+      if property.IsPrimaryKey:
+        return property
+    for propertyid, property in self.Properties.Data.items():
+      if property.IsPrimaryKey:
+        return property
+    return None
 
   def setInheritsFrom(self, inheritsFromClass):
 

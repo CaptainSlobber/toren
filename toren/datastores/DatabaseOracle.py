@@ -34,7 +34,7 @@ class DatabaseOracle(Database):
   def CloseBrackets(self):
     return "\\\"" # Double Escaped
   
-  def GetParameter(self, parmeterNo: int, parameterName: str = ""):
+  def GetParameter(self, parameterName: str = "", index: int = -1):
     return f":{parameterName}"
   
   ##########################################################################

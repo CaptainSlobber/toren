@@ -81,7 +81,8 @@ class PythonDataModuleWriter(DataModuleWriter):
         s.ret()
 
         s = self.writeCommonCreateConnection(s)
-        s = self.writeCommonExecuteQuery(s)
+        s = self.writeCommonExecuteNonQuery(s)
+        s = self.writeCommonExecuteParameterizedNonQuery(s)
 
         filename = f"{classname}.{self.Language.DefaultFileExtension}"
         self.writeFile(path, filename, s.toString())
@@ -103,32 +104,67 @@ class PythonDataModuleWriter(DataModuleWriter):
         s.ret()
         return s
     
-    def writeCommonExecuteQuery(self, s:PythonStringWriter):
+
+
+    def writeCommonExecuteParameterizedNonQuery(self, s:PythonStringWriter):
         db = self.Database
         cfn = f"{self.getDLPrefix()}{ self.CommonFunctionsClassName}{self.getDLSuffix()}"
 
         s.wln(f"@staticmethod")
-        s.wln(f"def ExecuteNonQuery(conn, query: str, close: bool=True):").o()
-        s.wln(f"return {cfn}.ExecuteNonQueries(conn, [query], close)")
-        s.c()
-        s.ret()
-
-        s.wln(f"@staticmethod")
-        s.wln(f"def ExecuteNonQueries(conn, queries: list, close: bool=True):").o()
-
-
-        s.wln(f"cursor = conn.cursor()")
-        s.wln(f"for query in queries:").o()
-        s.wln(f"cursor.execute(query)")
-        s.wln(f"conn.commit()") 
-        s.c()
-
+        s.wln(f"def ExecuteParameterizedNonQuery(connection, query: str, data: dict, close: bool=True):").o()
+        s.wln(f"cursor = connection.cursor()")
+        s.wln(f"cursor.execute(query, data)")
+        s.wln(f"connection.commit()") 
         s.wln(f"if 'cursor' in locals() and cursor:").o()
         s.wln("cursor.close()")
         s.c()
         s.wln(f"if close:").o()
-        s.wln(f"if 'conn' in locals() and conn:").o()
-        s.wln(f"conn.close()")
+        s.wln(f"if 'connection' in locals() and connection:").o()
+        s.wln(f"connection.close()")
+        s.c().c()
+        s.c()
+        s.ret()
+
+
+        s.wln(f"@staticmethod")
+        s.wln(f"def ExecuteManyParameterizedNonQuery(connection, query: str, data: list, close: bool=True):").o()
+        s.wln(f"cursor = connection.cursor()")
+        s.wln(f"cursor.executemany(query, data)")
+        s.wln(f"connection.commit()") 
+        s.wln(f"if 'cursor' in locals() and cursor:").o()
+        s.wln("cursor.close()")
+        s.c()
+        s.wln(f"if close:").o()
+        s.wln(f"if 'connection' in locals() and connection:").o()
+        s.wln(f"connection.close()")
+        s.c().c()
+        s.c()
+        s.ret()
+        return s
+    
+    def writeCommonExecuteNonQuery(self, s:PythonStringWriter):
+        db = self.Database
+        cfn = f"{self.getDLPrefix()}{ self.CommonFunctionsClassName}{self.getDLSuffix()}"
+
+        s.wln(f"@staticmethod")
+        s.wln(f"def ExecuteNonQuery(connection, query: str, close: bool=True):").o()
+        s.wln(f"return {cfn}.ExecuteNonQueries(connection, [query], close)")
+        s.c()
+        s.ret()
+
+        s.wln(f"@staticmethod")
+        s.wln(f"def ExecuteNonQueries(connection, queries: list, close: bool=True):").o()
+        s.wln(f"cursor = connection.cursor()")
+        s.wln(f"for query in queries:").o()
+        s.wln(f"cursor.execute(query)")
+        s.wln(f"connection.commit()") 
+        s.c()
+        s.wln(f"if 'cursor' in locals() and cursor:").o()
+        s.wln("cursor.close()")
+        s.c()
+        s.wln(f"if close:").o()
+        s.wln(f"if 'connection' in locals() and connection:").o()
+        s.wln(f"connection.close()")
         s.c().c()
         s.c()
         s.ret()

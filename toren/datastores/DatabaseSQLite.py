@@ -32,7 +32,7 @@ class DatabaseSQLite(Database):
     return False
   
   # SQLite parameters can be prefixed with either :, @, or $.
-  def GetParameter(self, parmeterNo: int, parameterName: str = ""):
+  def GetParameter(self, parameterName: str = "", index: int = -1):
     return f"@{parameterName}"
   
   ##########################################################################
