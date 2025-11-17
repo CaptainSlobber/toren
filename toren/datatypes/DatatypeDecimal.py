@@ -139,7 +139,7 @@ class DatatypeDecimal(DatatypeNumeric):
   
   def Python_Dependencies(self) -> list:
     if self.hasHigherDimensionality():
-      return ["import numpy as np", "import numpy.typing as npt"]
+      return ["import numpy as np", "import numpy.typing as npt", "import json"]
     else:
       return ['from decimal import Decimal']
   
@@ -150,6 +150,54 @@ class DatatypeDecimal(DatatypeNumeric):
       if self.hasDefaultValue():
           return f"Decimal('{self.DefaultValue}')"
       return "Decimal(0.0)"
+    
+  def Python_to_Oracle(self, *args) -> str:
+    if self.hasHigherDimensionality():
+      return f"json.dumps({args[0]}.tolist()).encode('utf-8')"
+    else:
+      return f"{args[0]}"
+
+  def Python_to_MicrosoftSQL(self, *args) -> str:
+    if self.hasHigherDimensionality():
+      return f"json.dumps({args[0]}.tolist()).encode('utf-8')"
+    else:
+      return f"{args[0]}"
+  
+  def Python_to_PostgreSQL(self, *args) -> str:
+    if self.hasHigherDimensionality():
+      return f"json.dumps({args[0]}.tolist()).encode('utf-8')"
+    else:
+      return f"{args[0]}"
+  
+  def Python_to_SQLite(self, *args) -> str:
+    if self.hasHigherDimensionality():
+      return f"json.dumps({args[0]}.tolist()).encode('utf-8')"
+    else:
+      return f"{args[0]}"
+
+  def Python_from_Oracle(self, *args) -> str:
+    if self.hasHigherDimensionality():
+      return f"np.array(json.loads({args[0]}.decode('utf-8')), dtype=np.float128)"
+    else:
+      return f"Decimal({args[0]})"
+  
+  def Python_from_MicrosoftSQL(self, *args) -> str:
+    if self.hasHigherDimensionality():
+      return f"np.array(json.loads({args[0]}.decode('utf-8')), dtype=np.float128)"
+    else:
+      return f"Decimal({args[0]})"
+  
+  def Python_from_PostgreSQL(self, *args) -> str:
+    if self.hasHigherDimensionality():
+      return f"np.array(json.loads({args[0]}.decode('utf-8')), dtype=np.float128)"
+    else:
+      return f"Decimal({args[0]})"
+  
+  def Python_from_SQLite(self, *args) -> str:
+    if self.hasHigherDimensionality():
+      return f"np.array(json.loads({args[0]}.decode('utf-8')), dtype=np.float128)"
+    else:
+      return f"Decimal({args[0]})"
 
   ##########################################################################
   # C# methods

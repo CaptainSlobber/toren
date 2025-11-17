@@ -83,6 +83,8 @@ class PythonDataModuleWriter(DataModuleWriter):
         s = self.writeCommonCreateConnection(s)
         s = self.writeCommonExecuteNonQuery(s)
         s = self.writeCommonExecuteParameterizedNonQuery(s)
+        s = self.writeCommmonFetchOne(s)
+        s = self.writeCommonFetchAll(s)
 
         filename = f"{classname}.{self.Language.DefaultFileExtension}"
         self.writeFile(path, filename, s.toString())
@@ -104,7 +106,27 @@ class PythonDataModuleWriter(DataModuleWriter):
         s.ret()
         return s
     
-
+    def writeCommonCleanupConnection(self, s:PythonStringWriter):
+        db = self.Database
+        cfn = f"{self.getDLPrefix()}{ self.CommonFunctionsClassName}{self.getDLSuffix()}"
+        s.c()
+        s.wln(f"except Exception as e:").o()
+        s.wln(f"connection.rollback() # Rollback changes")
+        s.wln(f"#TODO: Log data error")
+        s.wln(f"print(f'Database error: {{e}}')")
+        s.c()
+        s.wln(f"finally:").o()
+        s.wln(f"if 'cursor' in locals() and cursor:").o()
+        s.wln("cursor.close()")
+        s.c()
+        s.wln(f"if close:").o()
+        s.wln(f"if 'connection' in locals() and connection:").o()
+        s.wln(f"connection.close()")
+        s.c().c()
+        s.c()
+        #s.c()
+        #s.ret()
+        return s
 
     def writeCommonExecuteParameterizedNonQuery(self, s:PythonStringWriter):
         db = self.Database
@@ -112,32 +134,65 @@ class PythonDataModuleWriter(DataModuleWriter):
 
         s.wln(f"@staticmethod")
         s.wln(f"def ExecuteParameterizedNonQuery(connection, query: str, data: dict, close: bool=True):").o()
+        s.wln(f"try:").o()
         s.wln(f"cursor = connection.cursor()")
         s.wln(f"cursor.execute(query, data)")
         s.wln(f"connection.commit()") 
-        s.wln(f"if 'cursor' in locals() and cursor:").o()
-        s.wln("cursor.close()")
-        s.c()
-        s.wln(f"if close:").o()
-        s.wln(f"if 'connection' in locals() and connection:").o()
-        s.wln(f"connection.close()")
-        s.c().c()
+        s = self.writeCommonCleanupConnection(s)
         s.c()
         s.ret()
 
-
         s.wln(f"@staticmethod")
         s.wln(f"def ExecuteManyParameterizedNonQuery(connection, query: str, data: list, close: bool=True):").o()
+        s.wln(f"try:").o()
         s.wln(f"cursor = connection.cursor()")
         s.wln(f"cursor.executemany(query, data)")
         s.wln(f"connection.commit()") 
-        s.wln(f"if 'cursor' in locals() and cursor:").o()
-        s.wln("cursor.close()")
+        s = self.writeCommonCleanupConnection(s)
         s.c()
-        s.wln(f"if close:").o()
-        s.wln(f"if 'connection' in locals() and connection:").o()
-        s.wln(f"connection.close()")
-        s.c().c()
+        s.ret()
+        return s
+    
+    def writeCommmonFetchOne(self, s:PythonStringWriter):   
+        db = self.Database
+        cfn = f"{self.getDLPrefix()}{ self.CommonFunctionsClassName}{self.getDLSuffix()}"
+
+        s.wln(f"@staticmethod")
+        s.wln(f"def ExecuteFetchOne(connection, query: str, data: dict, close: bool=True) -> dict:").o()
+        s.wln("result = {}")
+        s.wln(f"try:").o()
+        s.wln(f"cursor = connection.cursor()")
+        s.wln(f"cursor.execute(query, data)")
+        s.wln(f"row = cursor.fetchone()") 
+        s.wln(f"column_names = [description[0] for description in cursor.description]")
+        s.wln(f"if row is not None:").o()
+        s.wln(f"result = dict(zip(column_names, row))")
+        s.c()
+        
+        s = self.writeCommonCleanupConnection(s)
+        s.wln(f"return result")
+        s.c()
+        s.ret()
+        return s
+    
+    def writeCommonFetchAll(self, s:PythonStringWriter): 
+        db = self.Database
+        cfn = f"{self.getDLPrefix()}{ self.CommonFunctionsClassName}{self.getDLSuffix()}"
+
+        s.wln(f"@staticmethod")
+        s.wln(f"def ExecuteFetchAll(connection, query: str, data: dict, close: bool=True) -> list:").o()
+        s.wln(f"results = []")
+        s.wln(f"try:").o()
+        s.wln(f"cursor = connection.cursor()")
+        s.wln(f"cursor.execute(query, data)")
+        s.wln(f"rows = cursor.fetchall()") 
+        s.wln(f"column_names = [description[0] for description in cursor.description]")
+        s.wln(f"for row in rows:").o()      
+        s.wln(f"result = dict(zip(column_names, row))")
+        s.wln(f"results.append(result)")
+        
+        s = self.writeCommonCleanupConnection(s)
+        s.wln(f"return results")
         s.c()
         s.ret()
         return s
@@ -154,18 +209,13 @@ class PythonDataModuleWriter(DataModuleWriter):
 
         s.wln(f"@staticmethod")
         s.wln(f"def ExecuteNonQueries(connection, queries: list, close: bool=True):").o()
+        s.wln(f"try:").o()
         s.wln(f"cursor = connection.cursor()")
         s.wln(f"for query in queries:").o()
         s.wln(f"cursor.execute(query)")
         s.wln(f"connection.commit()") 
         s.c()
-        s.wln(f"if 'cursor' in locals() and cursor:").o()
-        s.wln("cursor.close()")
-        s.c()
-        s.wln(f"if close:").o()
-        s.wln(f"if 'connection' in locals() and connection:").o()
-        s.wln(f"connection.close()")
-        s.c().c()
+        s = self.writeCommonCleanupConnection(s)
         s.c()
         s.ret()
         return s

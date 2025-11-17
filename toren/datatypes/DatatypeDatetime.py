@@ -103,6 +103,30 @@ class DatatypeDatetime(Datatype):
     if self.hasDefaultValue():
       return f"datetime.fromisoformat('{self.DefaultValue}')"
     return "datetime(1970, 1, 1, 0, 0, 0)" 
+  
+  def Python_to_Oracle(self, *args) -> str:
+    return f"{args[0]}.isoformat()"
+
+  def Python_to_MicrosoftSQL(self, *args) -> str:
+    return f"{args[0]}.isoformat()"
+  
+  def Python_to_PostgreSQL(self, *args) -> str:
+    return f"{args[0]}.isoformat()"
+  
+  def Python_to_SQLite(self, *args) -> str:
+    return f"{args[0]}.isoformat()"
+
+  def Python_from_Oracle(self, *args) -> str:
+    return f"datetime.fromisoformat(str({args[0]}))"
+  
+  def Python_from_MicrosoftSQL(self, *args) -> str:
+    return f"datetime.fromisoformat(str({args[0]}))"
+  
+  def Python_from_PostgreSQL(self, *args) -> str:
+    return f"datetime.fromisoformat(str({args[0]}))"
+  
+  def Python_from_SQLite(self, *args) -> str:
+    return f"datetime.fromisoformat(str({args[0]}))"
 
   ##########################################################################
   # C# methods

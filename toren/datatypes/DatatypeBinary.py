@@ -93,6 +93,30 @@ class DatatypeBinary(Datatype):
       return f"bytearray({self.DefaultValue})"
     return "bytearray()"
   
+  def Python_to_Oracle(self, *args) -> str:
+    return f"{args[0]}"
+
+  def Python_to_MicrosoftSQL(self, *args) -> str:
+    return f"{args[0]}"
+  
+  def Python_to_PostgreSQL(self, *args) -> str:
+    return f"{args[0]}"
+  
+  def Python_to_SQLite(self, *args) -> str:
+    return f"{args[0]}"
+
+  def Python_from_Oracle(self, *args) -> str:
+    return f"{args[0]}"
+  
+  def Python_from_MicrosoftSQL(self, *args) -> str:
+    return f"{args[0]}"
+  
+  def Python_from_PostgreSQL(self, *args) -> str:
+    return f"{args[0]}"
+  
+  def Python_from_SQLite(self, *args) -> str:
+    return f"{args[0]}"
+  
   ##########################################################################
   # C# methods
   ##########################################################################

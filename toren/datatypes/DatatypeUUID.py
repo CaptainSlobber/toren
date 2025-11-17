@@ -105,6 +105,30 @@ class DatatypeUUID(Datatype):
         return f"uuid.UUID({self._DefaultValueSingleQuote()})"
     return "uuid.uuid4()"
   
+  def Python_to_Oracle(self, *args) -> str:
+    return f"str({args[0]})"
+
+  def Python_to_MicrosoftSQL(self, *args) -> str:
+    return f"str({args[0]})"
+  
+  def Python_to_PostgreSQL(self, *args) -> str:
+    return f"str({args[0]})"
+  
+  def Python_to_SQLite(self, *args) -> str:
+    return f"str({args[0]})"
+
+  def Python_from_Oracle(self, *args) -> str:
+    return f"uuid.UUID({args[0]})"
+  
+  def Python_from_MicrosoftSQL(self, *args) -> str:
+    return f"uuid.UUID({args[0]})"
+  
+  def Python_from_PostgreSQL(self, *args) -> str:
+    return f"uuid.UUID({args[0]})"
+  
+  def Python_from_SQLite(self, *args) -> str:
+    return f"uuid.UUID({args[0]})"
+  
   ##########################################################################
   # C# methods
   ##########################################################################

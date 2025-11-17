@@ -110,6 +110,31 @@ class DatatypeNetworkAddress(Datatype):
         return f"ipaddress.ip_address('{self.DefaultValue}')"
     return f"ipaddress.ip_address('{self._Default_Address()}')" 
   
+
+  def Python_to_Oracle(self, *args) -> str:
+    return f"int({args[0]})" # Consider String Format
+
+  def Python_to_MicrosoftSQL(self, *args) -> str:
+    return f"int({args[0]})"  # Consider String Format
+  
+  def Python_to_PostgreSQL(self, *args) -> str:
+    return f"int({args[0]})"  # Consider String Format
+  
+  def Python_to_SQLite(self, *args) -> str:
+    return f"int({args[0]})"  # Consider String Format
+
+  def Python_from_Oracle(self, *args) -> str:
+    return f"ipaddress.ip_address(int({args[0]}))"
+  
+  def Python_from_MicrosoftSQL(self, *args) -> str:
+    return f"ipaddress.ip_address(int({args[0]}))"
+  
+  def Python_from_PostgreSQL(self, *args) -> str:
+    return f"ipaddress.ip_address(int({args[0]}))"
+  
+  def Python_from_SQLite(self, *args) -> str:
+    return f"ipaddress.ip_address(int({args[0]}))"
+  
   ##########################################################################
   # C# methods
   ##########################################################################

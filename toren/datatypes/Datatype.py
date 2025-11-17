@@ -172,7 +172,7 @@ class Datatype(TorenObject):
   # To
   ##########################################################################
 
-  def To(self, language: Language, database: Database) -> str:
+  def To(self, language: Language, database: Database, *args) -> str:
     _to = {}
     _to[f"{LanguagePython().getID()}{DatabaseSQLite().getID()}"] = self.Python_to_SQLite
     _to[f"{LanguagePython().getID()}{DatabasePostgreSQL().getID()}"] = self.Python_to_PostgreSQL
@@ -199,14 +199,14 @@ class Datatype(TorenObject):
     _to[f"{LanguageJavaScript().getID()}{DatabaseMicrosoftSQL().getID()}"] = self.JavaScript_to_MicrosoftSQL
     _to[f"{LanguageJavaScript().getID()}{DatabaseOracle().getID()}"] = self.JavaScript_to_Oracle
 
-    return _to[f"{language.getID()}{database.getID()}"]()
+    return _to[f"{language.getID()}{database.getID()}"](args[0])
 
 
   ##########################################################################
   # From
   ##########################################################################
 
-  def From(self, language: Language, database: Database) -> str:
+  def From(self, language: Language, database: Database, *args) -> str:
     _from = {}
     _from[f"{LanguagePython().getID()}{DatabaseSQLite().getID()}"] = self.Python_from_SQLite
     _from[f"{LanguagePython().getID()}{DatabasePostgreSQL().getID()}"] = self.Python_from_PostgreSQL
@@ -226,14 +226,14 @@ class Datatype(TorenObject):
     _from[f"{LanguageGo().getID()}{DatabaseSQLite().getID()}"] = self.Go_from_SQLite
     _from[f"{LanguageGo().getID()}{DatabasePostgreSQL().getID()}"] = self.Go_from_PostgreSQL
     _from[f"{LanguageGo().getID()}{DatabaseMicrosoftSQL().getID()}"] = self.Go_from_MicrosoftSQL
-    _from[f"{LanguageGo().getID()}{DatabaseOracle.getID()}"] = self.Go_from_Oracle
+    _from[f"{LanguageGo().getID()}{DatabaseOracle().getID()}"] = self.Go_from_Oracle
 
     _from[f"{LanguageJavaScript().getID()}{DatabaseSQLite().getID()}"] = self.JavaScript_from_SQLite
     _from[f"{LanguageJavaScript().getID()}{DatabasePostgreSQL().getID()}"] = self.JavaScript_from_PostgreSQL
     _from[f"{LanguageJavaScript().getID()}{DatabaseMicrosoftSQL().getID()}"] = self.JavaScript_from_MicrosoftSQL
     _from[f"{LanguageJavaScript().getID()}{DatabaseOracle().getID()}"] = self.JavaScript_from_Oracle
 
-    return _from[f"{language.ID}{database.ID}"]()
+    return _from[f"{language.ID}{database.ID}"](args[0])
   
   ##########################################################################
   # Dependencies

@@ -50,6 +50,17 @@ class PythonDataClassWriter(DataClassWriter):
 
     def getDLDependencies(self):
         dependency_map = {}
+        for propertyid, property in self.Class.Properties.Data.items():
+            for dependency in property.Python_Dependencies():
+                if dependency not in dependency_map:
+                    dependency_map[dependency] = dependency
+
+        if self.Class.InheritsFrom is not None:
+            for propertyid, property in self.Class.InheritedProperties.Data.items():
+                for dependency in property.Python_Dependencies():
+                    if dependency not in dependency_map:
+                        dependency_map[dependency] = dependency
+
         for dependency in self.Database.PythonDependencies():
             dependency_map[dependency] = dependency
         p = self.Class.ParentModule.ParentProject.Name
@@ -253,10 +264,11 @@ class PythonDataClassWriter(DataClassWriter):
         s.wln("params = {}")
         if self.Class.InheritsFrom is not None:
             for propertyid, property in self.Class.InheritedProperties.Data.items():
-                s.wln("params[{0}] = {1}.{2}".format(f"'{property.Name.lower()}'", self.Class.Name.lower(), property.Name))
+                converted = property.To(self.Language, self.Database, f"{self.Class.Name.lower()}.{property.Name}")
+                s.wln(f"params['{property.Name.lower()}'] = {converted},")
         for propertyid, property in self.Class.Properties.Data.items():
-            
-            s.wln("params[{0}] = {1}.{2}".format(f"'{property.Name.lower()}'", self.Class.Name.lower(), property.Name))
+            converted = property.To(self.Language, self.Database, f"{self.Class.Name.lower()}.{property.Name}")
+            s.wln(f"params['{property.Name.lower()}'] = {converted},")
         s.wln("return params")
         s.c().ret()
 
@@ -306,20 +318,88 @@ class PythonDataClassWriter(DataClassWriter):
             s.wln(f'updatequery = "UPDATE {schema}{db.OB()}{self.Class.Name}{db.CB()} SET "')
             if self.Class.InheritsFrom is not None:
                 for propertyid, property in self.Class.InheritedProperties.Data.items():
-                    s.wln(f'updatequery += "{db.OB()}{property.Name}{db.CB()} = {db.GetParameter(property.Name.lower())},"')
+                    if not property.IsPrimaryKey:
+                        s.wln(f'updatequery += "{db.OB()}{property.Name}{db.CB()} = {db.GetParameter(property.Name.lower())},"')
             for propertyid, property in self.Class.Properties.Data.items():
-                s.wln(f'updatequery += "{db.OB()}{property.Name}{db.CB()} = {db.GetParameter(property.Name.lower())},"')
+                if not property.IsPrimaryKey:
+                    s.wln(f'updatequery += "{db.OB()}{property.Name}{db.CB()} = {db.GetParameter(property.Name.lower())},"')
             s.wln(f'updatequery += "WHERE {db.OB()}{pk.Name}{db.CB()} = {db.GetParameter(pk.Name.lower())}{db.EndQuery()}"')
-
-
             s.wln("return updatequery")
             s.c().ret()
+
+            s.wln("@staticmethod")
+            s.wln(f"def UpdateSingle{self.Class.Name}(connection, {self.Class.Name.lower()}:  {self.Class.Name}):").o()
+            s.wln(f"params = {self.getDLClassName()}.Parameterize{self.Class.Name}({self.Class.Name.lower()})")
+            s.wln(f"updatequery = {self.getDLClassName()}.Get{self.Class.Name}UpdateQuery()")
+            s.wln(f"{self.CommonFunctionsClassName}.ExecuteParameterizedNonQuery(connection, updatequery, params)")
+            s.c()
+            s.ret()
         return s
     
     def writeDelete(self, s:PythonStringWriter):
+
+        db = self.Database
+        schema = self.getSchema()   
+        if self.Class.hasPrimaryKeyPoperty():
+            pk = self.Class.getPrimaryKeyProperty()
+            s.wln("@staticmethod")
+            s.wln(f"def Get{self.Class.Name}DeleteQuery():").o()
+            s.wln(f'deletequery = "DELETE FROM {schema}{db.OB()}{self.Class.Name}{db.CB()} WHERE {db.OB()}{pk.Name}{db.CB()} = {db.GetParameter(pk.Name.lower())}{db.EndQuery()}"')
+            s.wln("return deletequery")
+            s.c().ret()
+
+            s.wln("@staticmethod")
+            s.wln(f"def DeleteSingle{self.Class.Name}By{pk.Name}(connection, {pk.Name.lower()}):").o()
+            s.wln(f"params = {{{{ '{pk.Name.lower()}': {pk.Name.lower()} }}}}")
+            s.wln(f"deletequery = {self.getDLClassName()}.Get{self.Class.Name}DeleteQuery()")
+            s.wln(f"{self.CommonFunctionsClassName}.ExecuteParameterizedNonQuery(connection, deletequery, params)")
+            s.c()
+            s.ret()
+
+            s.wln("@staticmethod")
+            s.wln(f"def DeleteSingle{self.Class.Name}(connection,  {self.Class.Name.lower()}:  {self.Class.Name}):").o()
+            s.wln(f"{self.getDLClassName()}.DeleteSingle{self.Class.Name}By{pk.Name}(connection, {self.Class.Name.lower()}.{pk.Name})")
+            s.c()
+            s.ret()
         return s
     
     def writeSelectSingleRecordByPK(self, s:PythonStringWriter):
+        s.wln("@staticmethod")
+        s.wln(f"def Get{self.Class.Name}FromQueryResult(queryresult: dict) -> {self.Class.Name}:").o()
+        s.wln(f"{self.Class.Name.lower()} = {self.Class.Name}(").o()
+        if self.Class.InheritsFrom is not None:
+            for propertyid, property in self.Class.InheritedProperties.Data.items():
+                converted = property.From(self.Language, self.Database, f"queryresult['{property.Name}']")
+                s.wln(f"{property.Name.lower()} = {converted},")
+            for propertyid, property in self.Class.Properties.Data.items():
+                converted = property.From(self.Language, self.Database, f"queryresult['{property.Name}']")
+                s.wln(f"{property.Name.lower()} = {converted},")
+        s.c().wln(")")
+        s.wln(f"return {self.Class.Name.lower()}")
+        s.c()
+        s.ret()
+
+        db = self.Database
+        schema = self.getSchema()   
+        if self.Class.hasPrimaryKeyPoperty():
+            pk = self.Class.getPrimaryKeyProperty()
+            s.wln("@staticmethod")
+            s.wln(f"def GetSelectSingle{self.Class.Name}By{pk.Name}Query():").o()
+            s.wln(f"columns = {self.getDLClassName()}.Get{self.Class.Name}ColumnNames()")
+            s.wln(f'selectquery = "SELECT {{columns}} FROM {schema}{db.OB()}{self.Class.Name}{db.CB()} WHERE {db.OB()}{pk.Name}{db.CB()} = {db.GetParameter(pk.Name.lower())}{db.EndQuery()}"')
+            s.wln("return selectquery")
+            s.c().ret()
+
+            s.wln("@staticmethod")
+            s.wln(f"def SelectSingle{self.Class.Name}By{pk.Name}(connection, {pk.Name.lower()}) -> {self.Class.Name}:").o()
+            s.wln(f"params = {{{{ '{pk.Name.lower()}': {pk.Name.lower()} }}}}")
+            s.wln(f"selectquery = {self.getDLClassName()}.GetSelectSingle{self.Class.Name}By{pk.Name}Query()")
+            s.wln(f"result = {self.CommonFunctionsClassName}.ExecuteFetchOne(connection, selectquery, params)")
+            s.wln(f"{self.Class.Name.lower()} = {self.getDLClassName()}.Get{self.Class.Name}FromQueryResult(result)")
+            s.wln(f"return {self.Class.Name.lower()}")
+            s.c()
+            s.ret()
+
         return s
     
     def writeSelectWhere(self, s:PythonStringWriter):
