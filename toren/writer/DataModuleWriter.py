@@ -37,6 +37,7 @@ class DataModuleWriter(WriterObject):
         self.HeaderFileName = f"{self.Module.Name}_header"
         self.ConnectionObjectClassName = "Connection"
         self.CommonFunctionsClassName = "Common"
+        self.AdminFunctionsClassName = "Admin"
         self.S = self.StringWriterClass(self.Language)
         self.setLogger(logger)
 
@@ -60,8 +61,10 @@ class DataModuleWriter(WriterObject):
 
         con = f"{self.getDLPrefix()}{ self.ConnectionObjectClassName}{self.getDLSuffix()}"
         cfn = f"{self.getDLPrefix()}{ self.CommonFunctionsClassName}{self.getDLSuffix()}"
+        afn = f"{self.getDLPrefix()}{ self.AdminFunctionsClassName}{self.getDLSuffix()}"
         self.writeConnectionObject(data_module_path, con)
         self.writeCommonDataFunctions(data_module_path, cfn)
+        self.writeConmmonAdminFunctions(data_module_path, afn)
         for classid, _class in self.Module.Classes.Data.items():
             dlclassname = f"{self.getDLPrefix()}{ _class.Name}{self.getDLSuffix()}"
             c = self.DataClassWriterClass(project=self.Project,
@@ -117,13 +120,16 @@ class DataModuleWriter(WriterObject):
                                                description="ConnectionObject.ConnectionString",
                                                id="380ffa83-aa37-4391-bf70-44c3cba825fc",
                                                maxlength=1024,
-                                               isprimarykey=True) # ?
+                                               isprimarykey=True)
+        pDatabase = DatatypeString().initialize(name="Database",
+                                               description="ConnectionObject.Database",
+                                               id="e1753cf9-7c89-41cb-a47a-987e8e69a5b1")
         pDataPath = DatatypeString().initialize(name="DataPath",
                                                description="ConnectionObject.DataPath",
                                                id="823b1b84-2b90-43ff-930d-9ad4bce39d67",
                                                maxlength=1024)
         
-        properties = [pServer, pInstanceName, pServerAddress, pPortNumber, pUsername, pPassword, pConnectionString, pDataPath]
+        properties = [pServer, pInstanceName, pServerAddress, pPortNumber, pUsername, pPassword, pDatabase, pConnectionString, pDataPath]
         cConnectionObject = Class().initialize(name=connectionobjectclassname, 
                                description=connectionobjectclassname, 
                                id="4ed850e3-f9f9-4dc7-aa79-9e6a310b4ebc",
@@ -144,6 +150,23 @@ class DataModuleWriter(WriterObject):
         c.write()
 
 
+    def writeConmmonAdminFunctions(self, path, classname):
+        s = self.S
+        s.clear()
+        
+        ad = f"{self.getDLPrefix()}{ self.AdminFunctionsClassName}{self.getDLSuffix()}"
+        dependency_map = self.getDataDependencies()
+        s = self.writeDataDependencies(dependency_map, s)
+        s = self.writeOpenCommonAdminFunctions(classname, s)
+        s = self.writeCheckSchemaExistence(s)
+        s = self.writeCreateSchema(s)
+        s = self.writeCreateAllTables(s)
+        s = self.writeDropAllTables(s)  
+        s = self.writeClearAllTables(s)
+
+        filename = f"{classname}.{self.Language.DefaultFileExtension}"
+        self.writeFile(path, filename, s.toString())
+
     def writeCommonDataFunctions(self, path, classname):
         s = self.S
         s.clear()
@@ -160,11 +183,6 @@ class DataModuleWriter(WriterObject):
         s = self.writeCommonExecuteParameterizedNonQuery(s)
         s = self.writeCommmonFetchOne(s)
         s = self.writeCommonFetchAll(s)
-        s = self.checkSchemaExistence(s)
-        s = self.writeCreateSchema(s)
-        s = self.writeCreateAllTables(s)
-        s = self.writeDropAllTables(s)  
-        s = self.writeClearAllTables(s)
 
         filename = f"{classname}.{self.Language.DefaultFileExtension}"
         self.writeFile(path, filename, s.toString())
@@ -184,6 +202,9 @@ class DataModuleWriter(WriterObject):
     def writeClearAllTables(self, s:StringWriter):
         return s
 
+    def writeOpenCommonAdminFunctions(self, classname: str, s:StringWriter):
+        return s
+    
     def writeOpenCommonDataFunctions(self, classname: str, s:StringWriter):
         return s
         
@@ -202,7 +223,7 @@ class DataModuleWriter(WriterObject):
     def writeCommonFetchAll(self, s:StringWriter):
         return s
 
-    def checkSchemaExistence(self, s:StringWriter):
+    def writeCheckSchemaExistence(self, s:StringWriter):
         return s
     
     def writeCreateSchema(self, s:StringWriter):

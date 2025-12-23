@@ -163,8 +163,8 @@ class PythonDataClassWriter(DataClassWriter):
                 if property.ForeignKey is not None:
                     create_fk = db.GetCreateForeignKeyQuery(schema, self.Class, property, property.ForeignKey)
                     s.wln(f'createquery += "{create_fk},"')
-
-        s.wln(f'createquery += "){db.EndQuery()}"')
+        
+        s.wln(f'createquery = createquery[:-1] + "){db.EndQuery()}"')
         s.wln("return createquery")
         s.c().ret()
 

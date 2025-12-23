@@ -37,6 +37,7 @@ class PythonDataModuleWriter(DataModuleWriter):
         self.HeaderFileName = "__init__"
         self.ConnectionObjectClassName = "Connection"
         self.CommonFunctionsClassName = "Common"
+        self.AdminFunctionsClassName = "Admin"
         self.S = self.StringWriterClass(self.Language)
         self.setLogger(logger)
 
@@ -46,8 +47,10 @@ class PythonDataModuleWriter(DataModuleWriter):
         s.clear()
         con = f"{self.getDLPrefix()}{ self.ConnectionObjectClassName}{self.getDLSuffix()}"
         cfn = f"{self.getDLPrefix()}{ self.CommonFunctionsClassName}{self.getDLSuffix()}"
+        afn = f"{self.getDLPrefix()}{ self.AdminFunctionsClassName}{self.getDLSuffix()}"
         s.wln(f"from .{con} import {con}")
         s.wln(f"from .{cfn} import {cfn}")
+        s.wln(f"from .{afn} import {afn}")
         for classid, _class in self.Module.Classes.Data.items():
             dlclassname = f"{self.getDLPrefix()}{ _class.Name}{self.getDLSuffix()}"
             s.wln(f"from .{dlclassname} import {dlclassname}")
@@ -61,7 +64,7 @@ class PythonDataModuleWriter(DataModuleWriter):
         for classid, _class in self.Module.Classes.Data.items():
             dlclassname = f"{self.getDLPrefix()}{ _class.Name}{self.getDLSuffix()}"
             class_dep = f"from .{dlclassname} import {dlclassname}"
-            dependency_map[class_dep] = class_dep
+            #dependency_map[class_dep] = class_dep
         
         return dependency_map
 
@@ -80,6 +83,24 @@ class PythonDataModuleWriter(DataModuleWriter):
         s.ret()
         return s
 
+    def writeOpenCommonAdminFunctions(self, classname: str, s:PythonStringWriter):
+        conclass = f"{self.getDLPrefix()}{ self.ConnectionObjectClassName}{self.getDLSuffix()}"
+        cfn = f"{self.getDLPrefix()}{ self.CommonFunctionsClassName}{self.getDLSuffix()}"
+        for classid, _class in self.Module.Classes.Data.items():
+            dlclassname = f"{self.getDLPrefix()}{ _class.Name}{self.getDLSuffix()}"
+            class_dep = f"from .{dlclassname} import {dlclassname}"
+            s.wln(class_dep)    
+        s.wln(f"from .{cfn} import {cfn}")
+        s.wln(f"from .{conclass} import {conclass}")
+        s.ret()
+        s.write(f"class {classname}():").o()
+        s.ret()
+        s.wln("\"\"\"")
+        s.wln(f" Class: {classname}")
+        s.wln(f" Description: Admin Datalayer Functions")
+        s.wln("\"\"\"")
+        s.ret()
+        return s
     
     def writeCommonCreateConnection(self, s:PythonStringWriter):
         db = self.Database
@@ -118,13 +139,16 @@ class PythonDataModuleWriter(DataModuleWriter):
         #s.c()
         #s.ret()
         return s
+    
+    def getDefaultCloseConnectionParameter(self):
+        return "close: bool=False"
 
     def writeCommonExecuteParameterizedNonQuery(self, s:PythonStringWriter):
         db = self.Database
         cfn = f"{self.getDLPrefix()}{ self.CommonFunctionsClassName}{self.getDLSuffix()}"
-
+        cc  =self.getDefaultCloseConnectionParameter()
         s.wln(f"@staticmethod")
-        s.wln(f"def ExecuteParameterizedNonQuery(connection, query: str, data: dict, close: bool=True):").o()
+        s.wln(f"def ExecuteParameterizedNonQuery(connection, query: str, data: dict, {cc}):").o()
         s.wln(f"try:").o()
         s.wln(f"cursor = connection.cursor()")
         s.wln(f"cursor.execute(query, data)")
@@ -134,7 +158,7 @@ class PythonDataModuleWriter(DataModuleWriter):
         s.ret()
 
         s.wln(f"@staticmethod")
-        s.wln(f"def ExecuteManyParameterizedNonQuery(connection, query: str, data: list, close: bool=True):").o()
+        s.wln(f"def ExecuteManyParameterizedNonQuery(connection, query: str, data: list, {cc}):").o()
         s.wln(f"try:").o()
         s.wln(f"cursor = connection.cursor()")
         s.wln(f"cursor.executemany(query, data)")
@@ -147,9 +171,10 @@ class PythonDataModuleWriter(DataModuleWriter):
     def writeCommmonFetchOne(self, s:PythonStringWriter):   
         db = self.Database
         cfn = f"{self.getDLPrefix()}{ self.CommonFunctionsClassName}{self.getDLSuffix()}"
+        cc  =self.getDefaultCloseConnectionParameter()
 
         s.wln(f"@staticmethod")
-        s.wln(f"def ExecuteFetchOne(connection, query: str, data: dict, close: bool=True) -> dict:").o()
+        s.wln(f"def ExecuteFetchOne(connection, query: str, data: dict, {cc}) -> dict:").o()
         s.wln("result = {}")
         s.wln(f"try:").o()
         s.wln(f"cursor = connection.cursor()")
@@ -169,9 +194,9 @@ class PythonDataModuleWriter(DataModuleWriter):
     def writeCommonFetchAll(self, s:PythonStringWriter): 
         db = self.Database
         cfn = f"{self.getDLPrefix()}{ self.CommonFunctionsClassName}{self.getDLSuffix()}"
-
+        cc  =self.getDefaultCloseConnectionParameter()
         s.wln(f"@staticmethod")
-        s.wln(f"def ExecuteFetchAll(connection, query: str, data: dict, close: bool=True) -> list:").o()
+        s.wln(f"def ExecuteFetchAll(connection, query: str, data: dict, {cc}) -> list:").o()
         s.wln(f"results = []")
         s.wln(f"try:").o()
         s.wln(f"cursor = connection.cursor()")
@@ -192,15 +217,15 @@ class PythonDataModuleWriter(DataModuleWriter):
     def writeCommonExecuteNonQuery(self, s:PythonStringWriter):
         db = self.Database
         cfn = f"{self.getDLPrefix()}{ self.CommonFunctionsClassName}{self.getDLSuffix()}"
-
+        cc  =self.getDefaultCloseConnectionParameter()
         s.wln(f"@staticmethod")
-        s.wln(f"def ExecuteNonQuery(connection, query: str, close: bool=True):").o()
+        s.wln(f"def ExecuteNonQuery(connection, query: str, {cc}):").o()
         s.wln(f"return {cfn}.ExecuteNonQueries(connection, [query], close)")
         s.c()
         s.ret()
 
         s.wln(f"@staticmethod")
-        s.wln(f"def ExecuteNonQueries(connection, queries: list, close: bool=True):").o()
+        s.wln(f"def ExecuteNonQueries(connection, queries: list, {cc}):").o()
         s.wln(f"try:").o()
         s.wln(f"cursor = connection.cursor()")
         s.wln(f"for query in queries:").o()
@@ -215,8 +240,8 @@ class PythonDataModuleWriter(DataModuleWriter):
     def writeCreateSchema(self, s:PythonStringWriter):
         db = self.Database
         schema_name = self.Module.Name
+        afn = f"{self.getDLPrefix()}{ self.AdminFunctionsClassName}{self.getDLSuffix()}"
         cfn = f"{self.getDLPrefix()}{ self.CommonFunctionsClassName}{self.getDLSuffix()}"
-
         if db.HasSchema():
             s.wln("@staticmethod")
             s.wln(f"def GetCreateSchemaQuery():").o()
@@ -226,7 +251,7 @@ class PythonDataModuleWriter(DataModuleWriter):
 
             s.wln("@staticmethod")
             s.wln(f"def CreateSchema(connection):").o()
-            s.wln(f"createquery = {cfn}.GetCreateSchemaQuery()")
+            s.wln(f"createquery = {afn}.GetCreateSchemaQuery()")
             s.wln(f"{cfn}.ExecuteNonQuery(connection, createquery)")
             s.c()
             s.ret()
@@ -236,21 +261,12 @@ class PythonDataModuleWriter(DataModuleWriter):
     def writeCheckSchemaExistence(self, s:PythonStringWriter):
         db = self.Database
         schema_name = self.Module.Name
-        cfn = f"{self.getDLPrefix()}{ self.CommonFunctionsClassName}{self.getDLSuffix()}"
+        afn = f"{self.getDLPrefix()}{ self.AdminFunctionsClassName}{self.getDLSuffix()}"
 
         if db.HasSchema():
             s.wln("@staticmethod")
             s.wln(f"def CheckSchemaExistence(connection) -> bool:").o()
-            if db.DBType == "PostgreSQL":
-                s.wln(f'checkquery = "SELECT schema_name FROM information_schema.schemata WHERE schema_name = \'{schema_name}\'"')
-                s.wln(f"result = {cfn}.ExecuteFetchOne(connection, checkquery, {{}})")
-                s.wln(f"if result and 'schema_name' in result:").o()
-                s.wln("return True")
-                s.c()
-                s.wln("return False")
-            else:
-                s.wln(f"# Schema existence check not implemented for {db.DBType}")
-                s.wln("return True")
+            s.wln("return False") # TODO
             s.c()
             s.ret()
 
@@ -281,10 +297,11 @@ class PythonDataModuleWriter(DataModuleWriter):
         db = self.Database
         schema_name = self.Module.Name
         cfn = f"{self.getDLPrefix()}{ self.CommonFunctionsClassName}{self.getDLSuffix()}"
+        afn = f"{self.getDLPrefix()}{ self.AdminFunctionsClassName}{self.getDLSuffix()}"
         s.wln("@staticmethod")
         s.wln(f"def CreateAllTables(connection):").o()
         if db.HasSchema():
-            s.wln(f"{cfn}.CreateSchema(connection)")
+            s.wln(f"{afn}.CreateSchema(connection)")
 
             
         for classid, _class in self.Module.Classes.Data.items():

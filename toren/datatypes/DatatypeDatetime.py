@@ -64,7 +64,7 @@ class DatatypeDatetime(Datatype):
     return "0"
 
   def PostgreSQL_Type(self, *args) -> str:
-    return "TIMESTAMPT"  # TIMESTAMPZ ? 
+    return "TIMESTAMP"  # alternate: TIMESTAMPTZ (WITH TIME ZONE):
 
   def PostgreSQL_DefaultValue(self, *args) -> str:
     if self.hasDefaultValue():

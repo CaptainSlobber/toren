@@ -29,7 +29,13 @@ class DatabasePostgreSQL(Database):
   ##########################################################################
   
   def GetParameter(self, parameterName: str = "", index: int = -1):
-    return f"@{parameterName}"
+    return f"%({parameterName})s"
+  
+  def OpenBrackets(self):
+    return ""
+  
+  def CloseBrackets(self):
+    return ""
   
   ##########################################################################
   # Dependencies

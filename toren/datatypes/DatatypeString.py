@@ -47,8 +47,8 @@ class DatatypeString(Datatype):
   def from_dict(self, datatype):
     super().from_dict(datatype)
     self.Type = self.getType()
-    self.MaxLength = bool(datatype[self.PropertName.MAXLENGTH])
-    self.Regex = bool(datatype[self.PropertName.MAXLENGTH]) # Handle Escape
+    self.MaxLength = int(datatype[self.PropertName.MAXLENGTH])
+    self.Regex = str(datatype[self.PropertName.REGEX]) # Handle Escape
     return self
 
   def to_dict(self):

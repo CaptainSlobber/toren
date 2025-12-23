@@ -130,10 +130,11 @@ class DatatypeDecimal(DatatypeNumeric):
   ##########################################################################
   # Python methods
   ##########################################################################
+  NPDTYPE = "longdouble"
 
   def Python_Type(self, *args) -> str:
     if self.hasHigherDimensionality():
-      return f"npt.NDArray[np.float128]" # Sorta 
+      return f"npt.NDArray[np.{self.NPDTYPE}]" # Sorta 
     else:
       return "Decimal"
   
@@ -145,7 +146,7 @@ class DatatypeDecimal(DatatypeNumeric):
   
   def Python_DefaultValue(self, *args) -> str:
     if self.hasHigherDimensionality():
-      return f"np.zeros({str(self.Dimensinality)}, dtype=np.float128)" # Kinda 
+      return f"np.zeros({str(self.Dimensinality)}, dtype=np.{self.NPDTYPE})" # Kinda 
     else:
       if self.hasDefaultValue():
           return f"Decimal('{self.DefaultValue}')"
@@ -177,25 +178,25 @@ class DatatypeDecimal(DatatypeNumeric):
 
   def Python_from_Oracle(self, *args) -> str:
     if self.hasHigherDimensionality():
-      return f"np.array(json.loads({args[0]}.decode('utf-8')), dtype=np.float128)"
+      return f"np.array(json.loads({args[0]}.decode('utf-8')), dtype=np.{self.NPDTYPE})"
     else:
       return f"Decimal({args[0]})"
   
   def Python_from_MicrosoftSQL(self, *args) -> str:
     if self.hasHigherDimensionality():
-      return f"np.array(json.loads({args[0]}.decode('utf-8')), dtype=np.float128)"
+      return f"np.array(json.loads({args[0]}.decode('utf-8')), dtype=np.{self.NPDTYPE})"
     else:
       return f"Decimal({args[0]})"
   
   def Python_from_PostgreSQL(self, *args) -> str:
     if self.hasHigherDimensionality():
-      return f"np.array(json.loads({args[0]}.decode('utf-8')), dtype=np.float128)"
+      return f"np.array(json.loads({args[0]}.decode('utf-8')), dtype=np.{self.NPDTYPE})"
     else:
       return f"Decimal({args[0]})"
   
   def Python_from_SQLite(self, *args) -> str:
     if self.hasHigherDimensionality():
-      return f"np.array(json.loads({args[0]}.decode('utf-8')), dtype=np.float128)"
+      return f"np.array(json.loads({args[0]}.decode('utf-8')), dtype=np.{self.NPDTYPE})"
     else:
       return f"Decimal({args[0]})"
 

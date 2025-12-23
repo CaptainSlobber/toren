@@ -127,6 +127,7 @@ class StringWriter:
 
     def clear(self) -> Self:
         """Clear the buffer."""
+        self.N = 0
         self._buffer.truncate(0)
         self._buffer.seek(0)
         return self
