@@ -134,6 +134,29 @@ class Database(TorenObject):
   
   def GetParameter(self, parmeterNo: int):
     return "*"
+  
+  def SeparateForeignKeyCreation(self):
+    return True
+  
+  def GetCreateForeignKeyQuery(self, schemea, table, property, foreignKey, onDeleteCascade: bool = False):
+
+    table_name = f"{self.OB()}{table.Name}{self.CB()}"
+    property_name = f"{self.OB()}{property.Name}{self.CB()}"
+    foreign_table_name = f"{self.OB()}{foreignKey.FKClass.Name}{self.CB()}"
+    foreign_property_name = f"{self.OB()}{foreignKey.FKClassProperty.Name}{self.CB()}"
+
+    #constraint_name = f"FK_{table.Name}_{property.Name}_{foreignKey.FKClass.Name}_{foreignKey.FKClassProperty.Name}"
+    constraint_name = f"FK_{property.Name}_{foreignKey.FKClass.Name}_{foreignKey.FKClassProperty.Name}"
+    
+    createFKQuery = f"ALTER TABLE {schemea}{table_name} "
+    createFKQuery += f"ADD CONSTRAINT {constraint_name} "
+    createFKQuery += f"FOREIGN KEY ({property_name}) "
+    createFKQuery += f"REFERENCES {foreign_table_name} ({foreign_property_name})"
+    if onDeleteCascade:
+      createFKQuery += " ON DELETE CASCADE"
+    createFKQuery += self.EndQuery()
+
+    return createFKQuery
 
   ##########################################################################
   # Dependencies

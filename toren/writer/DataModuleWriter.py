@@ -143,10 +143,72 @@ class DataModuleWriter(WriterObject):
                           logger=self.Logger)
         c.write()
 
+
     def writeCommonDataFunctions(self, path, classname):
         s = self.S
         s.clear()
-        pass
+        
+        
+
+        conclass = f"{self.getDLPrefix()}{ self.ConnectionObjectClassName}{self.getDLSuffix()}"
+        dependency_map = self.getDataDependencies()
+        s = self.writeDataDependencies(dependency_map, s)
+        s = self.writeOpenCommonDataFunctions(classname, s)
+
+        s = self.writeCommonCreateConnection(s)
+        s = self.writeCommonExecuteNonQuery(s)
+        s = self.writeCommonExecuteParameterizedNonQuery(s)
+        s = self.writeCommmonFetchOne(s)
+        s = self.writeCommonFetchAll(s)
+        s = self.checkSchemaExistence(s)
+        s = self.writeCreateSchema(s)
+        s = self.writeCreateAllTables(s)
+        s = self.writeDropAllTables(s)  
+        s = self.writeClearAllTables(s)
+
+        filename = f"{classname}.{self.Language.DefaultFileExtension}"
+        self.writeFile(path, filename, s.toString())
+
+    def getSchema(self):
+        db = self.Database
+        if db.HasSchema():
+            return f"{db.OB()}{self.Module.Name}{db.CB()}."
+        return ""
+
+    def writeCreateAllTables(self, s:StringWriter):
+        return s
+    
+    def writeDropAllTables(self, s:StringWriter):
+        return s
+    
+    def writeClearAllTables(self, s:StringWriter):
+        return s
+
+    def writeOpenCommonDataFunctions(self, classname: str, s:StringWriter):
+        return s
+        
+    def writeCommonCreateConnection(self, s:StringWriter): 
+        return s
+    
+    def writeCommonExecuteNonQuery(self, s:StringWriter):
+        return s
+    
+    def writeCommonExecuteParameterizedNonQuery(self, s:StringWriter):
+        return s
+    
+    def writeCommmonFetchOne(self, s:StringWriter):
+        return s
+    
+    def writeCommonFetchAll(self, s:StringWriter):
+        return s
+
+    def checkSchemaExistence(self, s:StringWriter):
+        return s
+    
+    def writeCreateSchema(self, s:StringWriter):
+        schema = self.getSchema()
+
+        return s
 
     def getDataDependencies(self):
         dependency_map = {}

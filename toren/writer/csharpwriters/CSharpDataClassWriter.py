@@ -89,7 +89,7 @@ class CSharpDataClassWriter(DataClassWriter):
         s.wln(f"public static string SCHEMA_NAME = \"{self.Class.ParentModule.Name}\";")
         s.wln(f"public static string TABLE_NAME = \"{self.Class.Name}\";")
         if self.Class.InheritsFrom is not None:
-            for propertyid, property in self.Class.InheritsFrom.Properties.Data.items():
+            for propertyid, property in self.Class.InheritedProperties.Data.items():
                 s.wln(f"public static string COL_NAME_{property.Name.upper()} = \"{property.Name}\";")
         for propertyid, property in self.Class.Properties.Data.items():
             s.wln(f"public static string COL_NAME_{property.Name.upper()} = \"{property.Name}\";")
@@ -120,7 +120,7 @@ class CSharpDataClassWriter(DataClassWriter):
         s.w(f"private static string create{self.Class.Name}TableQuery ()").o()
         s.wln(f'string createquery = "CREATE TABLE{db.IfNotExists()} {db.OB()}{self.Class.Name}{db.CB()} (";')
         if self.Class.InheritsFrom is not None:
-            for propertyid, property in self.Class.InheritsFrom.Properties.Data.items():
+            for propertyid, property in self.Class.InheritedProperties.Data.items():
                 s = self.writeCreateTableColumn(s, property)
         for propertyid, property in self.Class.Properties.Data.items():
             s = self.writeCreateTableColumn(s, property)

@@ -78,11 +78,12 @@ class DataClassWriter(WriterObject):
         return s
     
     def writeDLClassOperations(self, s:StringWriter):
-        s = self.checkSchemaExistence(s)
-        s = self.writeCreateSchema(s)
+
         s = self.checkTableExistence(s)
         s = self.writeCreateTable(s)
         s = self.writeDropTable(s)
+        s = self.writeClearTable(s)
+        s = self.writeCreateForeignKeys(s)
         s = self.writeGetColumnNames(s)
         s = self.writeGetColumnParameters(s)
         s = self.writeInsertItem(s)     
@@ -92,17 +93,23 @@ class DataClassWriter(WriterObject):
         s = self.writeSelectSingleRecordByPK(s)
         s = self.writeSelectWhere(s)
         return s
-    
-    def writeGetColumnNames(self, s:StringWriter):
-        return s
-    
-    def writeGetColumnParameters(self, s:StringWriter):
+
+    def writeCreateForeignKeys(self, s:StringWriter):
         return s
 
-    def checkSchemaExistence(self, s:StringWriter):
+    def getSchema(self):
+        db = self.Database
+        if db.HasSchema():
+            return f"{db.OB()}{self.Class.ParentModule.Name}{db.CB()}."
+        return ""
+
+    def writeClearTable(self, s:StringWriter):
         return s
-    
-    def writeCreateSchema(self, s:StringWriter):
+
+    def writeGetColumnNames(self, s:StringWriter):
+        return s
+
+    def writeGetColumnParameters(self, s:StringWriter):
         return s
 
     def checkTableExistence(self, s:StringWriter):

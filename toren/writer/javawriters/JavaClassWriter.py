@@ -43,7 +43,6 @@ class JavaClassWriter(ClassWriter):
                     dependency_map[dependency] = dependency
 
         if self.Class.InheritsFrom is not None:
-            #for propertyid, property in self.Class.InheritsFrom.Properties.Data.items():
             for propertyid, property in self.Class.InheritedProperties.Data.items():
                 for dependency in property.Java_Dependencies():
                     if dependency not in dependency_map:

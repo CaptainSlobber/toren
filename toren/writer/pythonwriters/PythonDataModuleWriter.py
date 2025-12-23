@@ -58,18 +58,17 @@ class PythonDataModuleWriter(DataModuleWriter):
         dependency_map = {}
         for dependency in self.Database.PythonDependencies():
             dependency_map[dependency] = dependency
+        for classid, _class in self.Module.Classes.Data.items():
+            dlclassname = f"{self.getDLPrefix()}{ _class.Name}{self.getDLSuffix()}"
+            class_dep = f"from .{dlclassname} import {dlclassname}"
+            dependency_map[class_dep] = class_dep
+        
         return dependency_map
 
-    def writeCommonDataFunctions(self, path, classname):
-        s = self.S
-        s.clear()
-        
-        
+    
 
+    def writeOpenCommonDataFunctions(self, classname: str, s:PythonStringWriter):
         conclass = f"{self.getDLPrefix()}{ self.ConnectionObjectClassName}{self.getDLSuffix()}"
-        dependency_map = self.getDataDependencies()
-        s = self.writeDataDependencies(dependency_map, s)
-
         s.wln(f"from .{conclass} import {conclass}")
         s.ret()
         s.write(f"class {classname}():").o()
@@ -79,15 +78,7 @@ class PythonDataModuleWriter(DataModuleWriter):
         s.wln(f" Description: Common Datalayer Functions")
         s.wln("\"\"\"")
         s.ret()
-
-        s = self.writeCommonCreateConnection(s)
-        s = self.writeCommonExecuteNonQuery(s)
-        s = self.writeCommonExecuteParameterizedNonQuery(s)
-        s = self.writeCommmonFetchOne(s)
-        s = self.writeCommonFetchAll(s)
-
-        filename = f"{classname}.{self.Language.DefaultFileExtension}"
-        self.writeFile(path, filename, s.toString())
+        return s
 
     
     def writeCommonCreateConnection(self, s:PythonStringWriter):
@@ -190,6 +181,7 @@ class PythonDataModuleWriter(DataModuleWriter):
         s.wln(f"for row in rows:").o()      
         s.wln(f"result = dict(zip(column_names, row))")
         s.wln(f"results.append(result)")
+        s.c()
         
         s = self.writeCommonCleanupConnection(s)
         s.wln(f"return results")
@@ -216,6 +208,93 @@ class PythonDataModuleWriter(DataModuleWriter):
         s.wln(f"connection.commit()") 
         s.c()
         s = self.writeCommonCleanupConnection(s)
+        s.c()
+        s.ret()
+        return s
+    
+    def writeCreateSchema(self, s:PythonStringWriter):
+        db = self.Database
+        schema_name = self.Module.Name
+        cfn = f"{self.getDLPrefix()}{ self.CommonFunctionsClassName}{self.getDLSuffix()}"
+
+        if db.HasSchema():
+            s.wln("@staticmethod")
+            s.wln(f"def GetCreateSchemaQuery():").o()
+            s.wln(f'createquery = "CREATE SCHEMA {db.OB()}{schema_name}{db.CB()}{db.EndQuery()}"')
+            s.wln("return createquery")
+            s.c().ret()
+
+            s.wln("@staticmethod")
+            s.wln(f"def CreateSchema(connection):").o()
+            s.wln(f"createquery = {cfn}.GetCreateSchemaQuery()")
+            s.wln(f"{cfn}.ExecuteNonQuery(connection, createquery)")
+            s.c()
+            s.ret()
+
+        return s
+    
+    def writeCheckSchemaExistence(self, s:PythonStringWriter):
+        db = self.Database
+        schema_name = self.Module.Name
+        cfn = f"{self.getDLPrefix()}{ self.CommonFunctionsClassName}{self.getDLSuffix()}"
+
+        if db.HasSchema():
+            s.wln("@staticmethod")
+            s.wln(f"def CheckSchemaExistence(connection) -> bool:").o()
+            if db.DBType == "PostgreSQL":
+                s.wln(f'checkquery = "SELECT schema_name FROM information_schema.schemata WHERE schema_name = \'{schema_name}\'"')
+                s.wln(f"result = {cfn}.ExecuteFetchOne(connection, checkquery, {{}})")
+                s.wln(f"if result and 'schema_name' in result:").o()
+                s.wln("return True")
+                s.c()
+                s.wln("return False")
+            else:
+                s.wln(f"# Schema existence check not implemented for {db.DBType}")
+                s.wln("return True")
+            s.c()
+            s.ret()
+
+        return s
+    
+    
+    def writeDropAllTables(self, s:PythonStringWriter):
+        s.wln("@staticmethod")
+        s.wln(f"def DropAllTables(connection):").o()
+        for classid, _class in self.Module.Classes.Data.items():
+            dlclassname = f"{self.getDLPrefix()}{ _class.Name}{self.getDLSuffix()}"
+            s.wln(f"{dlclassname}.Drop{_class.Name}Table(connection)")
+        s.c()
+        s.ret()
+        return s
+    
+    def writeClearAllTables(self, s:PythonStringWriter):
+        s.wln("@staticmethod")
+        s.wln(f"def ClearAllTables(connection):").o()
+        for classid, _class in self.Module.Classes.Data.items():
+            dlclassname = f"{self.getDLPrefix()}{ _class.Name}{self.getDLSuffix()}"
+            s.wln(f"{dlclassname}.Clear{_class.Name}Table(connection)")
+        s.c()
+        s.ret()
+        return s
+    
+    def writeCreateAllTables(self, s:PythonStringWriter):
+        db = self.Database
+        schema_name = self.Module.Name
+        cfn = f"{self.getDLPrefix()}{ self.CommonFunctionsClassName}{self.getDLSuffix()}"
+        s.wln("@staticmethod")
+        s.wln(f"def CreateAllTables(connection):").o()
+        if db.HasSchema():
+            s.wln(f"{cfn}.CreateSchema(connection)")
+
+            
+        for classid, _class in self.Module.Classes.Data.items():
+            dlclassname = f"{self.getDLPrefix()}{ _class.Name}{self.getDLSuffix()}"
+            s.wln(f"{dlclassname}.Create{_class.Name}Table(connection)")
+        s.wln("")
+        if db.SeparateForeignKeyCreation():
+            for classid, _class in self.Module.Classes.Data.items():
+                dlclassname = f"{self.getDLPrefix()}{ _class.Name}{self.getDLSuffix()}"
+                s.wln(f"{dlclassname}.Create{_class.Name}ForeignKeys(connection)")
         s.c()
         s.ret()
         return s

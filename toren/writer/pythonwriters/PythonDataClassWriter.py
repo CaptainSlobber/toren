@@ -113,7 +113,7 @@ class PythonDataClassWriter(DataClassWriter):
         s.wln(f'SCHEMA_NAME = "{self.Class.ParentModule.Name}"')
         s.wln(f'TABLE_NAME = "{self.Class.Name}"')
         if self.Class.InheritsFrom is not None:
-            for propertyid, property in self.Class.InheritsFrom.Properties.Data.items():
+            for propertyid, property in self.Class.InheritedProperties.Data.items():
                 s.wln(f'COL_NAME_{property.Name.upper()} = "{property.Name}"')
         for propertyid, property in self.Class.Properties.Data.items():
             s.wln(f'COL_NAME_{property.Name.upper()} = "{property.Name}"')
@@ -138,30 +138,7 @@ class PythonDataClassWriter(DataClassWriter):
         return s
 
 
-    def writeCreateSchema(self, s:PythonStringWriter):
-        db = self.Database
-        schema_name = self.Class.ParentModule.Name
-        if db.HasSchema():
-            s.wln("@staticmethod")
-            s.wln(f"def GetCreateSchemaQuery():").o()
-            s.wln(f'createquery = "CREATE SCHEMA {db.OB()}{schema_name}{db.CB()}{db.EndQuery()}"')
-            s.wln("return createquery")
-            s.c().ret()
-
-            s.wln("@staticmethod")
-            s.wln(f"def CreateSchema(connection):").o()
-            s.wln(f"createquery = {self.getDLClassName()}.GetCreateSchemaQuery()")
-            s.wln(f"{self.CommonFunctionsClassName}.ExecuteNonQuery(connection, createquery)")
-            s.c()
-            s.ret()
-
-        return s
     
-    def getSchema(self):
-        db = self.Database
-        if db.HasSchema():
-            return f"{db.OB()}{self.Class.ParentModule.Name}{db.CB()}."
-        return ""
 
     def writeCreateTable(self, s:PythonStringWriter):
         db = self.Database
@@ -171,10 +148,22 @@ class PythonDataClassWriter(DataClassWriter):
         s.wln(f"def GetCreate{self.Class.Name}TableQuery():").o()
         s.wln(f'createquery = "CREATE TABLE{db.IfNotExists()} {schema}{db.OB()}{self.Class.Name}{db.CB()} ("')
         if self.Class.InheritsFrom is not None:
-            for propertyid, property in self.Class.InheritsFrom.Properties.Data.items():
+            for propertyid, property in self.Class.InheritedProperties.Data.items():
                 s = self.writeCreateTableColumn(s, property)
         for propertyid, property in self.Class.Properties.Data.items():
             s = self.writeCreateTableColumn(s, property)
+
+        if not db.SeparateForeignKeyCreation():
+            if self.Class.InheritsFrom is not None:
+                for propertyid, property in self.Class.InheritedProperties.Data.items():
+                    if property.ForeignKey is not None:
+                        create_fk = db.GetCreateForeignKeyQuery(schema, self.Class, property, property.ForeignKey)
+                        s.wln(f'createquery += "{create_fk},"')
+            for propertyid, property in self.Class.Properties.Data.items():
+                if property.ForeignKey is not None:
+                    create_fk = db.GetCreateForeignKeyQuery(schema, self.Class, property, property.ForeignKey)
+                    s.wln(f'createquery += "{create_fk},"')
+
         s.wln(f'createquery += "){db.EndQuery()}"')
         s.wln("return createquery")
         s.c().ret()
@@ -188,6 +177,23 @@ class PythonDataClassWriter(DataClassWriter):
         return s
     
     def checkTableExistence(self, s:PythonStringWriter):
+        return s
+    
+    def writeClearTable(self, s:PythonStringWriter):
+        db = self.Database
+        schema = self.getSchema()
+        s.wln("@staticmethod")
+        s.wln(f"def GetClear{self.Class.Name}TableQuery():").o()
+        s.wln(f'clearquery = "DELETE FROM {schema}{db.OB()}{self.Class.Name}{db.CB()}{db.EndQuery()}"')
+        s.wln("return clearquery")
+        s.c().ret()
+
+        s.wln("@staticmethod")
+        s.wln(f"def Clear{self.Class.Name}Table(connection):").o()
+        s.wln(f"clearquery = {self.getDLClassName()}.GetClear{self.Class.Name}TableQuery()")
+        s.wln(f"{self.CommonFunctionsClassName}.ExecuteNonQuery(connection, clearquery)")
+        s.c()
+        s.ret()
         return s
     
     def writeDropTable(self, s:PythonStringWriter):
@@ -224,7 +230,39 @@ class PythonDataClassWriter(DataClassWriter):
         s.ret()
         return s
     
+    
+    
+    def writeCreateForeignKeys(self, s:PythonStringWriter):
+        db = self.Database
+        schema = self.getSchema()
+        if db.SeparateForeignKeyCreation():
+            s.wln("@staticmethod")
+            s.wln(f"def Get{self.Class.Name}ForeignKeyQueries():").o()
+            s.wln("foreignkeyqueries = []")
+            if self.Class.InheritsFrom is not None:
+                for propertyid, property in self.Class.InheritedProperties.Data.items():
+                    if property.ForeignKey is not None:
+                        create_fk = db.GetCreateForeignKeyQuery(schema, self.Class, property, property.ForeignKey)
+                        s.wln(f'foreignkeyqueries.append("{create_fk}")')
+                        
 
+            for propertyid, property in self.Class.Properties.Data.items():
+                if property.ForeignKey is not None:
+                    create_fk = db.GetCreateForeignKeyQuery(schema, self.Class, property, property.ForeignKey)
+                    s.wln(f'foreignkeyqueries.append("{create_fk}")')
+            s.writeline("return foreignkeyqueries")
+            s.c()
+            s.ret()
+
+            s.wln("@staticmethod")
+            s.wln(f"def Create{self.Class.Name}ForeignKeys(connection):").o()
+            s.wln(f"foreignkeyqueries = {self.getDLClassName()}.Get{self.Class.Name}ForeignKeyQueries()")
+            s.wln(f"for foreignkeyquery in foreignkeyqueries:").o()
+            s.wln(f"{self.CommonFunctionsClassName}.ExecuteNonQuery(connection, foreignkeyquery)")
+            s.c()
+            s.c()
+            s.ret()
+        return s
     
     def writeGetColumnParameters(self, s:PythonStringWriter):
         db = self.Database
@@ -386,7 +424,7 @@ class PythonDataClassWriter(DataClassWriter):
             s.wln("@staticmethod")
             s.wln(f"def GetSelectSingle{self.Class.Name}By{pk.Name}Query():").o()
             s.wln(f"columns = {self.getDLClassName()}.Get{self.Class.Name}ColumnNames()")
-            s.wln(f'selectquery = "SELECT {{columns}} FROM {schema}{db.OB()}{self.Class.Name}{db.CB()} WHERE {db.OB()}{pk.Name}{db.CB()} = {db.GetParameter(pk.Name.lower())}{db.EndQuery()}"')
+            s.wln(f'selectquery = f"SELECT {{columns}} FROM {schema}{db.OB()}{self.Class.Name}{db.CB()} WHERE {db.OB()}{pk.Name}{db.CB()} = {db.GetParameter(pk.Name.lower())}{db.EndQuery()}"')
             s.wln("return selectquery")
             s.c().ret()
 
