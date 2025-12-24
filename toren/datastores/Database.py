@@ -135,6 +135,15 @@ class Database(TorenObject):
   def GetParameter(self, parmeterNo: int):
     return "*"
   
+  def UsesNamedParameters(self, language: Language):
+    _unparams = {}
+    _unparams[LanguagePython().getID()] = True
+    _unparams[LanguageCSharp().getID()] = True
+    _unparams[LanguageJava().getID()] = True
+    _unparams[LanguageGo().getID()] = True
+    _unparams[LanguageJavaScript().getID()] = True
+    return _unparams[language.getID()]
+  
   def SeparateForeignKeyCreation(self):
     return True
   
@@ -151,7 +160,7 @@ class Database(TorenObject):
     createFKQuery = f"ALTER TABLE {schemea}{table_name} "
     createFKQuery += f"ADD CONSTRAINT {constraint_name} "
     createFKQuery += f"FOREIGN KEY ({property_name}) "
-    createFKQuery += f"REFERENCES {foreign_table_name} ({foreign_property_name})"
+    createFKQuery += f"REFERENCES {schemea}{foreign_table_name} ({foreign_property_name})"
     if onDeleteCascade:
       createFKQuery += " ON DELETE CASCADE"
     createFKQuery += self.EndQuery()
@@ -179,6 +188,8 @@ class Database(TorenObject):
     _conn[LanguageGo().getID()] = self.GoConnectionClass
     _conn[LanguageJavaScript().getID()] = self.JavaScriptConnectionClass
     return _conn[language.ID]()
+  
+  
 
   def CSharpDependencies(self) -> list:
     raise NotImplementedError()

@@ -147,8 +147,12 @@ class PythonDataModuleWriter(DataModuleWriter):
         db = self.Database
         cfn = f"{self.getDLPrefix()}{ self.CommonFunctionsClassName}{self.getDLSuffix()}"
         cc  =self.getDefaultCloseConnectionParameter()
+        data_data_type = "dict"
+        if not db.UsesNamedParameters(self.Language):
+            data_data_type = "list"
+
         s.wln(f"@staticmethod")
-        s.wln(f"def ExecuteParameterizedNonQuery(connection, query: str, data: dict, {cc}):").o()
+        s.wln(f"def ExecuteParameterizedNonQuery(connection, query: str, data: {data_data_type}, {cc}):").o()
         s.wln(f"try:").o()
         s.wln(f"cursor = connection.cursor()")
         s.wln(f"cursor.execute(query, data)")
@@ -158,7 +162,7 @@ class PythonDataModuleWriter(DataModuleWriter):
         s.ret()
 
         s.wln(f"@staticmethod")
-        s.wln(f"def ExecuteManyParameterizedNonQuery(connection, query: str, data: list, {cc}):").o()
+        s.wln(f"def ExecuteManyParameterizedNonQuery(connection, query: str, data: {data_data_type}, {cc}):").o()
         s.wln(f"try:").o()
         s.wln(f"cursor = connection.cursor()")
         s.wln(f"cursor.executemany(query, data)")
@@ -172,9 +176,12 @@ class PythonDataModuleWriter(DataModuleWriter):
         db = self.Database
         cfn = f"{self.getDLPrefix()}{ self.CommonFunctionsClassName}{self.getDLSuffix()}"
         cc  =self.getDefaultCloseConnectionParameter()
+        data_data_type = "dict"
+        if not db.UsesNamedParameters(self.Language):
+            data_data_type = "list"
 
         s.wln(f"@staticmethod")
-        s.wln(f"def ExecuteFetchOne(connection, query: str, data: dict, {cc}) -> dict:").o()
+        s.wln(f"def ExecuteFetchOne(connection, query: str, data: {data_data_type}, {cc}) -> dict:").o()
         s.wln("result = {}")
         s.wln(f"try:").o()
         s.wln(f"cursor = connection.cursor()")
@@ -195,8 +202,11 @@ class PythonDataModuleWriter(DataModuleWriter):
         db = self.Database
         cfn = f"{self.getDLPrefix()}{ self.CommonFunctionsClassName}{self.getDLSuffix()}"
         cc  =self.getDefaultCloseConnectionParameter()
+        data_data_type = "dict"
+        if not db.UsesNamedParameters(self.Language):
+            data_data_type = "list"
         s.wln(f"@staticmethod")
-        s.wln(f"def ExecuteFetchAll(connection, query: str, data: dict, {cc}) -> list:").o()
+        s.wln(f"def ExecuteFetchAll(connection, query: str, data: {data_data_type}, {cc}) -> list:").o()
         s.wln(f"results = []")
         s.wln(f"try:").o()
         s.wln(f"cursor = connection.cursor()")

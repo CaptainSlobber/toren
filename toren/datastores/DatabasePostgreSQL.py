@@ -37,6 +37,13 @@ class DatabasePostgreSQL(Database):
   def CloseBrackets(self):
     return ""
   
+  
+  def OpenBrackets(self):
+    return "\\\"" # Double Escaped
+  
+  def CloseBrackets(self):
+    return "\\\"" # Double Escaped
+  
   ##########################################################################
   # Dependencies
   ##########################################################################

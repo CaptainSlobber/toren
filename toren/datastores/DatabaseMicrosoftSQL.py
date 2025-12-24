@@ -1,3 +1,9 @@
+from ..languages.Language import Language
+from ..languages.LanguageCSharp import LanguageCSharp
+from ..languages.LanguageGo import LanguageGo
+from ..languages.LanguagePython import LanguagePython
+from ..languages.LanguageJavaScript import LanguageJavaScript
+from ..languages.LanguageJava import LanguageJava
 from .Database import Database
 import collections
 
@@ -39,7 +45,19 @@ class DatabaseMicrosoftSQL(Database):
     return " IF EXISTS"
   
   def GetParameter(self, parameterName: str = "", index: int = -1):
-    return f"@{parameterName}"
+    #return f"@{parameterName}"
+    return f"?"
+  
+  def UsesNamedParameters(self, language: Language):
+    _unparams = {}
+    _unparams[LanguagePython().getID()] = False # pyodbc uses positional parameters with '?'
+    _unparams[LanguageCSharp().getID()] = True
+    _unparams[LanguageJava().getID()] = True
+    _unparams[LanguageGo().getID()] = True
+    _unparams[LanguageJavaScript().getID()] = True
+    return _unparams[language.getID()]
+
+
 
   ##########################################################################
   # Dependencies

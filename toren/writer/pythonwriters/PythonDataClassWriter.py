@@ -299,14 +299,24 @@ class PythonDataClassWriter(DataClassWriter):
 
         s.wln("@staticmethod")
         s.wln(f"def Parameterize{self.Class.Name}({self.Class.Name.lower()}:  {self.Class.Name}) -> dict:").o()
-        s.wln("params = {}")
+
+        if db.UsesNamedParameters(self.Language):
+            s.wln("params = {}")
+        else:
+            s.wln("params = []")
         if self.Class.InheritsFrom is not None:
             for propertyid, property in self.Class.InheritedProperties.Data.items():
                 converted = property.To(self.Language, self.Database, f"{self.Class.Name.lower()}.{property.Name}")
-                s.wln(f"params['{property.Name.lower()}'] = {converted},")
+                if db.UsesNamedParameters(self.Language):
+                    s.wln(f"params['{property.Name.lower()}'] = {converted}")
+                else:
+                    s.wln(f"params.append({converted})")        
         for propertyid, property in self.Class.Properties.Data.items():
             converted = property.To(self.Language, self.Database, f"{self.Class.Name.lower()}.{property.Name}")
-            s.wln(f"params['{property.Name.lower()}'] = {converted},")
+            if db.UsesNamedParameters(self.Language):
+                s.wln(f"params['{property.Name.lower()}'] = {converted}")
+            else:
+                s.wln(f"params.append({converted})")  
         s.wln("return params")
         s.c().ret()
 
@@ -388,7 +398,10 @@ class PythonDataClassWriter(DataClassWriter):
 
             s.wln("@staticmethod")
             s.wln(f"def DeleteSingle{self.Class.Name}By{pk.Name}(connection, {pk.Name.lower()}):").o()
-            s.wln(f"params = {{{{ '{pk.Name.lower()}': {pk.Name.lower()} }}}}")
+            if db.UsesNamedParameters(self.Language):
+                s.wln(f"params = {{ '{pk.Name.lower()}': {pk.Name.lower()} }}")
+            else:
+                s.wln(f"params = [ {pk.Name.lower()} ]")
             s.wln(f"deletequery = {self.getDLClassName()}.Get{self.Class.Name}DeleteQuery()")
             s.wln(f"{self.CommonFunctionsClassName}.ExecuteParameterizedNonQuery(connection, deletequery, params)")
             s.c()
@@ -402,15 +415,32 @@ class PythonDataClassWriter(DataClassWriter):
         return s
     
     def writeSelectSingleRecordByPK(self, s:PythonStringWriter):
+
+        db = self.Database
+        schema = self.getSchema()
+        data_data_type = "dict"
+        #if not db.UsesNamedParameters(self.Language):
+        #    data_data_type = "list"
         s.wln("@staticmethod")
-        s.wln(f"def Get{self.Class.Name}FromQueryResult(queryresult: dict) -> {self.Class.Name}:").o()
+        s.wln(f"def Get{self.Class.Name}FromQueryResult(queryresult: {data_data_type}) -> {self.Class.Name}:").o()
         s.wln(f"{self.Class.Name.lower()} = {self.Class.Name}(").o()
+        index = 0
         if self.Class.InheritsFrom is not None:
             for propertyid, property in self.Class.InheritedProperties.Data.items():
                 converted = property.From(self.Language, self.Database, f"queryresult['{property.Name}']")
+                # if db.UsesNamedParameters(self.Language):
+                #     converted = property.From(self.Language, self.Database, f"queryresult['{property.Name}']")
+                # else:
+                #     converted = property.From(self.Language, self.Database, f"queryresult[{str(index)}]")
+                #     index = index + 1
                 s.wln(f"{property.Name.lower()} = {converted},")
             for propertyid, property in self.Class.Properties.Data.items():
                 converted = property.From(self.Language, self.Database, f"queryresult['{property.Name}']")
+                # if db.UsesNamedParameters(self.Language):
+                #     converted = property.From(self.Language, self.Database, f"queryresult['{property.Name}']")
+                # else:
+                #     converted = property.From(self.Language, self.Database, f"queryresult[{str(index)}]")
+                #     index = index + 1
                 s.wln(f"{property.Name.lower()} = {converted},")
         s.c().wln(")")
         s.wln(f"return {self.Class.Name.lower()}")
@@ -430,7 +460,10 @@ class PythonDataClassWriter(DataClassWriter):
 
             s.wln("@staticmethod")
             s.wln(f"def SelectSingle{self.Class.Name}By{pk.Name}(connection, {pk.Name.lower()}) -> {self.Class.Name}:").o()
-            s.wln(f"params = {{{{ '{pk.Name.lower()}': {pk.Name.lower()} }}}}")
+            if db.UsesNamedParameters(self.Language):
+                s.wln(f"params = {{ '{pk.Name.lower()}': {pk.Name.lower()} }}")
+            else:
+                s.wln(f"params = [ {pk.Name.lower()} ]")
             s.wln(f"selectquery = {self.getDLClassName()}.GetSelectSingle{self.Class.Name}By{pk.Name}Query()")
             s.wln(f"result = {self.CommonFunctionsClassName}.ExecuteFetchOne(connection, selectquery, params)")
             s.wln(f"{self.Class.Name.lower()} = {self.getDLClassName()}.Get{self.Class.Name}FromQueryResult(result)")

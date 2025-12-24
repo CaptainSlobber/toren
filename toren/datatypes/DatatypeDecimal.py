@@ -190,7 +190,7 @@ class DatatypeDecimal(DatatypeNumeric):
   
   def Python_from_PostgreSQL(self, *args) -> str:
     if self.hasHigherDimensionality():
-      return f"np.array(json.loads({args[0]}.decode('utf-8')), dtype=np.{self.NPDTYPE})"
+      return f"np.array(json.loads(bytes({args[0]}).decode('utf-8')), dtype=np.{self.NPDTYPE})"
     else:
       return f"Decimal({args[0]})"
   
