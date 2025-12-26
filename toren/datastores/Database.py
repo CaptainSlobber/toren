@@ -147,25 +147,33 @@ class Database(TorenObject):
   def SeparateForeignKeyCreation(self):
     return True
   
-  def GetCreateForeignKeyQuery(self, schemea, table, property, foreignKey, onDeleteCascade: bool = False):
+  def GetCreateForeignKeyQuery(self, schema, table, property, foreignKey, onDeleteCascade: bool = False):
 
-    table_name = f"{self.OB()}{table.Name}{self.CB()}"
+    table_name = self.GetTableName(table)
+    schema_name = f"{self.OB()}{schema}{self.CB()}"
     property_name = f"{self.OB()}{property.Name}{self.CB()}"
-    foreign_table_name = f"{self.OB()}{foreignKey.FKClass.Name}{self.CB()}"
+    foreign_table_name = self.GetTableName(foreignKey.FKClass)
     foreign_property_name = f"{self.OB()}{foreignKey.FKClassProperty.Name}{self.CB()}"
 
     #constraint_name = f"FK_{table.Name}_{property.Name}_{foreignKey.FKClass.Name}_{foreignKey.FKClassProperty.Name}"
     constraint_name = f"FK_{property.Name}_{foreignKey.FKClass.Name}_{foreignKey.FKClassProperty.Name}"
     
-    createFKQuery = f"ALTER TABLE {schemea}{table_name} "
+    createFKQuery = f"ALTER TABLE {table_name} "
     createFKQuery += f"ADD CONSTRAINT {constraint_name} "
     createFKQuery += f"FOREIGN KEY ({property_name}) "
-    createFKQuery += f"REFERENCES {schemea}{foreign_table_name} ({foreign_property_name})"
+    createFKQuery += f"REFERENCES {foreign_table_name} ({foreign_property_name})"
     if onDeleteCascade:
       createFKQuery += " ON DELETE CASCADE"
     createFKQuery += self.EndQuery()
 
     return createFKQuery
+  
+  def GetTableName(self, table):
+    db = self
+    if self.HasSchema():
+        return f"{db.OB()}{table.ParentModule.Name}{db.CB()}.{db.OB()}{table.Name}{db.CB()}"
+    else:
+      return f"{db.OB()}{table.ParentModule.Name}.{table.Name}{db.CB()}"
 
   ##########################################################################
   # Dependencies
@@ -189,7 +197,18 @@ class Database(TorenObject):
     _conn[LanguageJavaScript().getID()] = self.JavaScriptConnectionClass
     return _conn[language.ID]()
   
+  def WriteConnectionInitialization(self, language: Language, s):
+    _conn = {}
+    _conn[LanguagePython().getID()] = self.PythonInitializeConnection
+    _conn[LanguageCSharp().getID()] = self.CSharpInitializeConnection
+    _conn[LanguageJava().getID()] = self.JavaInitializeConnection
+    _conn[LanguageGo().getID()] = self.GoInitializeConnection
+    _conn[LanguageJavaScript().getID()] = self.JavaScriptInitializeConnection
+    return _conn[language.ID](s)
   
+  ##########################################################################
+  # Dependencies
+  ##########################################################################
 
   def CSharpDependencies(self) -> list:
     raise NotImplementedError()
@@ -206,6 +225,10 @@ class Database(TorenObject):
   def JavaScriptDependencies(self) -> list:
     raise NotImplementedError()
   
+  ##########################################################################
+  # Connection Class
+  ##########################################################################
+
   def CSharpConnectionClass(self):
     raise NotImplementedError()
   
@@ -219,4 +242,23 @@ class Database(TorenObject):
     raise NotImplementedError()   
   
   def JavaScriptConnectionClass(self):
+    raise NotImplementedError()
+  
+  ##########################################################################
+  # Initialize Connection
+  ##########################################################################
+
+  def CSharpInitializeConnection(self, s):
+    raise NotImplementedError()
+  
+  def PythonInitializeConnection(self, s):
+    raise NotImplementedError()
+  
+  def JavaInitializeConnection(self, s):
+    raise NotImplementedError()  
+  
+  def GoInitializeConnection(self, s):
+    raise NotImplementedError()   
+  
+  def JavaScriptInitializeConnection(self, s):
     raise NotImplementedError()

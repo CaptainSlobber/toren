@@ -69,3 +69,31 @@ class DatabasePostgreSQL(Database):
 
   def PythonConnectionClass(self):
     return "psycopg2"
+  
+  ##########################################################################
+  # Initialize Connection
+  ##########################################################################
+
+  def CSharpInitializeConnection(self, s):
+    return s
+  
+  def PythonInitializeConnection(self, s):
+    connclass = self.PythonConnectionClass()
+    s.wln(f"connection = {connclass}.connect(").o()
+    s.wln("user=config.Username,")
+    s.wln("password=keyring.get_password(config.Credential, config.Username),")
+    s.wln("host=config.Server,")
+    s.wln("port=config.PortNumber,")
+    s.wln("database=config.Database")
+    s.c()
+    s.wln(f")")
+    return s
+  
+  def JavaInitializeConnection(self, s):
+    return s 
+  
+  def GoInitializeConnection(self, s):
+    return s
+  
+  def JavaScriptInitializeConnection(self, s):
+    return s

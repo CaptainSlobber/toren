@@ -165,7 +165,7 @@ class DatatypeBigInt(DatatypeNumeric):
 
   def Python_from_Oracle(self, *args) -> str:
     if self.hasHigherDimensionality():
-      return f"np.array(json.loads({args[0]}.decode('utf-8')), dtype=np.int64)"
+      return f"np.array(json.loads({args[0]}.read().decode('utf-8')), dtype=np.int64)"
     else:
       return f"int({args[0]})"
   

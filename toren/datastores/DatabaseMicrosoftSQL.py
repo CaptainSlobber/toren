@@ -96,3 +96,34 @@ class DatabaseMicrosoftSQL(Database):
     
   def JavaScriptConnectionClass(self):
     return ""
+  
+  ##########################################################################
+  # Initialize Connection
+  ##########################################################################
+
+  def CSharpInitializeConnection(self, s):
+    return s
+  
+  def PythonInitializeConnection(self, s):
+    connclass = self.PythonConnectionClass()
+
+    s.wln('connectionstr= (')
+    s.wln('f"DRIVER={config.Driver};"')
+    s.wln('f"SERVER={config.InstanceName};"')
+    s.wln('f"DATABASE={config.Database};"')
+    s.wln('f"UID={config.Username};"')
+    s.wln('f"PWD={keyring.get_password(config.Credential, config.Username)}"')
+    s.wln(')')
+    s.ret()
+
+    s.wln(f"connection = {connclass}.connect(connectionstr)")
+    return s
+  
+  def JavaInitializeConnection(self, s):
+    return s 
+  
+  def GoInitializeConnection(self, s):
+    return s
+  
+  def JavaScriptInitializeConnection(self, s):
+    return s

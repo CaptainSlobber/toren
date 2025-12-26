@@ -143,10 +143,11 @@ class PythonDataClassWriter(DataClassWriter):
     def writeCreateTable(self, s:PythonStringWriter):
         db = self.Database
         schema = self.getSchema()
+        tablename = db.GetTableName(self.Class)
 
         s.wln("@staticmethod")
         s.wln(f"def GetCreate{self.Class.Name}TableQuery():").o()
-        s.wln(f'createquery = "CREATE TABLE{db.IfNotExists()} {schema}{db.OB()}{self.Class.Name}{db.CB()} ("')
+        s.wln(f'createquery = "CREATE TABLE{db.IfNotExists()} {tablename} ("')
         if self.Class.InheritsFrom is not None:
             for propertyid, property in self.Class.InheritedProperties.Data.items():
                 s = self.writeCreateTableColumn(s, property)
@@ -169,9 +170,9 @@ class PythonDataClassWriter(DataClassWriter):
         s.c().ret()
 
         s.wln("@staticmethod")
-        s.wln(f"def Create{self.Class.Name}Table(connection):").o()
+        s.wln(f"def Create{self.Class.Name}Table(config):").o()
         s.wln(f"createquery = {self.getDLClassName()}.GetCreate{self.Class.Name}TableQuery()")
-        s.wln(f"{self.CommonFunctionsClassName}.ExecuteNonQuery(connection, createquery)")
+        s.wln(f"{self.CommonFunctionsClassName}.ExecuteNonQuery(config, createquery)")
         s.c()
         s.ret()
         return s
@@ -182,16 +183,17 @@ class PythonDataClassWriter(DataClassWriter):
     def writeClearTable(self, s:PythonStringWriter):
         db = self.Database
         schema = self.getSchema()
+        tablename = db.GetTableName(self.Class)
         s.wln("@staticmethod")
         s.wln(f"def GetClear{self.Class.Name}TableQuery():").o()
-        s.wln(f'clearquery = "DELETE FROM {schema}{db.OB()}{self.Class.Name}{db.CB()}{db.EndQuery()}"')
+        s.wln(f'clearquery = "DELETE FROM {tablename}{db.EndQuery()}"')
         s.wln("return clearquery")
         s.c().ret()
 
         s.wln("@staticmethod")
-        s.wln(f"def Clear{self.Class.Name}Table(connection):").o()
+        s.wln(f"def Clear{self.Class.Name}Table(config):").o()
         s.wln(f"clearquery = {self.getDLClassName()}.GetClear{self.Class.Name}TableQuery()")
-        s.wln(f"{self.CommonFunctionsClassName}.ExecuteNonQuery(connection, clearquery)")
+        s.wln(f"{self.CommonFunctionsClassName}.ExecuteNonQuery(config, clearquery)")
         s.c()
         s.ret()
         return s
@@ -199,16 +201,17 @@ class PythonDataClassWriter(DataClassWriter):
     def writeDropTable(self, s:PythonStringWriter):
         db = self.Database
         schema = self.getSchema()
+        tablename = db.GetTableName(self.Class)
         s.wln("@staticmethod")
         s.wln(f"def GetDrop{self.Class.Name}TableQuery():").o()
-        s.wln(f'dropquery = "DROP TABLE{db.IfExists()} {schema}{db.OB()}{self.Class.Name}{db.CB()}{db.EndQuery()}"')
+        s.wln(f'dropquery = "DROP TABLE{db.IfExists()} {tablename}{db.EndQuery()}"')
         s.wln("return dropquery")
         s.c().ret()
 
         s.wln("@staticmethod")
-        s.wln(f"def Drop{self.Class.Name}Table(connection):").o()
+        s.wln(f"def Drop{self.Class.Name}Table(config):").o()
         s.wln(f"dropquery = {self.getDLClassName()}.GetDrop{self.Class.Name}TableQuery()")
-        s.wln(f"{self.CommonFunctionsClassName}.ExecuteNonQuery(connection, dropquery)")
+        s.wln(f"{self.CommonFunctionsClassName}.ExecuteNonQuery(config, dropquery)")
         s.c()
         s.ret()
         return s
@@ -255,10 +258,10 @@ class PythonDataClassWriter(DataClassWriter):
             s.ret()
 
             s.wln("@staticmethod")
-            s.wln(f"def Create{self.Class.Name}ForeignKeys(connection):").o()
+            s.wln(f"def Create{self.Class.Name}ForeignKeys(config):").o()
             s.wln(f"foreignkeyqueries = {self.getDLClassName()}.Get{self.Class.Name}ForeignKeyQueries()")
             s.wln(f"for foreignkeyquery in foreignkeyqueries:").o()
-            s.wln(f"{self.CommonFunctionsClassName}.ExecuteNonQuery(connection, foreignkeyquery)")
+            s.wln(f"{self.CommonFunctionsClassName}.ExecuteNonQuery(config, foreignkeyquery)")
             s.c()
             s.c()
             s.ret()
@@ -288,11 +291,12 @@ class PythonDataClassWriter(DataClassWriter):
 
         db = self.Database
         schema = self.getSchema()
+        tablename = db.GetTableName(self.Class)
         s.wln("@staticmethod")
         s.wln(f"def Get{self.Class.Name}InsertQuery():").o()
         s.wln(f'columns = {self.getDLClassName()}.Get{self.Class.Name}ColumnNames()')
         s.wln(f"params = {self.getDLClassName()}.Get{self.Class.Name}ColumnParameters()")
-        s.wln(f'insertquery = f"INSERT INTO {schema}{db.OB()}{self.Class.Name}{db.CB()} ({{columns}}) VALUES ({{params}}){db.EndQuery()}"')
+        s.wln(f'insertquery = f"INSERT INTO {tablename} ({{columns}}) VALUES ({{params}}){db.EndQuery()}"')
         s.wln("return insertquery")
         s.c().ret()
 
@@ -321,10 +325,10 @@ class PythonDataClassWriter(DataClassWriter):
         s.c().ret()
 
         s.wln("@staticmethod")
-        s.wln(f"def InsertSingle{self.Class.Name}(connection, {self.Class.Name.lower()}:  {self.Class.Name}):").o()
+        s.wln(f"def InsertSingle{self.Class.Name}(config, {self.Class.Name.lower()}:  {self.Class.Name}):").o()
         s.wln(f"params = {self.getDLClassName()}.Parameterize{self.Class.Name}({self.Class.Name.lower()})")
         s.wln(f"insertquery = {self.getDLClassName()}.Get{self.Class.Name}InsertQuery()")
-        s.wln(f"{self.CommonFunctionsClassName}.ExecuteParameterizedNonQuery(connection, insertquery, params)")
+        s.wln(f"{self.CommonFunctionsClassName}.ExecuteParameterizedNonQuery(config, insertquery, params)")
         s.c()
         s.ret()
 
@@ -335,21 +339,21 @@ class PythonDataClassWriter(DataClassWriter):
         db = self.Databasedb = self.Database
         schema = self.getSchema()
         s.wln("@staticmethod")
-        s.wln(f"def Insert{self.Class.SetDescription}(connection, {self.Class.SetDescription.lower()}:  {self.Class.SetDescription}):").o()
+        s.wln(f"def Insert{self.Class.SetDescription}(config, {self.Class.SetDescription.lower()}:  {self.Class.SetDescription}):").o()
         s.wln(f"{self.Class.Name.lower()}list = {self.Class.SetDescription.lower()}.toList()")
-        s.wln(f"return {self.getDLClassName()}.Insert{self.Class.Name}List(connection, {self.Class.Name.lower()}list)")
+        s.wln(f"return {self.getDLClassName()}.Insert{self.Class.Name}List(config, {self.Class.Name.lower()}list)")
         s.c()
         
 
         s.wln("@staticmethod")
-        s.wln(f"def Insert{self.Class.Name}List(connection, {self.Class.Name.lower()}list:  list):").o()
+        s.wln(f"def Insert{self.Class.Name}List(config, {self.Class.Name.lower()}list:  list):").o()
         s.wln("data = []")
         s.wln(f"for {self.Class.Name.lower()} in {self.Class.Name.lower()}list:").o()
         s.wln(f"params = {self.getDLClassName()}.Parameterize{self.Class.Name}({self.Class.Name.lower()})")
         s.wln("data.append(params)")
         s.c()
         s.wln(f"insertquery = {self.getDLClassName()}.Get{self.Class.Name}InsertQuery()")
-        s.wln(f"{self.CommonFunctionsClassName}.ExecuteManyParameterizedNonQuery(connection, insertquery, data)")
+        s.wln(f"{self.CommonFunctionsClassName}.ExecuteManyParameterizedNonQuery(config, insertquery, data)")
         s.c()
         s.ret()
         return s
@@ -358,12 +362,13 @@ class PythonDataClassWriter(DataClassWriter):
 
         db = self.Database
         schema = self.getSchema()
+        tablename = db.GetTableName(self.Class)
 
         if self.Class.hasPrimaryKeyPoperty():
             pk = self.Class.getPrimaryKeyProperty()
             s.wln("@staticmethod")
             s.wln(f"def Get{self.Class.Name}UpdateQuery():").o()
-            s.wln(f'updatequery = "UPDATE {schema}{db.OB()}{self.Class.Name}{db.CB()} SET "')
+            s.wln(f'updatequery = "UPDATE {tablename} SET "')
             if self.Class.InheritsFrom is not None:
                 for propertyid, property in self.Class.InheritedProperties.Data.items():
                     if not property.IsPrimaryKey:
@@ -376,10 +381,10 @@ class PythonDataClassWriter(DataClassWriter):
             s.c().ret()
 
             s.wln("@staticmethod")
-            s.wln(f"def UpdateSingle{self.Class.Name}(connection, {self.Class.Name.lower()}:  {self.Class.Name}):").o()
+            s.wln(f"def UpdateSingle{self.Class.Name}(config, {self.Class.Name.lower()}:  {self.Class.Name}):").o()
             s.wln(f"params = {self.getDLClassName()}.Parameterize{self.Class.Name}({self.Class.Name.lower()})")
             s.wln(f"updatequery = {self.getDLClassName()}.Get{self.Class.Name}UpdateQuery()")
-            s.wln(f"{self.CommonFunctionsClassName}.ExecuteParameterizedNonQuery(connection, updatequery, params)")
+            s.wln(f"{self.CommonFunctionsClassName}.ExecuteParameterizedNonQuery(config, updatequery, params)")
             s.c()
             s.ret()
         return s
@@ -387,29 +392,31 @@ class PythonDataClassWriter(DataClassWriter):
     def writeDelete(self, s:PythonStringWriter):
 
         db = self.Database
-        schema = self.getSchema()   
+        schema = self.getSchema()  
+        tablename = db.GetTableName(self.Class)
+ 
         if self.Class.hasPrimaryKeyPoperty():
             pk = self.Class.getPrimaryKeyProperty()
             s.wln("@staticmethod")
             s.wln(f"def Get{self.Class.Name}DeleteQuery():").o()
-            s.wln(f'deletequery = "DELETE FROM {schema}{db.OB()}{self.Class.Name}{db.CB()} WHERE {db.OB()}{pk.Name}{db.CB()} = {db.GetParameter(pk.Name.lower())}{db.EndQuery()}"')
+            s.wln(f'deletequery = "DELETE FROM {tablename} WHERE {db.OB()}{pk.Name}{db.CB()} = {db.GetParameter(pk.Name.lower())}{db.EndQuery()}"')
             s.wln("return deletequery")
             s.c().ret()
 
             s.wln("@staticmethod")
-            s.wln(f"def DeleteSingle{self.Class.Name}By{pk.Name}(connection, {pk.Name.lower()}):").o()
+            s.wln(f"def DeleteSingle{self.Class.Name}By{pk.Name}(config, {pk.Name.lower()}):").o()
             if db.UsesNamedParameters(self.Language):
                 s.wln(f"params = {{ '{pk.Name.lower()}': {pk.Name.lower()} }}")
             else:
                 s.wln(f"params = [ {pk.Name.lower()} ]")
             s.wln(f"deletequery = {self.getDLClassName()}.Get{self.Class.Name}DeleteQuery()")
-            s.wln(f"{self.CommonFunctionsClassName}.ExecuteParameterizedNonQuery(connection, deletequery, params)")
+            s.wln(f"{self.CommonFunctionsClassName}.ExecuteParameterizedNonQuery(config, deletequery, params)")
             s.c()
             s.ret()
 
             s.wln("@staticmethod")
-            s.wln(f"def DeleteSingle{self.Class.Name}(connection,  {self.Class.Name.lower()}:  {self.Class.Name}):").o()
-            s.wln(f"{self.getDLClassName()}.DeleteSingle{self.Class.Name}By{pk.Name}(connection, {self.Class.Name.lower()}.{pk.Name})")
+            s.wln(f"def DeleteSingle{self.Class.Name}(config,  {self.Class.Name.lower()}:  {self.Class.Name}):").o()
+            s.wln(f"{self.getDLClassName()}.DeleteSingle{self.Class.Name}By{pk.Name}(config, {self.Class.Name.lower()}.{pk.Name})")
             s.c()
             s.ret()
         return s
@@ -448,25 +455,29 @@ class PythonDataClassWriter(DataClassWriter):
         s.ret()
 
         db = self.Database
-        schema = self.getSchema()   
+        schema = self.getSchema() 
+        tablename = db.GetTableName(self.Class)
+  
         if self.Class.hasPrimaryKeyPoperty():
             pk = self.Class.getPrimaryKeyProperty()
             s.wln("@staticmethod")
             s.wln(f"def GetSelectSingle{self.Class.Name}By{pk.Name}Query():").o()
             s.wln(f"columns = {self.getDLClassName()}.Get{self.Class.Name}ColumnNames()")
-            s.wln(f'selectquery = f"SELECT {{columns}} FROM {schema}{db.OB()}{self.Class.Name}{db.CB()} WHERE {db.OB()}{pk.Name}{db.CB()} = {db.GetParameter(pk.Name.lower())}{db.EndQuery()}"')
+            s.wln(f'selectquery = f"SELECT {{columns}} FROM {tablename} WHERE {db.OB()}{pk.Name}{db.CB()} = {db.GetParameter(pk.Name.lower())}{db.EndQuery()}"')
             s.wln("return selectquery")
             s.c().ret()
 
             s.wln("@staticmethod")
-            s.wln(f"def SelectSingle{self.Class.Name}By{pk.Name}(connection, {pk.Name.lower()}) -> {self.Class.Name}:").o()
+            s.wln(f"def SelectSingle{self.Class.Name}By{pk.Name}(config, {pk.Name.lower()}) -> {self.Class.Name}:").o()
             if db.UsesNamedParameters(self.Language):
                 s.wln(f"params = {{ '{pk.Name.lower()}': {pk.Name.lower()} }}")
             else:
                 s.wln(f"params = [ {pk.Name.lower()} ]")
             s.wln(f"selectquery = {self.getDLClassName()}.GetSelectSingle{self.Class.Name}By{pk.Name}Query()")
-            s.wln(f"result = {self.CommonFunctionsClassName}.ExecuteFetchOne(connection, selectquery, params)")
-            s.wln(f"{self.Class.Name.lower()} = {self.getDLClassName()}.Get{self.Class.Name}FromQueryResult(result)")
+            #s.wln(f"result = {self.CommonFunctionsClassName}.ExecuteFetchOne(config, selectquery, params)")
+            #s.wln(f"{self.Class.Name.lower()} = {self.getDLClassName()}.Get{self.Class.Name}FromQueryResult(result)")
+            s.wln(f"translation = {self.getDLClassName()}.Get{self.Class.Name}FromQueryResult")
+            s.wln(f"{self.Class.Name.lower()} = {self.CommonFunctionsClassName}.ExecuteFetchOne(config, selectquery, params, translation)")
             s.wln(f"return {self.Class.Name.lower()}")
             s.c()
             s.ret()

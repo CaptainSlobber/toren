@@ -113,9 +113,15 @@ class DataModuleWriter(WriterObject):
         pUsername = DatatypeString().initialize(name="Username",
                                                description="ConnectionObject.Username",
                                                id="7a7d233d-800c-49d0-9792-f240181f7e7f")
-        pPassword = DatatypeString().initialize(name="Password",
-                                               description="ConnectionObject.Password",
+        pCredential = DatatypeString().initialize(name="Credential",
+                                               description="ConnectionObject.Credential",
                                                id="e8f482b8-0649-41cd-88f9-727bbc030799")
+        pServiceName = DatatypeString().initialize(name="ServiceName",
+                                               description="ConnectionObject.ServiceName",
+                                               id="9ecf2e46-7b6c-4883-9903-5c255a21dad7")
+        pDriver = DatatypeString().initialize(name="Driver",
+                                               description="ConnectionObject.Driver",
+                                               id="69e4dd5d-68c5-45fb-b138-88e77ec6ca73")
         pConnectionString = DatatypeString().initialize(name="ConnectionString",
                                                description="ConnectionObject.ConnectionString",
                                                id="380ffa83-aa37-4391-bf70-44c3cba825fc",
@@ -129,7 +135,8 @@ class DataModuleWriter(WriterObject):
                                                id="823b1b84-2b90-43ff-930d-9ad4bce39d67",
                                                maxlength=1024)
         
-        properties = [pServer, pInstanceName, pServerAddress, pPortNumber, pUsername, pPassword, pDatabase, pConnectionString, pDataPath]
+        properties = [pServer, pInstanceName, pServerAddress, pPortNumber, pUsername, pCredential, 
+                      pServiceName, pDriver, pDatabase, pConnectionString, pDataPath]
         cConnectionObject = Class().initialize(name=connectionobjectclassname, 
                                description=connectionobjectclassname, 
                                id="4ed850e3-f9f9-4dc7-aa79-9e6a310b4ebc",

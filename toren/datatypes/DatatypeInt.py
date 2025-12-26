@@ -164,7 +164,7 @@ class DatatypeInt(DatatypeNumeric):
 
   def Python_from_Oracle(self, *args) -> str:
     if self.hasHigherDimensionality():
-      return f"np.array(json.loads({args[0]}.decode('utf-8')), dtype=np.int32)"
+      return f"np.array(json.loads({args[0]}.read().decode('utf-8')), dtype=np.int32)"
     else:
       return f"int({args[0]})"
   

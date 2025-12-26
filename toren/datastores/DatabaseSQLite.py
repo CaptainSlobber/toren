@@ -38,11 +38,13 @@ class DatabaseSQLite(Database):
   def SeparateForeignKeyCreation(self):
     return False
   
-  def GetCreateForeignKeyQuery(self, schemea, table, property, foreignKey, onDeleteCascade: bool = False):
+  def GetCreateForeignKeyQuery(self, schema, table, property, foreignKey, onDeleteCascade: bool = False):
 
-    table_name = f"{self.OB()}{table.Name}{self.CB()}"
+    table_name = self.GetTableName(table)
+    schema_name = f"{self.OB()}{schema}{self.CB()}"
     property_name = f"{self.OB()}{property.Name}{self.CB()}"
-    foreign_table_name = f"{self.OB()}{foreignKey.FKClass.Name}{self.CB()}"
+    foreign_table_name = self.GetTableName(foreignKey.FKClass)
+
     foreign_property_name = f"{self.OB()}{foreignKey.FKClassProperty.Name}{self.CB()}"
     create_fk_query = f"FOREIGN KEY({property_name}) REFERENCES {foreign_table_name} ({foreign_property_name})"
 
@@ -73,3 +75,24 @@ class DatabaseSQLite(Database):
 
   def PythonConnectionClass(self):
     return "sqlite3"
+  
+  ##########################################################################
+  # Initialize Connection
+  ##########################################################################
+
+  def CSharpInitializeConnection(self, s):
+    return s
+  
+  def PythonInitializeConnection(self, s):
+    connclass = self.PythonConnectionClass()
+    s.wln(f"connection = {connclass}.connect(config.DataPath)")
+    return s
+  
+  def JavaInitializeConnection(self, s):
+    return s 
+  
+  def GoInitializeConnection(self, s):
+    return s
+  
+  def JavaScriptInitializeConnection(self, s):
+    return s

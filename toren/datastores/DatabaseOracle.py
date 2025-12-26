@@ -37,6 +37,12 @@ class DatabaseOracle(Database):
   def GetParameter(self, parameterName: str = "", index: int = -1):
     return f":{parameterName}"
   
+  def EndQuery(self):
+    return ""
+  
+  def HasSchema(self):
+    return False # ..
+  
   ##########################################################################
   # Dependencies
   ##########################################################################
@@ -62,3 +68,33 @@ class DatabaseOracle(Database):
   
   def PythonConnectionClass(self):
     return "oracledb"
+  
+  ##########################################################################
+  # Initialize Connection
+  ##########################################################################
+
+  def CSharpInitializeConnection(self, s):
+    return s
+  
+  def PythonInitializeConnection(self, s):
+
+    
+
+    connclass = self.PythonConnectionClass()
+    s.wln('dsn = f"{config.Server.upper()}:{config.PortNumber}/{config.ServiceName.upper()}"')
+    s.wln(f"connection = {connclass}.connect(").o()
+    s.wln("user=config.Username,")
+    s.wln("password=keyring.get_password(config.Credential, config.Username),")
+    s.wln("dsn=dsn")
+    s.c()
+    s.wln(f")")
+    return s
+  
+  def JavaInitializeConnection(self, s):
+    return s 
+  
+  def GoInitializeConnection(self, s):
+    return s
+  
+  def JavaScriptInitializeConnection(self, s):
+    return s
