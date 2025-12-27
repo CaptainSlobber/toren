@@ -57,7 +57,14 @@ class DatabaseMicrosoftSQL(Database):
     _unparams[LanguageJavaScript().getID()] = True
     return _unparams[language.getID()]
 
-
+  def TOP(self, number):
+    return f"TOP {str(number)} "
+  
+  def LIMIT(self, number):
+    return f""
+  
+  def LIMIT_OFFSET(self, limit_number, offset_number):
+    return f" OFFSET {str(offset_number)} ROWS FETCH NEXT {str(limit_number)} ROWS ONLY"
 
   ##########################################################################
   # Dependencies

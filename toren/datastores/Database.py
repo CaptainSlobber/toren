@@ -174,6 +174,18 @@ class Database(TorenObject):
         return f"{db.OB()}{table.ParentModule.Name}{db.CB()}.{db.OB()}{table.Name}{db.CB()}"
     else:
       return f"{db.OB()}{table.ParentModule.Name}.{table.Name}{db.CB()}"
+    
+  def TOP(self, number):
+    return f""
+  
+  def LIMIT(self, number):
+    return f" LIMIT {str(number)}"
+  
+  def OFFSET(self, number):
+    return f" OFFSET {str(number)}"
+  
+  def LIMIT_OFFSET(self, limit_number, offset_number):
+    return f" LIMIT {str(limit_number)} OFFSET {str(offset_number)}"
 
   ##########################################################################
   # Dependencies

@@ -441,14 +441,14 @@ class PythonDataClassWriter(DataClassWriter):
                 #     converted = property.From(self.Language, self.Database, f"queryresult[{str(index)}]")
                 #     index = index + 1
                 s.wln(f"{property.Name.lower()} = {converted},")
-            for propertyid, property in self.Class.Properties.Data.items():
-                converted = property.From(self.Language, self.Database, f"queryresult['{property.Name}']")
-                # if db.UsesNamedParameters(self.Language):
-                #     converted = property.From(self.Language, self.Database, f"queryresult['{property.Name}']")
-                # else:
-                #     converted = property.From(self.Language, self.Database, f"queryresult[{str(index)}]")
-                #     index = index + 1
-                s.wln(f"{property.Name.lower()} = {converted},")
+        for propertyid, property in self.Class.Properties.Data.items():
+            converted = property.From(self.Language, self.Database, f"queryresult['{property.Name}']")
+            # if db.UsesNamedParameters(self.Language):
+            #     converted = property.From(self.Language, self.Database, f"queryresult['{property.Name}']")
+            # else:
+            #     converted = property.From(self.Language, self.Database, f"queryresult[{str(index)}]")
+            #     index = index + 1
+            s.wln(f"{property.Name.lower()} = {converted},")
         s.c().wln(")")
         s.wln(f"return {self.Class.Name.lower()}")
         s.c()
@@ -485,6 +485,82 @@ class PythonDataClassWriter(DataClassWriter):
         return s
     
     def writeSelectWhere(self, s:PythonStringWriter):
+        return s
+    
+    def writeSelectAll(self, s:PythonStringWriter):
+        db = self.Database
+        tablename = db.GetTableName(self.Class)
+        orderby = self.getOrderByClause()
+        s.wln("@staticmethod")
+        s.wln(f"def GetSelectAll{self.Class.Name}Query(limit: int = {str(self.Class.PageSize)}):").o()
+        s.wln(f"columns = {self.getDLClassName()}.Get{self.Class.Name}ColumnNames()")
+        s.wln(f'selectquery = f"SELECT {db.TOP("{limit}")}{{columns}} FROM {tablename}{orderby}{db.LIMIT("{limit}")}{db.EndQuery()}"')
+        s.wln("return selectquery")
+        s.c().ret()
+
+        s.wln("@staticmethod")
+        s.wln(f"def SelectAll{self.Class.Name}(config, limit: int = {str(self.Class.PageSize)}) -> {self.Class.SetDescription}:").o()
+        if db.UsesNamedParameters(self.Language):
+            s.wln(f"params = {{ }}")
+        else:  
+            s.wln(f"params = []")
+        s.wln(f"selectquery = {self.getDLClassName()}.GetSelectAll{self.Class.Name}Query(limit)")
+        s.wln(f"result = {self.getDLClassName()}.Select{self.Class.SetDescription}(config, selectquery, params)")
+        s.wln(f"return result")
+        s.c()
+        s.ret()
+
+        s.wln("@staticmethod")
+        s.wln(f"def Select{self.Class.SetDescription}(config, selectquery, params) -> {self.Class.SetDescription}:").o()
+        s.wln(f"translation = {self.getDLClassName()}.Get{self.Class.Name}FromQueryResult")
+        s.wln(f"_{self.Class.Name.lower()}_list = {self.CommonFunctionsClassName}.ExecuteFetchAll(config, selectquery, params, translation)")
+        s.wln(f"{self.Class.Name.lower()}_list = {self.Class.SetDescription}().fromList(_{self.Class.Name.lower()}_list)")
+        s.wln(f"return {self.Class.Name.lower()}_list")
+        s.c()
+        s.ret()
+        return s
+    
+    def getOrderByClause(self):
+        db = self.Database
+        orderby = ""
+        # if self.Class.hasPrimaryKeyPoperty():
+        #     pk = self.Class.getPrimaryKeyProperty()
+        #     orderby = f" ORDER BY {db.OB()}{pk.Name}{db.CB()} ASC"
+
+        if self.Class.InheritsFrom is not None:
+            for propertyid, property in self.Class.InheritedProperties.Data.items():
+                if property.IsUnique and not property.IsPrimaryKey:
+                    orderby = f" ORDER BY {db.OB()}{property.Name}{db.CB()} ASC"
+        for propertyid, property in self.Class.Properties.Data.items():
+            if property.IsUnique and not property.IsPrimaryKey:
+                    orderby = f" ORDER BY {db.OB()}{property.Name}{db.CB()} ASC"
+        return orderby
+    
+    def writeSelectPage(self, s:PythonStringWriter):
+        db = self.Database
+        tablename = db.GetTableName(self.Class)
+        orderby = self.getOrderByClause()
+        s.wln("@staticmethod")
+        s.wln(f"def GetSelectPaged{self.Class.Name}Query(pageno: int=1, limit: int={str(self.Class.PageSize)}):").o()
+        s.wln(f"offset = (pageno - 1) * limit")
+        s.wln(f"columns = {self.getDLClassName()}.Get{self.Class.Name}ColumnNames()")
+        s.wln(f'selectquery = f"SELECT {{columns}} FROM {tablename}{orderby}{db.LIMIT_OFFSET("{limit}","{offset}")}{db.EndQuery()}"')
+        s.wln("return selectquery")
+        s.c().ret()
+
+        s.wln("@staticmethod")
+        s.wln(f"def SelectPaged{self.Class.Name}(config, pageno: int=1, limit: int={str(self.Class.PageSize)}) -> {self.Class.SetDescription}:").o()
+        if db.UsesNamedParameters(self.Language):
+            #s.wln(f"params = {{ 'pageno': pageno, 'limit': limit }}")
+            s.wln(f"params = {{ }}")
+        else:
+            #s.wln(f"params = [ pageno, limit ]")
+            s.wln(f"params = []")
+        s.wln(f"selectquery = {self.getDLClassName()}.GetSelectPaged{self.Class.Name}Query(pageno, limit)")
+        s.wln(f"result = {self.getDLClassName()}.Select{self.Class.SetDescription}(config, selectquery, params)")
+        s.wln(f"return result")
+        s.c()
+        s.ret()
         return s
 
     def writeDLClassClose(self, s:PythonStringWriter):

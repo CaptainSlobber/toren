@@ -43,6 +43,15 @@ class DatabaseOracle(Database):
   def HasSchema(self):
     return False # ..
   
+  def TOP(self, number):
+    return f""
+  
+  def LIMIT(self, number):
+    return f" FETCH FIRST {str(number)} ROWS ONLY"
+  
+  def LIMIT_OFFSET(self, limit_number, offset_number):
+    return f" OFFSET {str(offset_number)} ROWS FETCH NEXT {str(limit_number)} ROWS ONLY"
+  
   ##########################################################################
   # Dependencies
   ##########################################################################

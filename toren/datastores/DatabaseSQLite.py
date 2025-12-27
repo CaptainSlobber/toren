@@ -50,6 +50,18 @@ class DatabaseSQLite(Database):
 
     return create_fk_query
   
+  def TOP(self, number):
+    return f""
+  
+  def LIMIT(self, number):
+    return f" LIMIT {str(number)}"
+  
+  def OFFSET(self, number):
+    return f" OFFSET {str(number)}"
+  
+  def LIMIT_OFFSET(self, limit_number, offset_number):
+    return f" LIMIT {str(limit_number)} OFFSET {str(offset_number)}"
+  
   ##########################################################################
   # Dependencies
   ##########################################################################
