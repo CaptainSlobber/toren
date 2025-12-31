@@ -114,9 +114,13 @@ class JavaDataClassWriter(DataClassWriter):
         return s
 
 
+  
+
     
     def writeCreateTable(self, s:JavaStringWriter):
         db = self.Database
+        
+
         s.w(f"private static string create{self.Class.Name}TableQuery ()").o()
         s.wln(f'string createquery = "CREATE TABLE{db.IfNotExists()} {db.OB()}{self.Class.Name}{db.CB()} (";')
         if self.Class.InheritsFrom is not None:

@@ -94,6 +94,7 @@ class DataClassWriter(WriterObject):
         s = self.writeSelectWhere(s)
         s = self.writeSelectAll(s)
         s = self.writeSelectPage(s)
+        s = self.writeSelectPageWhere(s)
         return s
 
     def writeCreateForeignKeys(self, s:StringWriter):
@@ -145,6 +146,9 @@ class DataClassWriter(WriterObject):
         return s
     
     def writeSelectPage(self, s:StringWriter):
+        return s
+    
+    def writeSelectPageWhere(self, s:StringWriter):
         return s
 
     def writeDLClassClose(self, s:StringWriter):

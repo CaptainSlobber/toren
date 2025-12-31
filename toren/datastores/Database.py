@@ -147,9 +147,9 @@ class Database(TorenObject):
   def SeparateForeignKeyCreation(self):
     return True
   
-  def GetCreateForeignKeyQuery(self, schema, table, property, foreignKey, onDeleteCascade: bool = False):
+  def GetCreateForeignKeyQuery(self, schema, table, instanceparam, property, foreignKey, onDeleteCascade: bool = False):
 
-    table_name = self.GetTableName(table)
+    table_name = self.GetTableName(table, instanceparam)
     schema_name = f"{self.OB()}{schema}{self.CB()}"
     property_name = f"{self.OB()}{property.Name}{self.CB()}"
     foreign_table_name = self.GetTableName(foreignKey.FKClass)
@@ -168,12 +168,13 @@ class Database(TorenObject):
 
     return createFKQuery
   
-  def GetTableName(self, table):
+  def GetTableName(self, table, instanceparam: str = ""):
     db = self
     if self.HasSchema():
-        return f"{db.OB()}{table.ParentModule.Name}{db.CB()}.{db.OB()}{table.Name}{db.CB()}"
+        return f"{db.OB()}{table.ParentModule.Name}{db.CB()}.{db.OB()}{table.Name}{instanceparam}{db.CB()}"
     else:
-      return f"{db.OB()}{table.ParentModule.Name}.{table.Name}{db.CB()}"
+      return f"{db.OB()}{table.ParentModule.Name}.{table.Name}{instanceparam}{db.CB()}"
+
     
   def TOP(self, number):
     return f""

@@ -11,6 +11,7 @@ from ...Project import Project
 from ...Module import Module
 from ...Class import Class
 from ...languages import *
+from ...datatypes import *
 from ...tracer.Logger import Logger
 
 class PythonDataClassWriter(DataClassWriter):
@@ -63,6 +64,9 @@ class PythonDataClassWriter(DataClassWriter):
 
         for dependency in self.Database.PythonDependencies():
             dependency_map[dependency] = dependency
+
+        if self.Class.Cloneable:
+            dependency_map["import uuid"] = "import uuid"
         p = self.Class.ParentModule.ParentProject.Name
         m = self.Class.ParentModule.Name
         c = self.Class.Name
@@ -138,16 +142,59 @@ class PythonDataClassWriter(DataClassWriter):
         return s
 
 
+    def getInstanceIDParameter(self, prefix: str = ""):
+        if self.Class.Cloneable:
+            return prefix + self.getInstanceIDParemeterName() + ": uuid.UUID=None"
+        else:
+            return ""
     
+    def  getInstanceIDParemeterName(self, prefix: str = ""):
+        if self.Class.Cloneable:
+            return prefix + "instanceID"
+        else:
+            return ""
+        
+    def  getInstanceIDExt(self):
+        if self.Class.Cloneable:
+            return "{" + self.getInstanceIDParemeterName() + "Str" + "}"
+
+        else:
+            return ""
+    
+
+    def writeInstanceIDStr(self, s:PythonStringWriter):
+        iin = self.getInstanceIDParemeterName()
+        if self.Class.Cloneable:
+            s.wln(f"{iin}Str = {self.getDLClassName()}.GetInstanceIDStr({iin})")
+        return s
 
     def writeCreateTable(self, s:PythonStringWriter):
         db = self.Database
+        iin = self.getInstanceIDParemeterName()
+        iid = self.getInstanceIDParameter()
+        iid2 = self.getInstanceIDParameter(", ")
+        iie = self.getInstanceIDExt()
         schema = self.getSchema()
-        tablename = db.GetTableName(self.Class)
+        tablename = db.GetTableName(self.Class, iie)
+
+
+        if self.Class.Cloneable:
+            s.wln("@staticmethod")
+            s.wln(f"def GetInstanceIDStr({iid}):").o()
+            s.wln(f"if {iin} is not None:").o()
+            s.wln(f"if isinstance({iin}, uuid.UUID):").o()
+            s.wln(f'return "." + str({iin})')
+            
+            s.c().c()
+            s.wln(f'return ""')
+            s.c()
+            s.ret()
 
         s.wln("@staticmethod")
-        s.wln(f"def GetCreate{self.Class.Name}TableQuery():").o()
-        s.wln(f'createquery = "CREATE TABLE{db.IfNotExists()} {tablename} ("')
+        s.wln(f"def GetCreate{self.Class.Name}TableQuery({iid}):").o()
+
+        s = self.writeInstanceIDStr(s)
+        s.wln(f'createquery = f"CREATE TABLE{db.IfNotExists()} {tablename} ("')
         if self.Class.InheritsFrom is not None:
             for propertyid, property in self.Class.InheritedProperties.Data.items():
                 s = self.writeCreateTableColumn(s, property)
@@ -170,8 +217,8 @@ class PythonDataClassWriter(DataClassWriter):
         s.c().ret()
 
         s.wln("@staticmethod")
-        s.wln(f"def Create{self.Class.Name}Table(config):").o()
-        s.wln(f"createquery = {self.getDLClassName()}.GetCreate{self.Class.Name}TableQuery()")
+        s.wln(f"def Create{self.Class.Name}Table(config{iid2}):").o()
+        s.wln(f"createquery = {self.getDLClassName()}.GetCreate{self.Class.Name}TableQuery({iin})")
         s.wln(f"{self.CommonFunctionsClassName}.ExecuteNonQuery(config, createquery)")
         s.c()
         s.ret()
@@ -180,37 +227,49 @@ class PythonDataClassWriter(DataClassWriter):
     def checkTableExistence(self, s:PythonStringWriter):
         return s
     
-    def writeClearTable(self, s:PythonStringWriter):
+
+    def getCommonItems(self):
         db = self.Database
+        iin = self.getInstanceIDParemeterName()
+        iin2 = self.getInstanceIDParemeterName(", ")
+
+        iid = self.getInstanceIDParameter()
+        iid2 = self.getInstanceIDParameter(", ")
+        iie = self.getInstanceIDExt()
         schema = self.getSchema()
-        tablename = db.GetTableName(self.Class)
+        tablename = db.GetTableName(self.Class, iie)
+
+        return (db, schema, tablename, iid, iid2, iin, iin2, iie)
+
+    def writeClearTable(self, s:PythonStringWriter):
+        (db, schema, tablename, iid, iid2, iin, iin2, iie) = self.getCommonItems()
         s.wln("@staticmethod")
-        s.wln(f"def GetClear{self.Class.Name}TableQuery():").o()
-        s.wln(f'clearquery = "DELETE FROM {tablename}{db.EndQuery()}"')
+        s.wln(f"def GetClear{self.Class.Name}TableQuery({iid}):").o()
+        s = self.writeInstanceIDStr(s)
+        s.wln(f'clearquery = f"DELETE FROM {tablename}{db.EndQuery()}"')
         s.wln("return clearquery")
         s.c().ret()
 
         s.wln("@staticmethod")
-        s.wln(f"def Clear{self.Class.Name}Table(config):").o()
-        s.wln(f"clearquery = {self.getDLClassName()}.GetClear{self.Class.Name}TableQuery()")
+        s.wln(f"def Clear{self.Class.Name}Table(config{iid2}):").o()
+        s.wln(f"clearquery = {self.getDLClassName()}.GetClear{self.Class.Name}TableQuery({iin})")
         s.wln(f"{self.CommonFunctionsClassName}.ExecuteNonQuery(config, clearquery)")
         s.c()
         s.ret()
         return s
     
     def writeDropTable(self, s:PythonStringWriter):
-        db = self.Database
-        schema = self.getSchema()
-        tablename = db.GetTableName(self.Class)
+        (db, schema, tablename, iid, iid2, iin, iin2, iie) = self.getCommonItems()
         s.wln("@staticmethod")
-        s.wln(f"def GetDrop{self.Class.Name}TableQuery():").o()
-        s.wln(f'dropquery = "DROP TABLE{db.IfExists()} {tablename}{db.EndQuery()}"')
+        s.wln(f"def GetDrop{self.Class.Name}TableQuery({iid}):").o()
+        s = self.writeInstanceIDStr(s)
+        s.wln(f'dropquery = f"DROP TABLE{db.IfExists()} {tablename}{db.EndQuery()}"')
         s.wln("return dropquery")
         s.c().ret()
 
         s.wln("@staticmethod")
-        s.wln(f"def Drop{self.Class.Name}Table(config):").o()
-        s.wln(f"dropquery = {self.getDLClassName()}.GetDrop{self.Class.Name}TableQuery()")
+        s.wln(f"def Drop{self.Class.Name}Table(config{iid2}):").o()
+        s.wln(f"dropquery = {self.getDLClassName()}.GetDrop{self.Class.Name}TableQuery({iin})")
         s.wln(f"{self.CommonFunctionsClassName}.ExecuteNonQuery(config, dropquery)")
         s.c()
         s.ret()
@@ -236,30 +295,30 @@ class PythonDataClassWriter(DataClassWriter):
     
     
     def writeCreateForeignKeys(self, s:PythonStringWriter):
-        db = self.Database
-        schema = self.getSchema()
+        (db, schema, tablename, iid, iid2, iin, iin2, iie) = self.getCommonItems()
         if db.SeparateForeignKeyCreation():
             s.wln("@staticmethod")
-            s.wln(f"def Get{self.Class.Name}ForeignKeyQueries():").o()
+            s.wln(f"def Get{self.Class.Name}ForeignKeyQueries({iid}):").o()
+            s = self.writeInstanceIDStr(s)
             s.wln("foreignkeyqueries = []")
             if self.Class.InheritsFrom is not None:
                 for propertyid, property in self.Class.InheritedProperties.Data.items():
                     if property.ForeignKey is not None:
-                        create_fk = db.GetCreateForeignKeyQuery(schema, self.Class, property, property.ForeignKey)
-                        s.wln(f'foreignkeyqueries.append("{create_fk}")')
+                        create_fk = db.GetCreateForeignKeyQuery(schema, self.Class, iie, property, property.ForeignKey)
+                        s.wln(f'foreignkeyqueries.append(f"{create_fk}")')
                         
 
             for propertyid, property in self.Class.Properties.Data.items():
                 if property.ForeignKey is not None:
-                    create_fk = db.GetCreateForeignKeyQuery(schema, self.Class, property, property.ForeignKey)
-                    s.wln(f'foreignkeyqueries.append("{create_fk}")')
+                    create_fk = db.GetCreateForeignKeyQuery(schema, self.Class, iie, property, property.ForeignKey)
+                    s.wln(f'foreignkeyqueries.append(f"{create_fk}")')
             s.writeline("return foreignkeyqueries")
             s.c()
             s.ret()
 
             s.wln("@staticmethod")
-            s.wln(f"def Create{self.Class.Name}ForeignKeys(config):").o()
-            s.wln(f"foreignkeyqueries = {self.getDLClassName()}.Get{self.Class.Name}ForeignKeyQueries()")
+            s.wln(f"def Create{self.Class.Name}ForeignKeys(config{iid2}):").o()
+            s.wln(f"foreignkeyqueries = {self.getDLClassName()}.Get{self.Class.Name}ForeignKeyQueries({iin})")
             s.wln(f"for foreignkeyquery in foreignkeyqueries:").o()
             s.wln(f"{self.CommonFunctionsClassName}.ExecuteNonQuery(config, foreignkeyquery)")
             s.c()
@@ -288,12 +347,10 @@ class PythonDataClassWriter(DataClassWriter):
         return s
     
     def writeInsertItem(self, s:PythonStringWriter):
-
-        db = self.Database
-        schema = self.getSchema()
-        tablename = db.GetTableName(self.Class)
+        (db, schema, tablename, iid, iid2, iin, iin2, iie) = self.getCommonItems()
         s.wln("@staticmethod")
-        s.wln(f"def Get{self.Class.Name}InsertQuery():").o()
+        s.wln(f"def Get{self.Class.Name}InsertQuery({iid}):").o()
+        s = self.writeInstanceIDStr(s)
         s.wln(f'columns = {self.getDLClassName()}.Get{self.Class.Name}ColumnNames()')
         s.wln(f"params = {self.getDLClassName()}.Get{self.Class.Name}ColumnParameters()")
         s.wln(f'insertquery = f"INSERT INTO {tablename} ({{columns}}) VALUES ({{params}}){db.EndQuery()}"')
@@ -325,9 +382,9 @@ class PythonDataClassWriter(DataClassWriter):
         s.c().ret()
 
         s.wln("@staticmethod")
-        s.wln(f"def InsertSingle{self.Class.Name}(config, {self.Class.Name.lower()}:  {self.Class.Name}):").o()
+        s.wln(f"def InsertSingle{self.Class.Name}(config, {self.Class.Name.lower()}:  {self.Class.Name}{iid2}):").o()
         s.wln(f"params = {self.getDLClassName()}.Parameterize{self.Class.Name}({self.Class.Name.lower()})")
-        s.wln(f"insertquery = {self.getDLClassName()}.Get{self.Class.Name}InsertQuery()")
+        s.wln(f"insertquery = {self.getDLClassName()}.Get{self.Class.Name}InsertQuery({iin})")
         s.wln(f"{self.CommonFunctionsClassName}.ExecuteParameterizedNonQuery(config, insertquery, params)")
         s.c()
         s.ret()
@@ -335,40 +392,34 @@ class PythonDataClassWriter(DataClassWriter):
         return s
     
     def writeInsertCollection(self, s:PythonStringWriter):
-
-        db = self.Databasedb = self.Database
-        schema = self.getSchema()
+        (db, schema, tablename, iid, iid2, iin, iin2, iie) = self.getCommonItems()
         s.wln("@staticmethod")
-        s.wln(f"def Insert{self.Class.SetDescription}(config, {self.Class.SetDescription.lower()}:  {self.Class.SetDescription}):").o()
+        s.wln(f"def Insert{self.Class.SetDescription}(config, {self.Class.SetDescription.lower()}:  {self.Class.SetDescription}{iid2}):").o()
         s.wln(f"{self.Class.Name.lower()}list = {self.Class.SetDescription.lower()}.toList()")
-        s.wln(f"return {self.getDLClassName()}.Insert{self.Class.Name}List(config, {self.Class.Name.lower()}list)")
+        s.wln(f"return {self.getDLClassName()}.Insert{self.Class.Name}List(config, {self.Class.Name.lower()}list{iin2})")
         s.c()
         
-
         s.wln("@staticmethod")
-        s.wln(f"def Insert{self.Class.Name}List(config, {self.Class.Name.lower()}list:  list):").o()
+        s.wln(f"def Insert{self.Class.Name}List(config, {self.Class.Name.lower()}list: list{iid2}):").o()
         s.wln("data = []")
         s.wln(f"for {self.Class.Name.lower()} in {self.Class.Name.lower()}list:").o()
         s.wln(f"params = {self.getDLClassName()}.Parameterize{self.Class.Name}({self.Class.Name.lower()})")
         s.wln("data.append(params)")
         s.c()
-        s.wln(f"insertquery = {self.getDLClassName()}.Get{self.Class.Name}InsertQuery()")
+        s.wln(f"insertquery = {self.getDLClassName()}.Get{self.Class.Name}InsertQuery({iin})")
         s.wln(f"{self.CommonFunctionsClassName}.ExecuteManyParameterizedNonQuery(config, insertquery, data)")
         s.c()
         s.ret()
         return s
     
     def writeUpdate(self, s:PythonStringWriter):
-
-        db = self.Database
-        schema = self.getSchema()
-        tablename = db.GetTableName(self.Class)
-
+        (db, schema, tablename, iid, iid2, iin, iin2, iie) = self.getCommonItems()
         if self.Class.hasPrimaryKeyPoperty():
             pk = self.Class.getPrimaryKeyProperty()
             s.wln("@staticmethod")
-            s.wln(f"def Get{self.Class.Name}UpdateQuery():").o()
-            s.wln(f'updatequery = "UPDATE {tablename} SET "')
+            s.wln(f"def Get{self.Class.Name}UpdateQuery({iid}):").o()
+            s = self.writeInstanceIDStr(s)
+            s.wln(f'updatequery = f"UPDATE {tablename} SET "')
             if self.Class.InheritsFrom is not None:
                 for propertyid, property in self.Class.InheritedProperties.Data.items():
                     if not property.IsPrimaryKey:
@@ -381,50 +432,45 @@ class PythonDataClassWriter(DataClassWriter):
             s.c().ret()
 
             s.wln("@staticmethod")
-            s.wln(f"def UpdateSingle{self.Class.Name}(config, {self.Class.Name.lower()}:  {self.Class.Name}):").o()
+            s.wln(f"def UpdateSingle{self.Class.Name}(config, {self.Class.Name.lower()}:  {self.Class.Name}{iid2}):").o()
             s.wln(f"params = {self.getDLClassName()}.Parameterize{self.Class.Name}({self.Class.Name.lower()})")
-            s.wln(f"updatequery = {self.getDLClassName()}.Get{self.Class.Name}UpdateQuery()")
+            s.wln(f"updatequery = {self.getDLClassName()}.Get{self.Class.Name}UpdateQuery({iin})")
             s.wln(f"{self.CommonFunctionsClassName}.ExecuteParameterizedNonQuery(config, updatequery, params)")
             s.c()
             s.ret()
         return s
     
     def writeDelete(self, s:PythonStringWriter):
-
-        db = self.Database
-        schema = self.getSchema()  
-        tablename = db.GetTableName(self.Class)
- 
+        (db, schema, tablename, iid, iid2, iin, iin2, iie) = self.getCommonItems()
         if self.Class.hasPrimaryKeyPoperty():
             pk = self.Class.getPrimaryKeyProperty()
             s.wln("@staticmethod")
-            s.wln(f"def Get{self.Class.Name}DeleteQuery():").o()
+            s.wln(f"def Get{self.Class.Name}DeleteQuery({iid}):").o()
+            s = self.writeInstanceIDStr(s)
             s.wln(f'deletequery = "DELETE FROM {tablename} WHERE {db.OB()}{pk.Name}{db.CB()} = {db.GetParameter(pk.Name.lower())}{db.EndQuery()}"')
             s.wln("return deletequery")
             s.c().ret()
 
             s.wln("@staticmethod")
-            s.wln(f"def DeleteSingle{self.Class.Name}By{pk.Name}(config, {pk.Name.lower()}):").o()
+            s.wln(f"def DeleteSingle{self.Class.Name}By{pk.Name}(config, {pk.Name.lower()}{iid2}):").o()
             if db.UsesNamedParameters(self.Language):
                 s.wln(f"params = {{ '{pk.Name.lower()}': {pk.Name.lower()} }}")
             else:
                 s.wln(f"params = [ {pk.Name.lower()} ]")
-            s.wln(f"deletequery = {self.getDLClassName()}.Get{self.Class.Name}DeleteQuery()")
+            s.wln(f"deletequery = {self.getDLClassName()}.Get{self.Class.Name}DeleteQuery({iin})")
             s.wln(f"{self.CommonFunctionsClassName}.ExecuteParameterizedNonQuery(config, deletequery, params)")
             s.c()
             s.ret()
 
             s.wln("@staticmethod")
-            s.wln(f"def DeleteSingle{self.Class.Name}(config,  {self.Class.Name.lower()}:  {self.Class.Name}):").o()
-            s.wln(f"{self.getDLClassName()}.DeleteSingle{self.Class.Name}By{pk.Name}(config, {self.Class.Name.lower()}.{pk.Name})")
+            s.wln(f"def DeleteSingle{self.Class.Name}(config,  {self.Class.Name.lower()}:  {self.Class.Name}{iid2}):").o()
+            s.wln(f"{self.getDLClassName()}.DeleteSingle{self.Class.Name}By{pk.Name}(config, {self.Class.Name.lower()}.{pk.Name}{iin2})")
             s.c()
             s.ret()
         return s
     
     def writeSelectSingleRecordByPK(self, s:PythonStringWriter):
-
-        db = self.Database
-        schema = self.getSchema()
+        (db, schema, tablename, iid, iid2, iin, iin2, iie) = self.getCommonItems()
         data_data_type = "dict"
         #if not db.UsesNamedParameters(self.Language):
         #    data_data_type = "list"
@@ -454,26 +500,23 @@ class PythonDataClassWriter(DataClassWriter):
         s.c()
         s.ret()
 
-        db = self.Database
-        schema = self.getSchema() 
-        tablename = db.GetTableName(self.Class)
-  
         if self.Class.hasPrimaryKeyPoperty():
             pk = self.Class.getPrimaryKeyProperty()
             s.wln("@staticmethod")
-            s.wln(f"def GetSelectSingle{self.Class.Name}By{pk.Name}Query():").o()
+            s.wln(f"def GetSelectSingle{self.Class.Name}By{pk.Name}Query({iid}):").o()
+            s = self.writeInstanceIDStr(s)
             s.wln(f"columns = {self.getDLClassName()}.Get{self.Class.Name}ColumnNames()")
             s.wln(f'selectquery = f"SELECT {{columns}} FROM {tablename} WHERE {db.OB()}{pk.Name}{db.CB()} = {db.GetParameter(pk.Name.lower())}{db.EndQuery()}"')
             s.wln("return selectquery")
             s.c().ret()
 
             s.wln("@staticmethod")
-            s.wln(f"def SelectSingle{self.Class.Name}By{pk.Name}(config, {pk.Name.lower()}) -> {self.Class.Name}:").o()
+            s.wln(f"def SelectSingle{self.Class.Name}By{pk.Name}(config, {pk.Name.lower()}{iid2}) -> {self.Class.Name}:").o()
             if db.UsesNamedParameters(self.Language):
                 s.wln(f"params = {{ '{pk.Name.lower()}': {pk.Name.lower()} }}")
             else:
                 s.wln(f"params = [ {pk.Name.lower()} ]")
-            s.wln(f"selectquery = {self.getDLClassName()}.GetSelectSingle{self.Class.Name}By{pk.Name}Query()")
+            s.wln(f"selectquery = {self.getDLClassName()}.GetSelectSingle{self.Class.Name}By{pk.Name}Query({iin})")
             #s.wln(f"result = {self.CommonFunctionsClassName}.ExecuteFetchOne(config, selectquery, params)")
             #s.wln(f"{self.Class.Name.lower()} = {self.getDLClassName()}.Get{self.Class.Name}FromQueryResult(result)")
             s.wln(f"translation = {self.getDLClassName()}.Get{self.Class.Name}FromQueryResult")
@@ -485,26 +528,77 @@ class PythonDataClassWriter(DataClassWriter):
         return s
     
     def writeSelectWhere(self, s:PythonStringWriter):
-        return s
-    
-    def writeSelectAll(self, s:PythonStringWriter):
-        db = self.Database
-        tablename = db.GetTableName(self.Class)
+
+        (db, schema, tablename, iid, iid2, iin, iin2, iie) = self.getCommonItems()
         orderby = self.getOrderByClause()
         s.wln("@staticmethod")
-        s.wln(f"def GetSelectAll{self.Class.Name}Query(limit: int = {str(self.Class.PageSize)}):").o()
+        s.wln(f'def GetSelectAll{self.Class.Name}WhereQuery(whereclause: str="WHERE 1=1", limit: int = {str(self.Class.PageSize)}{iid2}):').o()
         s.wln(f"columns = {self.getDLClassName()}.Get{self.Class.Name}ColumnNames()")
+        s = self.writeInstanceIDStr(s)
+        s.wln(f'selectquery = f"SELECT {db.TOP("{limit}")}{{columns}} FROM {tablename} {{whereclause}}{orderby}{db.LIMIT("{limit}")}{db.EndQuery()}"')
+        s.wln("return selectquery")
+        s.c().ret()
+
+
+        s.wln("@staticmethod")
+        s.wln(f'def SelectAll{self.Class.Name}Where(config, whereclause: str="WHERE 1=1", limit: int = {str(self.Class.PageSize)}{iid2}) -> {self.Class.SetDescription}:').o()
+        if db.UsesNamedParameters(self.Language):
+            s.wln(f"params = {{ }}")
+        else:  
+            s.wln(f"params = []")
+        s.wln(f"selectquery = {self.getDLClassName()}.GetSelectAll{self.Class.Name}WhereQuery(whereclause, limit{iin2})")
+        s.wln(f"result = {self.getDLClassName()}.Select{self.Class.SetDescription}(config, selectquery, params)")
+        s.wln(f"return result")
+        s.c()
+        s.ret()
+
+        if self.Class.InheritsFrom is not None:
+            for propertyid, property in self.Class.InheritedProperties.Data.items():
+                if property.IsUnique and not property.IsPrimaryKey and (property.Type == DatatypeString().getType()):
+                    s = self.writeSelectWhereForProperty(s, property)
+
+        for propertyid, property in self.Class.Properties.Data.items(): 
+            if property.IsUnique and not property.IsPrimaryKey and (property.Type == DatatypeString().getType()):
+                s = self.writeSelectWhereForProperty(s, property)
+
+        return s
+    
+    def writeSelectWhereForProperty(self, s:PythonStringWriter, property):
+        (db, schema, tablename, iid, iid2, iin, iin2, iie) = self.getCommonItems()
+
+        s.wln("@staticmethod")
+        s.wln(f'def SelectAll{self.Class.Name}Where{property.Name}Like(config, val: str, limit: int = {str(self.Class.PageSize)}{iid2}) -> {self.Class.SetDescription}:').o()
+        if db.UsesNamedParameters(self.Language):
+            s.wln(f"params = {{ '{property.Name.lower()}': '%' + val + '%'}}")
+        else:  
+            s.wln(f"params = ['%' + val + '%']")
+        s.wln(f'whereclause = "WHERE {db.OB()}{property.Name}{db.CB()} LIKE {db.GetParameter(property.Name.lower())}"')
+        s.wln(f"selectquery = {self.getDLClassName()}.GetSelectAll{self.Class.Name}WhereQuery(whereclause, limit{iin2})")
+        s.wln(f"result = {self.getDLClassName()}.Select{self.Class.SetDescription}(config, selectquery, params)")
+        s.wln(f"return result")
+        s.c()
+        s.ret()
+        return s
+
+    
+    def writeSelectAll(self, s:PythonStringWriter):
+        (db, schema, tablename, iid, iid2, iin, iin2, iie) = self.getCommonItems()
+        orderby = self.getOrderByClause()
+        s.wln("@staticmethod")
+        s.wln(f"def GetSelectAll{self.Class.Name}Query(limit: int = {str(self.Class.PageSize)}{iid2}):").o()
+        s.wln(f"columns = {self.getDLClassName()}.Get{self.Class.Name}ColumnNames()")
+        s = self.writeInstanceIDStr(s)
         s.wln(f'selectquery = f"SELECT {db.TOP("{limit}")}{{columns}} FROM {tablename}{orderby}{db.LIMIT("{limit}")}{db.EndQuery()}"')
         s.wln("return selectquery")
         s.c().ret()
 
         s.wln("@staticmethod")
-        s.wln(f"def SelectAll{self.Class.Name}(config, limit: int = {str(self.Class.PageSize)}) -> {self.Class.SetDescription}:").o()
+        s.wln(f"def SelectAll{self.Class.Name}(config, limit: int = {str(self.Class.PageSize)}{iid2}) -> {self.Class.SetDescription}:").o()
         if db.UsesNamedParameters(self.Language):
             s.wln(f"params = {{ }}")
         else:  
             s.wln(f"params = []")
-        s.wln(f"selectquery = {self.getDLClassName()}.GetSelectAll{self.Class.Name}Query(limit)")
+        s.wln(f"selectquery = {self.getDLClassName()}.GetSelectAll{self.Class.Name}Query(limit{iin2})")
         s.wln(f"result = {self.getDLClassName()}.Select{self.Class.SetDescription}(config, selectquery, params)")
         s.wln(f"return result")
         s.c()
@@ -537,26 +631,80 @@ class PythonDataClassWriter(DataClassWriter):
         return orderby
     
     def writeSelectPage(self, s:PythonStringWriter):
-        db = self.Database
-        tablename = db.GetTableName(self.Class)
+        (db, schema, tablename, iid, iid2, iin, iin2, iie) = self.getCommonItems()
         orderby = self.getOrderByClause()
         s.wln("@staticmethod")
-        s.wln(f"def GetSelectPaged{self.Class.Name}Query(pageno: int=1, limit: int={str(self.Class.PageSize)}):").o()
+        s.wln(f"def GetSelectPaged{self.Class.Name}Query(pageno: int=1, limit: int={str(self.Class.PageSize)}{iid2}):").o()
         s.wln(f"offset = (pageno - 1) * limit")
         s.wln(f"columns = {self.getDLClassName()}.Get{self.Class.Name}ColumnNames()")
+        s = self.writeInstanceIDStr(s)
         s.wln(f'selectquery = f"SELECT {{columns}} FROM {tablename}{orderby}{db.LIMIT_OFFSET("{limit}","{offset}")}{db.EndQuery()}"')
         s.wln("return selectquery")
         s.c().ret()
 
         s.wln("@staticmethod")
-        s.wln(f"def SelectPaged{self.Class.Name}(config, pageno: int=1, limit: int={str(self.Class.PageSize)}) -> {self.Class.SetDescription}:").o()
+        s.wln(f"def SelectPaged{self.Class.Name}(config, pageno: int=1, limit: int={str(self.Class.PageSize)}{iid2}) -> {self.Class.SetDescription}:").o()
         if db.UsesNamedParameters(self.Language):
             #s.wln(f"params = {{ 'pageno': pageno, 'limit': limit }}")
             s.wln(f"params = {{ }}")
         else:
             #s.wln(f"params = [ pageno, limit ]")
             s.wln(f"params = []")
-        s.wln(f"selectquery = {self.getDLClassName()}.GetSelectPaged{self.Class.Name}Query(pageno, limit)")
+        s.wln(f"selectquery = {self.getDLClassName()}.GetSelectPaged{self.Class.Name}Query(pageno, limit{iin2})")
+        s.wln(f"result = {self.getDLClassName()}.Select{self.Class.SetDescription}(config, selectquery, params)")
+        s.wln(f"return result")
+        s.c()
+        s.ret()
+        return s
+    
+    def writeSelectPageWhere(self, s:PythonStringWriter):
+        (db, schema, tablename, iid, iid2, iin, iin2, iie) = self.getCommonItems()
+        orderby = self.getOrderByClause()
+        s.wln("@staticmethod")
+        s.wln(f'def GetSelectPaged{self.Class.Name}WhereQuery(whereclause: str="WHERE 1=1", pageno: int=1, limit: int={str(self.Class.PageSize)}{iid2}):').o()
+        s.wln(f"offset = (pageno - 1) * limit")
+        s.wln(f"columns = {self.getDLClassName()}.Get{self.Class.Name}ColumnNames()")
+        s = self.writeInstanceIDStr(s)
+        s.wln(f'selectquery = f"SELECT {{columns}} FROM {tablename} {{whereclause}}{orderby}{db.LIMIT_OFFSET("{limit}","{offset}")}{db.EndQuery()}"')
+        s.wln("return selectquery")
+        s.c().ret()
+
+        s.wln("@staticmethod")
+        s.wln(f'def SelectPaged{self.Class.Name}Where(config, whereclause: str="WHERE 1=1", pageno: int=1, limit: int={str(self.Class.PageSize)}{iid2}) -> {self.Class.SetDescription}:').o()
+        if db.UsesNamedParameters(self.Language):
+            #s.wln(f"params = {{ 'pageno': pageno, 'limit': limit }}")
+            s.wln(f"params = {{ }}")
+        else:
+            #s.wln(f"params = [ pageno, limit ]")
+            s.wln(f"params = []")
+        s.wln(f"selectquery = {self.getDLClassName()}.GetSelectPaged{self.Class.Name}WhereQuery(whereclause, pageno, limit{iin2})")
+        s.wln(f"result = {self.getDLClassName()}.Select{self.Class.SetDescription}(config, selectquery, params)")
+        s.wln(f"return result")
+        s.c()
+        s.ret()
+
+        if self.Class.InheritsFrom is not None:
+            for propertyid, property in self.Class.InheritedProperties.Data.items():
+                if property.IsUnique and not property.IsPrimaryKey and (property.Type == DatatypeString().getType()):
+                    s = self.writeSelectPagedWhereForProperty(s, property)
+
+        for propertyid, property in self.Class.Properties.Data.items(): 
+            if property.IsUnique and not property.IsPrimaryKey and (property.Type == DatatypeString().getType()):
+                s = self.writeSelectPagedWhereForProperty(s, property)
+
+        return s
+    
+    def writeSelectPagedWhereForProperty(self, s:PythonStringWriter, property):
+        (db, schema, tablename, iid, iid2, iin, iin2, iie) = self.getCommonItems()
+
+        s.wln("@staticmethod")
+        s.wln(f'def SelectPaged{self.Class.Name}Where{property.Name}Like(config, val: str, pageno: int=1, limit: int={str(self.Class.PageSize)}{iid2}) -> {self.Class.SetDescription}:').o()
+        if db.UsesNamedParameters(self.Language):
+            s.wln(f"params = {{ '{property.Name.lower()}': '%' + val + '%'}}")
+        else:  
+            s.wln(f"params = ['%' + val + '%']")
+        s.wln(f'whereclause = "WHERE {db.OB()}{property.Name}{db.CB()} LIKE {db.GetParameter(property.Name.lower())}"')
+        s.wln(f"selectquery = {self.getDLClassName()}.GetSelectPaged{self.Class.Name}WhereQuery(whereclause, pageno, limit{iin2})")
         s.wln(f"result = {self.getDLClassName()}.Select{self.Class.SetDescription}(config, selectquery, params)")
         s.wln(f"return result")
         s.c()

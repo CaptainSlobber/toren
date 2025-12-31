@@ -19,6 +19,7 @@ class Class(TorenObject):
     PLURALNAME = "PluralName"
     SETDESCRIPTION = "SetDescription"
     PAGESIZE = "PageSize"
+    CLONEABLE = "Cloneable"
 
   class PropertID():
     TYPE = "1fefc4f1-a3da-4c55-a5c5-2332e1330a07"
@@ -32,6 +33,7 @@ class Class(TorenObject):
     PLURALNAME = "c28bb6ff-6de2-4180-a379-207626961090"
     SETDESCRIPTION = "74a0b9e3-2589-4e6a-93eb-6baa5f3eff8a"
     PAGESIZE = "3ab655f0-ac2c-4242-8573-a0b42f5925ad"
+    CLONEABLE = "625b0914-1d25-43c5-ade2-1eb3f2db842c"
   
   def __init__(self):
     self.Type = "toren.Class"
@@ -62,7 +64,8 @@ class Class(TorenObject):
                  inheritsfrom = None,
                  children = {},
                  pluralname = None,
-                 pageSize: int = 100):
+                 pageSize: int = 100,
+                 cloneable: bool = False):
     self.Type = "toren.Class"
     self.IsInReservedNames(name)
     self.Name = name
@@ -75,6 +78,7 @@ class Class(TorenObject):
     self.Properties = DatatypeCollection().initialize(properties, self) #self.setProperties(properties)
     self.Children = children
     self.PageSize = pageSize
+    self.Cloneable = cloneable
     return self
   
   def getInheritedProperties_(self, _class, _properties):
@@ -171,6 +175,7 @@ class Class(TorenObject):
     _class[self.PropertName.ID]  = self.ID
     _class[self.PropertName.INHERITSFROMID] = self.InheritsFromID
     _class[self.PropertName.PAGESIZE] = self.PageSize
+    _class[self.PropertName.CLONEABLE] = self.Cloneable
     _class[self.PropertName.PROPERTIES] = self.Properties.to_list_of_dict()
     return _class
   
@@ -183,5 +188,6 @@ class Class(TorenObject):
     self.ID = str(_class[self.PropertName.ID])
     self.InheritsFromID = _class[self.PropertName.INHERITSFROMID] if self.PropertName.INHERITSFROMID in _class else None
     self.PageSize = int(_class[self.PropertName.PAGESIZE])
+    self.Cloneable = bool(_class[self.PropertName.CLONEABLE])
     self.Properties = DatatypeCollection().initialize(_class[self.PropertName.PROPERTIES], self)
     return self
