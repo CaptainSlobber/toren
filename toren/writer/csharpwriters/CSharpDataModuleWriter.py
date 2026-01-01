@@ -37,6 +37,7 @@ class CSharpDataModuleWriter(DataModuleWriter):
         self.HeaderFileName = f"{self.Module.Name}_header"
         self.ConnectionObjectClassName = "Connection"
         self.CommonFunctionsClassName = "Common"
+        self.FilterObjectClassName = "Filter"
         self.S = self.StringWriterClass(self.Language)
         self.setLogger(logger)
 

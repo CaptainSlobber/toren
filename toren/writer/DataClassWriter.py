@@ -24,6 +24,7 @@ class DataClassWriter(WriterObject):
                  dlclassname: str,
                  connectionobjectclassname: str,
                  commonfunctionsclassname: str,
+                 filterobjectclassname: str,
                  logger:Logger=None,):
         super().__init__()
         self.DLCLassName = dlclassname
@@ -35,6 +36,7 @@ class DataClassWriter(WriterObject):
         self.Database = database
         self.ConnectionObjectClassName = connectionobjectclassname
         self.CommonFunctionsClassName = commonfunctionsclassname
+        self.FilterObjectClassName = filterobjectclassname
         self.ParentClassName = self.getParentClassName()
         self.setLogger(logger)
         self.S = self.StringWriterClass(self.Language)
@@ -95,6 +97,7 @@ class DataClassWriter(WriterObject):
         s = self.writeSelectAll(s)
         s = self.writeSelectPage(s)
         s = self.writeSelectPageWhere(s)
+        s = self.writeFilterPage(s)
         return s
 
     def writeCreateForeignKeys(self, s:StringWriter):
@@ -148,7 +151,13 @@ class DataClassWriter(WriterObject):
     def writeSelectPage(self, s:StringWriter):
         return s
     
+    def writeFilterPage(self, s:StringWriter):
+        return s
+
     def writeSelectPageWhere(self, s:StringWriter):
+        return s
+
+    def writeSelectWhere(self, s:StringWriter):
         return s
 
     def writeDLClassClose(self, s:StringWriter):

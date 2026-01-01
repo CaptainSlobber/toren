@@ -23,23 +23,26 @@ class JavaDataClassWriter(DataClassWriter):
                  dlclassname: str,
                  connectionobjectclassname: str,
                  commonfunctionsclassname: str,
+                 filterobjectclassname: str,
                  logger:Logger=None):
         super().__init__(project=project, 
                          module=module, 
                          class_=class_, 
                          database=database,
-                         language=language, 
+                         language=language,
                          dlclassname=dlclassname, 
                          connectionobjectclassname=connectionobjectclassname,
                          commonfunctionsclassname=commonfunctionsclassname,
+                         filterobjectclassname=filterobjectclassname,
                          logger=logger)
         self.Project = project
         self.Module = module
         self.StringWriterClass = JavaStringWriter
+        self.Class = class_
         self.DLCLassName = dlclassname
         self.ConnectionObjectClassName = connectionobjectclassname
         self.CommonFunctionsClassName = commonfunctionsclassname
-        self.Class = class_
+        self.FilterObjectClassName = filterobjectclassname
         self.Database = database
         self.Language = language
         self.ParentClassName = self.getParentClassName()

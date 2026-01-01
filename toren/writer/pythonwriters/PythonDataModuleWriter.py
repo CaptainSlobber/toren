@@ -38,6 +38,7 @@ class PythonDataModuleWriter(DataModuleWriter):
         self.ConnectionObjectClassName = "Connection"
         self.CommonFunctionsClassName = "Common"
         self.AdminFunctionsClassName = "Admin"
+        self.FilterObjectClassName = "Filter"
         self.S = self.StringWriterClass(self.Language)
         self.setLogger(logger)
 
@@ -48,9 +49,12 @@ class PythonDataModuleWriter(DataModuleWriter):
         con = f"{self.getDLPrefix()}{ self.ConnectionObjectClassName}{self.getDLSuffix()}"
         cfn = f"{self.getDLPrefix()}{ self.CommonFunctionsClassName}{self.getDLSuffix()}"
         afn = f"{self.getDLPrefix()}{ self.AdminFunctionsClassName}{self.getDLSuffix()}"
+        fon = f"{self.getDLPrefix()}{ self.FilterObjectClassName}{self.getDLSuffix()}"
+
         s.wln(f"from .{con} import {con}")
         s.wln(f"from .{cfn} import {cfn}")
         s.wln(f"from .{afn} import {afn}")
+        s.wln(f"from .{fon} import {fon}")
         for classid, _class in self.Module.Classes.Data.items():
             dlclassname = f"{self.getDLPrefix()}{ _class.Name}{self.getDLSuffix()}"
             s.wln(f"from .{dlclassname} import {dlclassname}")

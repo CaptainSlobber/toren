@@ -38,6 +38,7 @@ class DataModuleWriter(WriterObject):
         self.ConnectionObjectClassName = "Connection"
         self.CommonFunctionsClassName = "Common"
         self.AdminFunctionsClassName = "Admin"
+        self.FilterObjectClassName = "Filter"
         self.S = self.StringWriterClass(self.Language)
         self.setLogger(logger)
 
@@ -59,10 +60,13 @@ class DataModuleWriter(WriterObject):
         headerfn = f"{self.HeaderFileName}.{self.Language.DefaultFileExtension}"
         self.writeDataModuleHeader(data_module_path, headerfn)
 
+        flt = f"{self.getDLPrefix()}{ self.FilterObjectClassName}{self.getDLSuffix()}"
         con = f"{self.getDLPrefix()}{ self.ConnectionObjectClassName}{self.getDLSuffix()}"
         cfn = f"{self.getDLPrefix()}{ self.CommonFunctionsClassName}{self.getDLSuffix()}"
         afn = f"{self.getDLPrefix()}{ self.AdminFunctionsClassName}{self.getDLSuffix()}"
-        self.writeConnectionObject(data_module_path, con)
+        co = self.getConnectionObject(con)
+        fo = self.getFilterObject(flt)
+        self.writeDataLayerModuleObjects([co, fo])
         self.writeCommonDataFunctions(data_module_path, cfn)
         self.writeConmmonAdminFunctions(data_module_path, afn)
         for classid, _class in self.Module.Classes.Data.items():
@@ -75,6 +79,7 @@ class DataModuleWriter(WriterObject):
                           dlclassname=dlclassname,
                           connectionobjectclassname=con,
                           commonfunctionsclassname=cfn,
+                          filterobjectclassname=flt,
                           logger=self.Logger)
             c.write()
 
@@ -90,12 +95,52 @@ class DataModuleWriter(WriterObject):
         for classid, _class in self.Module.Classes.Data.items():
             pass
 
-    def writeConnectionObject(self, path, connectionobjectclassname):
-        s = self.S
 
-        cofn = f"{connectionobjectclassname}.{self.Language.DefaultFileExtension}"
-
+    def getFilterObject(self, filterobjectclassname):
+        #s = self.S
+        #s.clear()
+        #filterobjectclassname = f"{self.getDLPrefix()}{ self.FilterObjectClassName}{self.getDLSuffix()}"
+        pPropertyName = DatatypeString().initialize(name="PropertyName",
+                                               description="FilterObject.PropertyName",
+                                               id="cb4f6960-9101-4d06-ae42-8dc398736813",
+                                               isprimarykey=True)
         
+        pComparator = DatatypeString().initialize(name="Comparator",
+                                               description="FilterObject.Comparator",
+                                               id="1cd7107e-c177-4182-a1d8-579e4be0f6ac")
+        
+        pCompareTo = DatatypeString().initialize(name="CompareTo",
+                                               description="FilterObject.CompareTo",
+                                               id="cb750a06-c187-4e9b-be98-fbd35ec60b7c")
+        
+        properties = [pPropertyName, pComparator, pCompareTo]
+        cFilterObject = Class().initialize(name=filterobjectclassname, 
+                               description=filterobjectclassname, 
+                               id="d7486935-70c3-431f-92a5-6e648d5dd115",
+                               properties=properties)
+        
+        return cFilterObject
+        
+
+    def writeDataLayerModuleObjects(self, classes):
+        dbmod = self.getDatalayerModuleName()
+        mDataLayer = Module().initialize(name=dbmod, 
+                               description=dbmod, 
+                               id="1095d1dd-3c3b-4005-b6c3-9dd9a025743a",
+                               classes=classes)
+        mDataLayer.setParentProject(self.Project)
+
+        for classid, _class in mDataLayer.Classes.Data.items():
+            c = self.ClassWriterClass(project=self.Project,
+                          module=mDataLayer,
+                          class_=_class,
+                          language=self.Language,
+                          logger=self.Logger)
+            c.write()
+        return mDataLayer
+
+    def getConnectionObject(self, connectionobjectclassname):
+
 
         pServer = DatatypeString().initialize(name="Server",
                                                description="ConnectionObject.Server",
@@ -142,20 +187,8 @@ class DataModuleWriter(WriterObject):
                                id="4ed850e3-f9f9-4dc7-aa79-9e6a310b4ebc",
                                properties=properties)
         
-        dbmod = self.getDatalayerModuleName()
-        mDataLayer = Module().initialize(name=dbmod, 
-                               description=dbmod, 
-                               id="1095d1dd-3c3b-4005-b6c3-9dd9a025743a",
-                               classes=[cConnectionObject])
-        mDataLayer.setParentProject(self.Project) #
+        return cConnectionObject
         
-        c = self.ClassWriterClass(project=self.Project,
-                          module=mDataLayer,
-                          class_=cConnectionObject,
-                          language=self.Language,
-                          logger=self.Logger)
-        c.write()
-
 
     def writeConmmonAdminFunctions(self, path, classname):
         s = self.S

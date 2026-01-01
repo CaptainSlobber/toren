@@ -23,28 +23,32 @@ class CSharpDataClassWriter(DataClassWriter):
                  dlclassname: str,
                  connectionobjectclassname: str,
                  commonfunctionsclassname: str,
+                 filterobjectclassname: str,
                  logger:Logger=None):
         super().__init__(project=project, 
                          module=module, 
                          class_=class_, 
                          database=database,
-                         language=language, 
-                         dlclassname=dlclassname,
+                         language=language,
+                         dlclassname=dlclassname, 
                          connectionobjectclassname=connectionobjectclassname,
                          commonfunctionsclassname=commonfunctionsclassname,
+                         filterobjectclassname=filterobjectclassname,
                          logger=logger)
         self.Project = project
         self.Module = module
         self.StringWriterClass = CSharpStringWriter
+        self.Class = class_
         self.DLCLassName = dlclassname
         self.ConnectionObjectClassName = connectionobjectclassname
         self.CommonFunctionsClassName = commonfunctionsclassname
-        self.Class = class_
+        self.FilterObjectClassName = filterobjectclassname
         self.Database = database
         self.Language = language
         self.ParentClassName = self.getParentClassName()
         self.setLogger(logger)
         self.S = self.StringWriterClass(self.Language)
+
 
     def getDLDependencies(self):
         dependency_map = {}
