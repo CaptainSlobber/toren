@@ -190,10 +190,11 @@ class DataModuleWriter(WriterObject):
         return cConnectionObject
         
 
+
     def writeConmmonAdminFunctions(self, path, classname):
         s = self.S
         s.clear()
-        
+        s = self.writeDLPackage(s)
         ad = f"{self.getDLPrefix()}{ self.AdminFunctionsClassName}{self.getDLSuffix()}"
         dependency_map = self.getDataDependencies()
         s = self.writeDataDependencies(dependency_map, s)
@@ -204,6 +205,9 @@ class DataModuleWriter(WriterObject):
         s = self.writeDropAllTables(s)  
         s = self.writeClearAllTables(s)
 
+        s = self.writeCloseCommonAdminFunctions(s)
+
+
         filename = f"{classname}.{self.Language.DefaultFileExtension}"
         self.writeFile(path, filename, s.toString())
 
@@ -211,7 +215,7 @@ class DataModuleWriter(WriterObject):
         s = self.S
         s.clear()
         
-        
+        s = self.writeDLPackage(s)
 
         conclass = f"{self.getDLPrefix()}{ self.ConnectionObjectClassName}{self.getDLSuffix()}"
         dependency_map = self.getDataDependencies()
@@ -224,6 +228,8 @@ class DataModuleWriter(WriterObject):
         s = self.writeCommmonFetchOne(s)
         s = self.writeCommonFetchAll(s)
 
+        s = self.writeCloseCommonDataFunctions(s)
+
         filename = f"{classname}.{self.Language.DefaultFileExtension}"
         self.writeFile(path, filename, s.toString())
 
@@ -232,6 +238,9 @@ class DataModuleWriter(WriterObject):
         if db.HasSchema():
             return f"{db.OB()}{self.Module.Name}{db.CB()}."
         return ""
+
+    def writeDLPackage(self, s:StringWriter):
+        return s
 
     def writeCreateAllTables(self, s:StringWriter):
         return s
@@ -246,6 +255,12 @@ class DataModuleWriter(WriterObject):
         return s
     
     def writeOpenCommonDataFunctions(self, classname: str, s:StringWriter):
+        return s
+    
+    def writeCloseCommonDataFunctions(self, s:StringWriter):
+        return s
+    
+    def writeCloseCommonAdminFunctions(self, s:StringWriter):
         return s
         
     def writeCommonCreateConnection(self, s:StringWriter): 

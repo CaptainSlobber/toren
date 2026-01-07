@@ -82,6 +82,9 @@ class DatabasePostgreSQL(Database):
   def PythonConnectionClass(self):
     return "psycopg2"
   
+  def JavaConnectionClass(self):
+    return "Connection"
+  
   ##########################################################################
   # Initialize Connection
   ##########################################################################

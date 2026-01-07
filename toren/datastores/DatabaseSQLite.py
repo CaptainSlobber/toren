@@ -88,6 +88,9 @@ class DatabaseSQLite(Database):
   def PythonConnectionClass(self):
     return "sqlite3"
   
+  def JavaConnectionClass(self):
+    return "Connection"
+  
   ##########################################################################
   # Initialize Connection
   ##########################################################################

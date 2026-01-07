@@ -25,5 +25,5 @@ class JavaStringWriter(StringWriter):
         self.write("}")
         self.append(self.newline())
         return self
-        
+
 

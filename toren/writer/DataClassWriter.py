@@ -164,6 +164,9 @@ class DataClassWriter(WriterObject):
         s.c()
         return s
     
+    def writeDLPackage(self, s:StringWriter):
+        return s
+    
 
     def write(self):
         self.writeDLClass()
@@ -173,6 +176,7 @@ class DataClassWriter(WriterObject):
         self.S = self.StringWriterClass(self.Language)
         s = self.S
         dependencies = self.getDLDependencies()
+        s = self.writeDLPackage(s)
         s = self.writeDLDependencies(dependencies, s)
         s = self.writeDLClassOpen(s)
         s = self.writeDLClassInitializer(s)

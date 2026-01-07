@@ -59,16 +59,23 @@ class JavaDataClassWriter(DataClassWriter):
         
 
         return dependency_map
-
-    def writeDLClassOpen(self, s:JavaStringWriter):
-
+    
+    def writeDLPackage(self, s:JavaStringWriter):
         p = self.Class.ParentModule.ParentProject.Name
         e = self.Class.ParentModule.ParentProject.Entity.lower()
         m = self.Class.ParentModule.Name
         b = self.Database.Name.lower()
+        #s.wln(f"package {e}.{p}.{m}.{b};")
+        s.wln(f"package {m}_{b};")
+        s.ret()
+        return s
+
+    def writeDLClassOpen(self, s:JavaStringWriter):
+
+        
         c = self.Class.Name
         d = self.getDLClassName()
-        s.wln(f"namespace {e}.{p}.{m}.{b};")
+        
         s.ret()
         s.write(f"public static class {d} ").o()
         s.ret()

@@ -78,6 +78,9 @@ class DatabaseOracle(Database):
   def PythonConnectionClass(self):
     return "oracledb"
   
+  def JavaConnectionClass(self):
+    return "Connection"
+  
   ##########################################################################
   # Initialize Connection
   ##########################################################################

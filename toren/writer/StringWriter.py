@@ -79,6 +79,16 @@ class StringWriter:
         self._buffer.write(current_value[:-n])
         return self
 
+    def b(self, text: str):
+        return self.bounce(text)
+
+    def bounce(self, text: str):
+        self.Dec()
+        self.write("}")
+        self.append(text)
+        self.o()
+        return self
+
     def ret(self):
         return self.writeline("")
     
