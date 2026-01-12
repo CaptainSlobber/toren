@@ -73,7 +73,10 @@ class DatabaseSQLite(Database):
     return ["import sqlite3"]
   
   def JavaDependencies(self):
-    return ["import java.sql.Connection;", "import java.sql.DriverManager;", "import java.sql.SQLException;", "import java.sql.PreparedStatement;"]
+    return ["import java.sql.Connection;", 
+            "import java.sql.DriverManager;", 
+            "import java.sql.SQLException;", 
+            "import java.sql.PreparedStatement;"]
   
   def GoDependencies(self):
     return [""]
@@ -106,6 +109,15 @@ class DatabaseSQLite(Database):
     return s
   
   def JavaInitializeConnection(self, s):
+    
+    s.wln('String datapath = config.getDataPath();')
+    s.wln('String connectionformat = "jdbc:sqlite:%s";')
+    s.wln('String connectionstr = String.format(connectionformat, datapath);')
+    s.w('try ').o()
+    s.wln('connection = DriverManager.getConnection(connectionstr);')
+    s.b(" catch (SQLException e) ")
+    s.wln("e.printStackTrace();")
+    s.c()
     return s 
   
   def GoInitializeConnection(self, s):

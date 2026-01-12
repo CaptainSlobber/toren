@@ -107,6 +107,19 @@ class DatabasePostgreSQL(Database):
     return s
   
   def JavaInitializeConnection(self, s):
+    s.wln('Base64.Decoder decoder = Base64.getDecoder();')
+    s.wln('String password = new String(decoder.decode(System.getenv(config.getCredential())), StandardCharsets.UTF_8);')
+    s.wln('String username = config.getUsername();')
+    s.wln('String database = config.getDatabase();')
+    s.wln('String server = config.getServer();')
+    s.wln('int portno = config.getPortNumber();')
+    s.wln('String connectionformat = "jdbc:postgresql:@//%s:%d/%s";')
+    s.wln('String connectionstr = String.format(connectionformat, server, portno, database);')
+    s.w('try ').o()
+    s.wln('connection = DriverManager.getConnection(connectionstr, username, password);')
+    s.b(" catch (SQLException e) ")
+    s.wln("e.printStackTrace();")
+    s.c()
     return s 
   
   def GoInitializeConnection(self, s):

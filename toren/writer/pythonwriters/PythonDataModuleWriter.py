@@ -127,20 +127,28 @@ class PythonDataModuleWriter(DataModuleWriter):
         s.c()
         s.wln(f"except Exception as e:").o()
         s.wln(f"connection.rollback() # Rollback changes")
-        s.wln(f"#TODO: Log data error")
-        s.wln(f"print(f'Database error: {{e}}')")
+        s.wln(f"{cfn}.HandleSQLException(e)")
         s.c()
         s.wln(f"finally:").o()
         s.wln(f"if 'cursor' in locals() and cursor:").o()
         s.wln("cursor.close()")
         s.c()
-        s.wln(f"if close:").o()
         s.wln(f"if 'connection' in locals() and connection:").o()
         s.wln(f"connection.close()")
-        s.c().c()
+        s.c()
         s.c()
         #s.c()
         #s.ret()
+        return s
+    
+    def writeCommonHandleQueryException(self, s):
+
+        s.wln(f"@staticmethod")
+        s.wln(f"def HandleSQLException(e):").o()
+        s.wln(f"#TODO: Log data error")
+        s.wln(f"print(f'Database error: {{e}}')")
+        s.c()
+        s.ret()
         return s
     
     def writeCommonSetupConnection(self, s:PythonStringWriter):
@@ -150,19 +158,16 @@ class PythonDataModuleWriter(DataModuleWriter):
         s.ret()
         return s
     
-    def getDefaultCloseConnectionParameter(self):
-        return "close: bool=True"
 
     def writeCommonExecuteParameterizedNonQuery(self, s:PythonStringWriter):
         db = self.Database
         cfn = f"{self.getDLPrefix()}{ self.CommonFunctionsClassName}{self.getDLSuffix()}"
-        cc  =self.getDefaultCloseConnectionParameter()
         data_data_type = "dict"
         if not db.UsesNamedParameters(self.Language):
             data_data_type = "list"
 
         s.wln(f"@staticmethod")
-        s.wln(f"def ExecuteParameterizedNonQuery(config, query: str, data: {data_data_type}, {cc}):").o()
+        s.wln(f"def ExecuteParameterizedNonQuery(config, query: str, data: {data_data_type}):").o()
         s = self.writeCommonSetupConnection(s)
         s.wln(f"try:").o()
         s.wln(f"cursor = connection.cursor()")
@@ -173,7 +178,7 @@ class PythonDataModuleWriter(DataModuleWriter):
         s.ret()
 
         s.wln(f"@staticmethod")
-        s.wln(f"def ExecuteManyParameterizedNonQuery(config, query: str, data: {data_data_type}, {cc}):").o()
+        s.wln(f"def ExecuteManyParameterizedNonQuery(config, query: str, data: {data_data_type}):").o()
         s = self.writeCommonSetupConnection(s)
         s.wln(f"try:").o()
         s.wln(f"cursor = connection.cursor()")
@@ -187,13 +192,12 @@ class PythonDataModuleWriter(DataModuleWriter):
     def writeCommmonFetchOne(self, s:PythonStringWriter):   
         db = self.Database
         cfn = f"{self.getDLPrefix()}{ self.CommonFunctionsClassName}{self.getDLSuffix()}"
-        cc  =self.getDefaultCloseConnectionParameter()
         data_data_type = "dict"
         if not db.UsesNamedParameters(self.Language):
             data_data_type = "list"
 
         s.wln(f"@staticmethod")
-        s.wln(f"def ExecuteFetchOne(config, query: str, data: {data_data_type}, translation, {cc}) -> dict:").o()
+        s.wln(f"def ExecuteFetchOne(config, query: str, data: {data_data_type}, translation) -> dict:").o()
         s = self.writeCommonSetupConnection(s)
         s.wln("result = {}")
         s.wln(f"try:").o()
@@ -215,12 +219,11 @@ class PythonDataModuleWriter(DataModuleWriter):
     def writeCommonFetchAll(self, s:PythonStringWriter): 
         db = self.Database
         cfn = f"{self.getDLPrefix()}{ self.CommonFunctionsClassName}{self.getDLSuffix()}"
-        cc  =self.getDefaultCloseConnectionParameter()
         data_data_type = "dict"
         if not db.UsesNamedParameters(self.Language):
             data_data_type = "list"
         s.wln(f"@staticmethod")
-        s.wln(f"def ExecuteFetchAll(config, query: str, data: {data_data_type}, translation, {cc}) -> list:").o()
+        s.wln(f"def ExecuteFetchAll(config, query: str, data: {data_data_type}, translation) -> list:").o()
         s = self.writeCommonSetupConnection(s)
         s.wln(f"results = []")
         s.wln(f"try:").o()
@@ -243,15 +246,14 @@ class PythonDataModuleWriter(DataModuleWriter):
     def writeCommonExecuteNonQuery(self, s:PythonStringWriter):
         db = self.Database
         cfn = f"{self.getDLPrefix()}{ self.CommonFunctionsClassName}{self.getDLSuffix()}"
-        cc  =self.getDefaultCloseConnectionParameter()
         s.wln(f"@staticmethod")
-        s.wln(f"def ExecuteNonQuery(config, query: str, {cc}):").o()
-        s.wln(f"return {cfn}.ExecuteNonQueries(config, [query], close)")
+        s.wln(f"def ExecuteNonQuery(config, query: str):").o()
+        s.wln(f"return {cfn}.ExecuteNonQueries(config, [query])")
         s.c()
         s.ret()
 
         s.wln(f"@staticmethod")
-        s.wln(f"def ExecuteNonQueries(config, queries: list, {cc}):").o()
+        s.wln(f"def ExecuteNonQueries(config, queries: list):").o()
         s = self.writeCommonSetupConnection(s)
         s.wln(f"try:").o()
         s.wln(f"cursor = connection.cursor()")

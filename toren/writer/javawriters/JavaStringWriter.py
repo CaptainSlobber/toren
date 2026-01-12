@@ -9,7 +9,7 @@ from ..StringWriter import StringWriter
 
 class JavaStringWriter(StringWriter):
 
-    def __init__(self, language: Language, indent: int = 3):
+    def __init__(self, language: Language, indent: int = 4):
         super().__init__(language=language)
         self.Language = language
         self.I = ' ' * indent

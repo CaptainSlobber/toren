@@ -67,6 +67,10 @@ class JavaDataModuleWriter(DataModuleWriter):
 
     def writeOpenCommonDataFunctions(self, classname: str, s:JavaStringWriter):
         
+        s.wln(f"import java.nio.charset.StandardCharsets;")
+        s.wln(f"import java.util.Base64;")
+        s.ret()
+
         s.write(f"public class {classname} ").o()
 
         s.wln("/*")
@@ -148,15 +152,42 @@ class JavaDataModuleWriter(DataModuleWriter):
         s.wln(f"{connclass} connection = {cfn}.GetConnection(config);")
         #s.wln(f"connection.setAutoCommit(false);")
         return s
+    
+    def writeCommonHandleQueryException(self, s:JavaStringWriter): 
+
+        s.w(f"public static void HandleSQLException(SQLException e) ").o()
+        s.wln("e.printStackTrace();")
+        s.c()
+        s.ret()
+        return s
 
     def writeCommonExecuteParameterizedNonQuery(self, s:JavaStringWriter):
         db = self.Database
         cfn = f"{self.getDLPrefix()}{ self.CommonFunctionsClassName}{self.getDLSuffix()}"
         connclass = db.ConnectionClass(self.Language)
         conobjclass = f"{self.getDLPrefix()}{ self.ConnectionObjectClassName}{self.getDLSuffix()}"
-        #data_data_type = 
-        #s.w(f"public static void ExecuteParameterizedNonQuery({conobjclass} config, string query, {data_data_type} data,  bool close):").o()
 
+        s.w(f"public static Integer ExecuteParameterizedNonQuery(Connection connection, PreparedStatement statement) ").o()
+        s.wln("int rowsAffected = 0;")
+        s.w("try ").o()
+
+        s.wln("rowsAffected = statement.executeUpdate();")
+        s.wln("connection.commit();")
+        s = self.closeTry(s)
+        s = self.writeCommonCleanupConnection(s)
+        s.wln("return rowsAffected;")
+        s.c()
+        s.ret()
+
+
+        return s
+    
+  
+    def closeTry(self, s: JavaStringWriter):
+        cfn = f"{self.getDLPrefix()}{ self.CommonFunctionsClassName}{self.getDLSuffix()}"
+        s.b(f" catch (SQLException e) ")
+        s.wln(f"{cfn}.HandleSQLException(e);")
+        s.c()
         return s
 
     def writeCommonExecuteNonQuery(self, s:JavaStringWriter):
@@ -165,46 +196,33 @@ class JavaDataModuleWriter(DataModuleWriter):
         connclass = db.ConnectionClass(self.Language)
         conobjclass = f"{self.getDLPrefix()}{ self.ConnectionObjectClassName}{self.getDLSuffix()}"
 
-        s.w(f"public static void ExecuteNonQuery({conobjclass} config, String query) ").o()
-        s.wln(f"{cfn}.ExecuteNonQuery(config, query, true);")
-        s.c()
-        s.ret()
-
-        s.w(f"public static void ExecuteNonQuery({conobjclass} config, String query, Boolean close) ").o()
+        s.w(f"public static Integer ExecuteNonQuery({conobjclass} config, String query) ").o()
         s.wln(f"String[] queries = {{ query }};")
-        s.wln(f"{cfn}.ExecuteNonQueries(config, queries, close);")
+        s.wln(f"return {cfn}.ExecuteNonQueries(config, queries);")
         s.c()
         s.ret()
 
-        s.w(f"public static void ExecuteNonQueries({conobjclass} config, String[] queries) ").o()
-        s.wln(f"{cfn}.ExecuteNonQueries(config, queries, true);")
-        s.c()
-        s.ret()
-
-        s.w(f"public static void ExecuteNonQueries({conobjclass} config, String[] queries, Boolean close) ").o()
+        s.w(f"public static Integer ExecuteNonQueries({conobjclass} config, String[] queries) ").o()
         s = self.writeCommonSetupConnection(s)
+        s.wln("int rowsAffected = 0;")
         s.w("try ").o()
         s.w("for (int i=0; i<queries.length; i++) ").o()
         s.wln("PreparedStatement statement = connection.prepareStatement(queries[i]);")
-        s.wln(f"int rowsAffected = statement.executeUpdate();")
+        s.wln(f"rowsAffected += statement.executeUpdate();")
         s.wln(f"connection.commit();")
         s.c()
-        s.b(f" catch (SQLException e) ")
-        #s.wln(f"connection.rollback();")
-        s.wln(f"e.printStackTrace();")
-        
-        s.c()
+        s = self.closeTry(s)
         s = self.writeCommonCleanupConnection(s)
+        s.wln("return rowsAffected;")
         s.c()
         s.ret()
         return s
     
     def writeCommonCleanupConnection(self, s:JavaStringWriter):
-        s.w("if (close)").o()
+        cfn = f"{self.getDLPrefix()}{ self.CommonFunctionsClassName}{self.getDLSuffix()}"
         s.w("try ").o()
         s.wln(f"connection.close();")
         s.b(" catch (SQLException e) ")
-        s.wln("e.printStackTrace();")
-        s.c()
+        s.wln(f"{cfn}.HandleSQLException(e);")
         s.c()
         return s

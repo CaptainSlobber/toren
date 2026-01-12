@@ -96,8 +96,8 @@ class PythonClassWriter(ClassWriter):
             s.wln(f"super().__init__(").o()
             for propertyid, property in self.Class.InheritedProperties.Data.items():
                 s.wln(f"{property.Name.lower()}={property.Name.lower()},")
-
-            s.rem(2).c().wln(")").ret()
+            s.rem(2).a(")").c().ret().ret()
+            #s.rem(2).c().wln(")").ret()
         return s
 
 
@@ -115,7 +115,7 @@ class PythonClassWriter(ClassWriter):
         for propertyid, property in self.Class.Properties.Data.items():
             s.wln(f"{property.Name.lower()}: {property.Python_Type()} = {property.Python_DefaultValue()},")
         
-        s.rem(2).c().wln("):").ret()
+        s.rem(2).a("):").c().ret().ret()
 
         s = self.writeParentClassInitializer(s)
         for propertyid, property in self.Class.Properties.Data.items():
@@ -147,7 +147,7 @@ class PythonClassWriter(ClassWriter):
         s.wln("def __init__(self):").o()
         s.wln("self.Data = collections.OrderedDict()")
         s.c()
-
+        s.ret()
         return s
 
 
@@ -156,7 +156,7 @@ class PythonClassWriter(ClassWriter):
         s.wln(f"def appendItem(self, _{self.Class.Name.lower()}):").o()
         #s.wln(f"def appendItem(self, _{self.Class.Name.lower()}: {self.Class.Name}):").o()
         s.wln(f"self.Data[_{self.Class.Name.lower()}.{pkproperty.Name}] = _{self.Class.Name.lower()}").c()
-
+        s.ret()
         return s
     
     def writeClassCollectionRemoveItem(self, s:PythonStringWriter):
@@ -164,6 +164,7 @@ class PythonClassWriter(ClassWriter):
         s.wln(f"def removeItem(self, {pkproperty.Name.lower()}):").o()
         s.wln(f"if {pkproperty.Name.lower()} in self.Data:").o()
         s.wln(f"del self.Data[{pkproperty.Name.lower()}]").c().c()
+        s.ret()
         return s
     
     def writeClassCollectionGetItem(self, s:PythonStringWriter):
@@ -172,14 +173,16 @@ class PythonClassWriter(ClassWriter):
         s.wln(f"if {pkproperty.Name.lower()} in self.Data:").o()
         s.wln(f"return self.Data[{pkproperty.Name.lower()}]").c()
         s.wln("return None").c()
+        s.ret()
         return s
     
     def writeClassCollectionGetLength(self, s:PythonStringWriter):
         s.wln("def count(self):").o()
         s.wln("return self.length()").c()
-
+        s.ret()
         s.wln("def length(self):").o()
         s.wln("return len(self.Data)").c()
+        s.ret()
         return s
     
     def writeClassCollectionFromList(self, s:PythonStringWriter):
@@ -190,22 +193,26 @@ class PythonClassWriter(ClassWriter):
         s.wln(f"for _{self.Class.Name.lower()} in {self.Class.Name}List:").o()
         s.wln(f"self.Data[_{self.Class.Name.lower()}.{pkproperty.Name}] = _{self.Class.Name.lower()}").c()
         s.wln("return self").c()
+        s.ret()
         return s
 
     def writeClassCollectionToList(self, s:PythonStringWriter):
         s.wln(f"def toList(self):").o()
         s.wln(f"return list(self.Data.values())").c()
+        s.ret()
         return s 
     
     def writeClassCollectionToDictionary(self, s:PythonStringWriter):
         s.wln(f"def toDict(self):").o()
         s.wln(f"return dict(self.Data)").c()
+        s.ret()
         return s
 
     def writeClassCollectionFromDictionary(self, s:PythonStringWriter):
         s.wln(f"def fromDict(self, {self.Class.Name}Dict: dict = {{}}):").o()
         s.wln(f"self.Data = collections.OrderedDict(sorted({self.Class.Name}Dict.items()))")
         s.wln("return self").c()
+        s.ret()
         return s 
     
     def writeClassCollectionClose(self, s:PythonStringWriter):
@@ -236,10 +243,11 @@ class PythonClassWriter(ClassWriter):
         s.wln(f"def set{_class.PluralName}(self, {_class.PluralName.lower()}_: {_class.SetDescription}):")
         s.o().wln(f"self._{_class.PluralName.lower()} = {_class.PluralName.lower()}_")
         s.c()
-
+        s.ret()
         s.wln(f"def get{_class.PluralName}(self):")
         s.o().wln(f"return self._{_class.PluralName.lower()}")
         s.c()
+        s.ret()
 
 
         return s

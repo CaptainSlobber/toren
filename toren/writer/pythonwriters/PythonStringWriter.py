@@ -21,7 +21,7 @@ class PythonStringWriter(StringWriter):
     
     def c(self):
         self.Dec()
-        self.append(self.newline())
+        #self.append(self.newline())
         return self
         
 

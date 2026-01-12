@@ -128,7 +128,8 @@ class DatabaseMicrosoftSQL(Database):
     return s
   
   def JavaInitializeConnection(self, s):
-    s.wln('String password = System.getenv(config.getCredential());')
+    s.wln('Base64.Decoder decoder = Base64.getDecoder();')
+    s.wln('String password = new String(decoder.decode(System.getenv(config.getCredential())), StandardCharsets.UTF_8);')
     s.wln('String username = config.getUsername();')
     s.wln('String database = config.getDatabase();')
     s.wln('String instance = config.getInstanceName();')

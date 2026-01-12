@@ -229,6 +229,7 @@ class DataModuleWriter(WriterObject):
         s = self.writeOpenCommonDataFunctions(classname, s)
 
         s = self.writeCommonCreateConnection(s)
+        s = self.writeCommonHandleQueryException(s)
         s = self.writeCommonExecuteNonQuery(s)
         s = self.writeCommonExecuteParameterizedNonQuery(s)
         s = self.writeCommmonFetchOne(s)
@@ -270,6 +271,9 @@ class DataModuleWriter(WriterObject):
         return s
         
     def writeCommonCreateConnection(self, s:StringWriter): 
+        return s
+    
+    def writeCommonHandleQueryException(self, s:StringWriter): 
         return s
     
     def writeCommonExecuteNonQuery(self, s:StringWriter):
