@@ -217,9 +217,9 @@ class DatatypeSmallInt(DatatypeNumeric):
   def Java_Type(self, *args) -> str:
     if self.hasHigherDimensionality():
       brackets = "[]"*(len(self.Dimensinality)) 
-      return f"short{brackets}" #multidimensional array
+      return f"Short{brackets}" #multidimensional array
     else:
-      return "short"
+      return "Short"
   
   def Java_Dependencies(self) -> list:
     if self.hasHigherDimensionality():
@@ -229,7 +229,7 @@ class DatatypeSmallInt(DatatypeNumeric):
   
   def Java_DefaultValue(self, *args) -> str:
     if self.hasHigherDimensionality():
-      return f"new short[{']['.join(list(map(str, self.Dimensinality)))}]"
+      return f"new Short[{']['.join(list(map(str, self.Dimensinality)))}]"
     else:
       if self.hasDefaultValue():
           return f"{self.DefaultValue}" 

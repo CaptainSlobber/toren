@@ -63,7 +63,7 @@ class DatabaseOracle(Database):
     return ["import oracledb"]
   
   def JavaDependencies(self):
-    return ["import java.sql.Connection;", "import java.sql.DriverManager;", "import java.sql.SQLException;"]
+    return ["import java.sql.Connection;", "import java.sql.DriverManager;", "import java.sql.SQLException;", "import java.sql.PreparedStatement;"]
   
   def GoDependencies(self):
     return [""]
@@ -93,10 +93,12 @@ class DatabaseOracle(Database):
     
 
     connclass = self.PythonConnectionClass()
+    s.wln("credential = keyring.get_password(config.Credential, config.Username)")
+    s.wln("password = base64.b64decode(credential.encode('utf-8')).decode('utf-8')")
     s.wln('dsn = f"{config.Server.upper()}:{config.PortNumber}/{config.ServiceName.upper()}"')
     s.wln(f"connection = {connclass}.connect(").o()
     s.wln("user=config.Username,")
-    s.wln("password=keyring.get_password(config.Credential, config.Username),")
+    s.wln("password=password,")
     s.wln("dsn=dsn")
     s.c()
     s.wln(f")")

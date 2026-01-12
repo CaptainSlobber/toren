@@ -34,3 +34,20 @@ class JavaModuleWriter(ModuleWriter):
     def writeModuleHeader(self, path, filename):
         s = self.S
         pass
+
+    
+
+    def getModulePath(self):
+        
+        p = self.Module.ParentProject.Name.lower()
+        e = self.Module.ParentProject.Entity.lower()
+        m = self.Module.Name.lower()
+        t = self.Module.ParentProject.TLD.lower()
+        src = "src"
+        main = "main"
+        java = "java"
+
+        module_path = os.path.join(self.Language.OutputDirectory, p, m, src, main, java, t, e, p, m)
+
+        self.writeDirectory(module_path, True)
+        return module_path

@@ -77,6 +77,7 @@ class PythonDataModuleWriter(DataModuleWriter):
     def writeOpenCommonDataFunctions(self, classname: str, s:PythonStringWriter):
         conclass = f"{self.getDLPrefix()}{ self.ConnectionObjectClassName}{self.getDLSuffix()}"
         s.wln(f"import keyring")
+        s.wln(f"import base64")
         s.wln(f"import os")
         s.wln(f"from .{conclass} import {conclass}")
         s.ret()

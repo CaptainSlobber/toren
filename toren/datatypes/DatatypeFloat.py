@@ -220,9 +220,9 @@ class DatatypeFloat(DatatypeNumeric):
   def Java_Type(self, *args) -> str:
     if self.hasHigherDimensionality():
       brackets = "[]"*(len(self.Dimensinality)) 
-      return f"float{brackets}" #multidimensional array
+      return f"Float{brackets}" #multidimensional array
     else:
-      return "float"
+      return "Float"
   
   def Java_Dependencies(self) -> list:
     if self.hasHigherDimensionality():
@@ -232,7 +232,7 @@ class DatatypeFloat(DatatypeNumeric):
   
   def Java_DefaultValue(self, *args) -> str:
     if self.hasHigherDimensionality():
-      return f"new float[{']['.join(list(map(str, self.Dimensinality)))}]"
+      return f"new Float[{']['.join(list(map(str, self.Dimensinality)))}]"
     else:
       if self.hasDefaultValue():
           return f"(float) {self.DefaultValue}" 

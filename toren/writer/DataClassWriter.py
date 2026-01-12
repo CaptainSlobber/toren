@@ -172,8 +172,10 @@ class DataClassWriter(WriterObject):
         self.writeDLClass()
 
     def writeDLClass(self):
-        self.Logger.Log(f"  -> Writing {self.Language.Name} Class: {self.Class.Name}")
+        self.Logger.Log(f"  -> Writing {self.Language.Name} Data Class: {self.Class.Name}")
         self.S = self.StringWriterClass(self.Language)
+        data_module_path = self.getDataModulePath()
+        self.Logger.Log(f"  -> To Path: {data_module_path}")
         s = self.S
         dependencies = self.getDLDependencies()
         s = self.writeDLPackage(s)
@@ -188,14 +190,19 @@ class DataClassWriter(WriterObject):
 
     def getDLClassName(self):
         return f"{self.DLCLassName}"
-
-    def createDLClassFile(self, s:StringWriter):
-
+    
+    def getDataModulePath(self) -> str:
         dbmod = f"{self.Module.Name.lower()}_{self.Database.Name.lower()}"
+
         data_module_path = os.path.join(self.Language.OutputDirectory, 
                                                 self.Project.Name, 
                                                 self.Project.Name, 
                                                 dbmod)
+        return data_module_path
+
+    def createDLClassFile(self, s:StringWriter):
+
+        data_module_path = self.getDataModulePath()
 
 
         

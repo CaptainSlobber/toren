@@ -219,9 +219,9 @@ class DatatypeDouble(DatatypeNumeric):
   def Java_Type(self, *args) -> str:
     if self.hasHigherDimensionality():
       brackets = "[]"*(len(self.Dimensinality)) 
-      return f"double{brackets}" #multidimensional array
+      return f"Double{brackets}" #multidimensional array
     else:
-      return "double"
+      return "Double"
   
   def Java_Dependencies(self) -> list:
     if self.hasHigherDimensionality():
@@ -231,7 +231,7 @@ class DatatypeDouble(DatatypeNumeric):
   
   def Java_DefaultValue(self, *args) -> str:
     if self.hasHigherDimensionality():
-      return f"new double[{']['.join(list(map(str, self.Dimensinality)))}]"
+      return f"new Double[{']['.join(list(map(str, self.Dimensinality)))}]"
     else:
       if self.hasDefaultValue():
           return f"{self.DefaultValue}" 

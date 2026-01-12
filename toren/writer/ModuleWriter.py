@@ -30,13 +30,19 @@ class ModuleWriter(WriterObject):
         self.HeaderFileName = f"{self.Module.Name}_header"
         self.S = self.StringWriterClass(self.Language)
         self.setLogger(logger)
-        
-    def write(self):
-        self.Logger.Log(f"=> Writing Module: {self.Module.Name}")
-        parent_project_path = self.getParentProjectPath(self.Language, self.Project)
+
+    def getModulePath(self):
+        parent_project_path = os.path.join(self.Language.OutputDirectory, self.Project.Name, self.Project.Name)
+
         module_path = self.writeDirectoryToPath(parent_project_path, 
                                                 self.Module.Name, 
                                                 clear=True)
+        return module_path
+        
+    def write(self):
+        self.Logger.Log(f"=> Writing Module: {self.Module.Name}")
+        module_path = self.getModulePath()
+        self.Logger.Log(f"=> To Path: {module_path}")
         headerfn = f"{self.HeaderFileName}.{self.Language.DefaultFileExtension}"
         self.writeModuleHeader(module_path, headerfn)
         for classid, _class in self.Module.Classes.Data.items():

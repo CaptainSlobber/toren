@@ -95,9 +95,14 @@ class ClassWriter(WriterObject):
         s.c()
         return s
     
+    def getParentModulePath(self):
+        language = self.Language
+        project = self.Project
+        module = self.Module
+        return os.path.join(language.OutputDirectory, project.Name, project.Name,  module.Name)
 
     def createClassFile(self, s:StringWriter):
-        module_path = self.getParentModulePath(self.Language, self.Project, self.Module)
+        module_path = self.getParentModulePath()
         fn = f"{self.Class.Name}.{self.Language.DefaultFileExtension}"
         self.writeFile(module_path, fn, s.toString())
 
@@ -124,6 +129,8 @@ class ClassWriter(WriterObject):
 
     def writeClass(self):
         self.Logger.Log(f"  -> Writing {self.Language.Name} Class: {self.Class.Name}")
+        module_path = self.getParentModulePath()
+        self.Logger.Log(f"  -> To Path: {module_path}")
         self.S = self.StringWriterClass(self.Language)
         s = self.S
         dependencies = self.getDependencies()
@@ -245,7 +252,8 @@ class ClassWriter(WriterObject):
     #     return "Collection"
     
 
+
     def createClassCollectionFile(self, s:StringWriter):
-        module_path = self.getParentModulePath(self.Language, self.Project, self.Module)
+        module_path = self.getParentModulePath()
         fn = f"{self.Class.SetDescription}.{self.Language.DefaultFileExtension}"
         self.writeFile(module_path, fn, s.toString())

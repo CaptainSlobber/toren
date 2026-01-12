@@ -22,6 +22,7 @@ class Project(TorenObject):
     DATASTORES = "Datastores"
     TYPE = "Type"
     ENTITY = "Entity"
+    TLD = "TLD"
 
   class PropertID():
     NAME = "58795c87-1889-4d2c-8e32-6ae2c8da711b"
@@ -33,6 +34,7 @@ class Project(TorenObject):
     DATASTORES = "d4f82402-26dd-484c-b6b0-e50ae4aff2b7"
     TYPE = "06402adf-7222-436a-a542-7791eb9d418a"
     ENTITY = "7843a153-9143-47ed-a740-bd4cf9539ac8"
+    TLD = "dd049ec2-5f49-4bd4-abaa-0bc8f3ab29b3"
 
   def __init__(self):
     self.Type = "toren.Project"
@@ -52,16 +54,19 @@ class Project(TorenObject):
                  version: str, 
                  modules: list[Module]=None,
                  languages: list[Language] = None,
-                 datastores: list[Database] = None):
+                 datastores: list[Database] = None,
+                 tld: str = "com"):
     self.Type = "toren.Project"
     self.Name = name
     self.Description = description
     self.Entity = entity
     self.ID = id
     self.Version = version
+    self.TLD = tld
     self.Modules = ModuleCollection().initialize(modules, self)
     self.Languages = LanguageCollection().initialize(languages, self)
     self.Datastores = DatabaseCollection().initialize(datastores, self)
+
     #self.setForeignKeys()
     return self
 
@@ -73,6 +78,7 @@ class Project(TorenObject):
     _project[self.PropertName.ENTITY] = self.Entity
     _project[self.PropertName.ID] = self.ID
     _project[self.PropertName.VERSION] = self.Version
+    _project[self.PropertName.TLD] = self.TLD
     _project[self.PropertName.MODULES] = self.Modules.to_list_of_dict()
     _project[self.PropertName.LANGUAGES] = self.Languages.to_list_of_dict()
     _project[self.PropertName.DATASTORES] = self.Datastores.to_list_of_dict()
@@ -95,6 +101,7 @@ class Project(TorenObject):
     self.Entity = str(project[self.PropertName.ENTITY]) 
     self.ID = str(project[self.PropertName.ID])
     self.Version = str(project[self.PropertName.VERSION])
+    self.TLD = str(project[self.PropertName.TLD])
     self.Modules = ModuleCollection().initialize(project[self.PropertName.MODULES], self)
     self.Languages = LanguageCollection().initialize(project[self.PropertName.LANGUAGES], self)
     self.Datastores = DatabaseCollection().initialize(project[self.PropertName.DATASTORES], self)

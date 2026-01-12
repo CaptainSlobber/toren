@@ -52,19 +52,22 @@ class JavaDataModuleWriter(DataModuleWriter):
         
         return dependency_map
     
+
+
     def writeDLPackage(self, s:JavaStringWriter):
         p = self.Module.ParentProject.Name
         e = self.Module.ParentProject.Entity.lower()
         m = self.Module.Name
         b = self.Database.Name.lower()
-        #s.wln(f"package {e}.{p}.{m}.{b};")
-        s.wln(f"package {m}_{b};")
+        t = self.Module.ParentProject.TLD
+        s.wln(f"package {t}.{e}.{p}.{m}.{b};")
+        #s.wln(f"package {m}_{b};")
         s.ret()
         return s
 
     def writeOpenCommonDataFunctions(self, classname: str, s:JavaStringWriter):
         
-        s.write(f"public static class {classname} ").o()
+        s.write(f"public class {classname} ").o()
 
         s.wln("/*")
         s.wln(f" Class: {classname}")
@@ -102,7 +105,7 @@ class JavaDataModuleWriter(DataModuleWriter):
             class_dep = f"{dlclassname}"
             #s.wln(class_dep)    
         s.ret()
-        s.write(f"public static class {classname} ").o()
+        s.write(f"public class {classname} ").o()
         s.ret()
         s.wln("/*")
         s.wln(f" Class: {classname}")
@@ -112,6 +115,23 @@ class JavaDataModuleWriter(DataModuleWriter):
         
         return s
     
+    def getDatalayerModuleName(self):
+        return f"{self.Module.Name.lower()}.{self.Database.Name.lower()}"
+    
+    def getDataModulePath(self) -> str:
+        p = self.Module.ParentProject.Name.lower()
+        e = self.Module.ParentProject.Entity.lower()
+        m = self.Module.Name.lower()
+        b = self.Database.Name.lower()
+        t = self.Module.ParentProject.TLD.lower()
+        src = "src"
+        main = "main"
+        java = "java"
+        dbmod = f"{self.Module.Name.lower()}.{self.Database.Name.lower()}"
+
+        data_module_path = os.path.join(self.Language.OutputDirectory, p, dbmod, src, main, java, t, e, p, m, b)
+        self.writeDirectory(data_module_path, True)
+        return data_module_path
 
     def writeCloseCommonAdminFunctions(self, s:JavaStringWriter):
         s.c()
@@ -126,7 +146,7 @@ class JavaDataModuleWriter(DataModuleWriter):
 
         connclass = db.ConnectionClass(self.Language)
         s.wln(f"{connclass} connection = {cfn}.GetConnection(config);")
-        s.wln(f"connection.setAutoCommit(false);")
+        #s.wln(f"connection.setAutoCommit(false);")
         return s
 
     def writeCommonExecuteParameterizedNonQuery(self, s:JavaStringWriter):
@@ -145,32 +165,34 @@ class JavaDataModuleWriter(DataModuleWriter):
         connclass = db.ConnectionClass(self.Language)
         conobjclass = f"{self.getDLPrefix()}{ self.ConnectionObjectClassName}{self.getDLSuffix()}"
 
-        s.w(f"public static void ExecuteNonQuery({conobjclass} config, string query) ").o()
+        s.w(f"public static void ExecuteNonQuery({conobjclass} config, String query) ").o()
         s.wln(f"{cfn}.ExecuteNonQuery(config, query, true);")
         s.c()
         s.ret()
 
-        s.w(f"public static void ExecuteNonQuery({conobjclass} config, string query, bool close) ").o()
-        s.wln(f"string[] queries = {{ query }};")
+        s.w(f"public static void ExecuteNonQuery({conobjclass} config, String query, Boolean close) ").o()
+        s.wln(f"String[] queries = {{ query }};")
         s.wln(f"{cfn}.ExecuteNonQueries(config, queries, close);")
         s.c()
         s.ret()
 
-        s.w(f"public static void ExecuteNonQueries({conobjclass} config, string[] queries) ").o()
+        s.w(f"public static void ExecuteNonQueries({conobjclass} config, String[] queries) ").o()
         s.wln(f"{cfn}.ExecuteNonQueries(config, queries, true);")
         s.c()
         s.ret()
 
-        s.w(f"public static void ExecuteNonQueries({conobjclass} config, string[] queries, bool close) ").o()
+        s.w(f"public static void ExecuteNonQueries({conobjclass} config, String[] queries, Boolean close) ").o()
         s = self.writeCommonSetupConnection(s)
+        s.w("try ").o()
         s.w("for (int i=0; i<queries.length; i++) ").o()
-        s.w(f"try (PreparedStatement statement = connection.prepareStatement(queries[i]))").o()
+        s.wln("PreparedStatement statement = connection.prepareStatement(queries[i]);")
         s.wln(f"int rowsAffected = statement.executeUpdate();")
         s.wln(f"connection.commit();")
-        s.b(f" catch (SQLException e) ")
-        s.wln(f"connection.rollback();")
-        s.wln(f"e.printStackTrace();")
         s.c()
+        s.b(f" catch (SQLException e) ")
+        #s.wln(f"connection.rollback();")
+        s.wln(f"e.printStackTrace();")
+        
         s.c()
         s = self.writeCommonCleanupConnection(s)
         s.c()
@@ -179,6 +201,10 @@ class JavaDataModuleWriter(DataModuleWriter):
     
     def writeCommonCleanupConnection(self, s:JavaStringWriter):
         s.w("if (close)").o()
+        s.w("try ").o()
         s.wln(f"connection.close();")
+        s.b(" catch (SQLException e) ")
+        s.wln("e.printStackTrace();")
+        s.c()
         s.c()
         return s

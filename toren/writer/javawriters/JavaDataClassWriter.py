@@ -61,14 +61,31 @@ class JavaDataClassWriter(DataClassWriter):
         return dependency_map
     
     def writeDLPackage(self, s:JavaStringWriter):
-        p = self.Class.ParentModule.ParentProject.Name
+        p = self.Class.ParentModule.ParentProject.Name.lower()
         e = self.Class.ParentModule.ParentProject.Entity.lower()
-        m = self.Class.ParentModule.Name
+        m = self.Class.ParentModule.Name.lower()
         b = self.Database.Name.lower()
-        #s.wln(f"package {e}.{p}.{m}.{b};")
-        s.wln(f"package {m}_{b};")
+        t = self.Class.ParentModule.ParentProject.TLD.lower()
+        s.wln(f"package {t}.{e}.{p}.{m}.{b};")
         s.ret()
         return s
+    
+    def getDataModulePath(self):
+        return self.getParentModulePath()
+
+    def getParentModulePath(self):
+        p = self.Module.ParentProject.Name.lower()
+        e = self.Module.ParentProject.Entity.lower()
+        m = self.Module.Name.lower()
+        b = self.Database.Name.lower()
+        t = self.Module.ParentProject.TLD.lower()
+        src = "src"
+        main = "main"
+        java = "java"
+        dbmod = f"{m}.{b}"
+
+        data_module_path = os.path.join(self.Language.OutputDirectory,p, dbmod, src, main, java, t, e, p, m, b)
+        return data_module_path
 
     def writeDLClassOpen(self, s:JavaStringWriter):
 
@@ -77,7 +94,7 @@ class JavaDataClassWriter(DataClassWriter):
         d = self.getDLClassName()
         
         s.ret()
-        s.write(f"public static class {d} ").o()
+        s.write(f"public class {d} ").o()
         s.ret()
         s.wln("/*")
         s.wln(f" {self.Database.Name} Data Layer for Class: {self.Class.Name}")
@@ -96,13 +113,13 @@ class JavaDataClassWriter(DataClassWriter):
         return s
     
     def writeDLClassProperties(self, s:JavaStringWriter):
-        s.wln(f"public static string SCHEMA_NAME = \"{self.Class.ParentModule.Name}\";")
-        s.wln(f"public static string TABLE_NAME = \"{self.Class.Name}\";")
+        s.wln(f"public static String SCHEMA_NAME = \"{self.Class.ParentModule.Name}\";")
+        s.wln(f"public static String TABLE_NAME = \"{self.Class.Name}\";")
         if self.Class.InheritsFrom is not None:
             for propertyid, property in self.Class.InheritedProperties.Data.items():
-                s.wln(f"public static string COL_NAME_{property.Name.upper()} = \"{property.Name}\";")
+                s.wln(f"public static String COL_NAME_{property.Name.upper()} = \"{property.Name}\";")
         for propertyid, property in self.Class.Properties.Data.items():
-            s.wln(f"public static string COL_NAME_{property.Name.upper()} = \"{property.Name}\";")
+            s.wln(f"public static String COL_NAME_{property.Name.upper()} = \"{property.Name}\";")
         s.ret()
         return s
     
@@ -131,8 +148,8 @@ class JavaDataClassWriter(DataClassWriter):
         db = self.Database
         
 
-        s.w(f"private static string create{self.Class.Name}TableQuery ()").o()
-        s.wln(f'string createquery = "CREATE TABLE{db.IfNotExists()} {db.OB()}{self.Class.Name}{db.CB()} (";')
+        s.w(f"private static String create{self.Class.Name}TableQuery ()").o()
+        s.wln(f'String createquery = "CREATE TABLE{db.IfNotExists()} {db.OB()}{self.Class.Name}{db.CB()} (";')
         if self.Class.InheritsFrom is not None:
             for propertyid, property in self.Class.InheritedProperties.Data.items():
                 s = self.writeCreateTableColumn(s, property)
@@ -142,7 +159,7 @@ class JavaDataClassWriter(DataClassWriter):
         s.wln("return createquery;")
         s.c().ret()
 
-        s.w(f"public static bool create{self.Class.Name}Table () ").o()
+        s.w(f"public static void create{self.Class.Name}Table () ").o()
 
         s.c()
         return s

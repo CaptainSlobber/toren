@@ -73,7 +73,7 @@ class DatabaseSQLite(Database):
     return ["import sqlite3"]
   
   def JavaDependencies(self):
-    return ["import java.sql.Connection;", "import java.sql.DriverManager;", "import java.sql.SQLException;"]
+    return ["import java.sql.Connection;", "import java.sql.DriverManager;", "import java.sql.SQLException;", "import java.sql.PreparedStatement;"]
   
   def GoDependencies(self):
     return [""]
@@ -100,6 +100,8 @@ class DatabaseSQLite(Database):
   
   def PythonInitializeConnection(self, s):
     connclass = self.PythonConnectionClass()
+    #s.wln("credential = keyring.get_password(config.Credential, config.Username)")
+    #s.wln("password = base64.b64decode(credential.encode('utf-8')).decode('utf-8')")
     s.wln(f"connection = {connclass}.connect(config.DataPath)")
     return s
   

@@ -220,9 +220,9 @@ class DatatypeBigInt(DatatypeNumeric):
     if self.hasHigherDimensionality():
       brackets = "[]"*(len(self.Dimensinality))  
 
-      return f"long{brackets}" #multidimensional array
+      return f"Long{brackets}" #multidimensional array
     else:
-      return "long"
+      return "Long"
   
   def Java_Dependencies(self) -> list:
     if self.hasHigherDimensionality():
@@ -232,8 +232,8 @@ class DatatypeBigInt(DatatypeNumeric):
   
   def Java_DefaultValue(self, *args) -> str:
     if self.hasHigherDimensionality():
-      return f"new long[{']['.join(list(map(str, self.Dimensinality)))}]"
+      return f"new Long[{']['.join(list(map(str, self.Dimensinality)))}]"
     else:
       if self.hasDefaultValue():
-        return f"{str(int(self.DefaultValue))}"
-      return "0"
+        return f"(long) {str(int(self.DefaultValue))}"
+      return "(long) 0"

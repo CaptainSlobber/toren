@@ -218,9 +218,9 @@ class DatatypeInt(DatatypeNumeric):
   def Java_Type(self, *args) -> str:
     if self.hasHigherDimensionality():
       brackets = "[]"*(len(self.Dimensinality)) 
-      return f"int{brackets}" #multidimensional array
+      return f"Integer{brackets}" #multidimensional array
     else:
-      return "int"
+      return "Integer"
   
   def Java_Dependencies(self) -> list:
     if self.hasHigherDimensionality():
@@ -230,7 +230,7 @@ class DatatypeInt(DatatypeNumeric):
   
   def Java_DefaultValue(self, *args) -> str:
     if self.hasHigherDimensionality():
-      return f"new int[{']['.join(list(map(str, self.Dimensinality)))}]"
+      return f"new Integer[{']['.join(list(map(str, self.Dimensinality)))}]"
     else:
       if self.hasDefaultValue():
           return f"{self.DefaultValue}" 

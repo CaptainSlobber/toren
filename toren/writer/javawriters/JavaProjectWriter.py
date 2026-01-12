@@ -28,4 +28,7 @@ class JavaProjectWriter(ProjectWriter):
         self.DataModuleWriterClass = JavaDataModuleWriter
         self.setLogger(logger)
 
- 
+    def writeProjectDirectory(self, project:Project):
+        self.writeDirectoryToPath(path=self.Language.OutputDirectory, 
+                                  dirname=project.Name, 
+                                  clear=self.DeleteOutputDirectory)

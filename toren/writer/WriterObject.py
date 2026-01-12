@@ -51,10 +51,4 @@ class WriterObject():
             file.write(content)
         return file_path
 
-    def getParentProjectPath(self, language: Language, project: Project):
-        return os.path.join(language.OutputDirectory, project.Name, project.Name)
-    
-    def getParentModulePath(self, language: Language, project: Project, module: Module):
-        return os.path.join(language.OutputDirectory, project.Name, project.Name,  module.Name)
-    
  

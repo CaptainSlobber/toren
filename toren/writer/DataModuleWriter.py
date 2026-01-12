@@ -46,13 +46,19 @@ class DataModuleWriter(WriterObject):
     def getDatalayerModuleName(self):
         return f"{self.Module.Name.lower()}_{self.Database.Name.lower()}"
     
-    def write(self):
-        self.Logger.Log(f"=> Writing Data Module: {self.Module.Name}")
+    def getDataModulePath(self) -> str:
         dbmod = self.getDatalayerModuleName()
+
         data_module_path = os.path.join(self.Language.OutputDirectory, 
                                                 self.Project.Name, 
                                                 self.Project.Name, 
                                                 dbmod)
+        return data_module_path
+    
+    def write(self):
+        self.Logger.Log(f"=> Writing Data Module: {self.Module.Name}")
+        data_module_path = self.getDataModulePath()
+        self.Logger.Log(f"=> To Path: {data_module_path}")
         self.writeDirectory(data_module_path, clear=True)
 
 

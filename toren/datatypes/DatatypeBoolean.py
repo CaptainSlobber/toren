@@ -141,7 +141,7 @@ class DatatypeBoolean(Datatype):
   # Java methods
   ##########################################################################
   def Java_Type(self, *args) -> str:
-    return "boolean" #"boolean"
+    return "Boolean" #"boolean"
   
   def Java_Dependencies(self) -> list:
     return []

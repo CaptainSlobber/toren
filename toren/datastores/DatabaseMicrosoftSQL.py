@@ -77,7 +77,7 @@ class DatabaseMicrosoftSQL(Database):
     return ["import pyodbc"]
   
   def JavaDependencies(self):
-    return ["import java.sql.Connection;", "import java.sql.DriverManager;", "import java.sql.SQLException;"]
+    return ["import java.sql.Connection;", "import java.sql.DriverManager;", "import java.sql.SQLException;", "import java.sql.PreparedStatement;"]
   
   def GoDependencies(self):
     return [""]
@@ -113,13 +113,14 @@ class DatabaseMicrosoftSQL(Database):
   
   def PythonInitializeConnection(self, s):
     connclass = self.PythonConnectionClass()
-
+    s.wln("credential = keyring.get_password(config.Credential, config.Username)")
+    s.wln("password = base64.b64decode(credential.encode('utf-8')).decode('utf-8')")
     s.wln('connectionstr= (')
     s.wln('f"DRIVER={config.Driver};"')
     s.wln('f"SERVER={config.InstanceName};"')
     s.wln('f"DATABASE={config.Database};"')
     s.wln('f"UID={config.Username};"')
-    s.wln('f"PWD={keyring.get_password(config.Credential, config.Username)}"')
+    s.wln('f"PWD={password}"')
     s.wln(')')
     s.ret()
 
@@ -127,6 +128,18 @@ class DatabaseMicrosoftSQL(Database):
     return s
   
   def JavaInitializeConnection(self, s):
+    s.wln('String password = System.getenv(config.getCredential());')
+    s.wln('String username = config.getUsername();')
+    s.wln('String database = config.getDatabase();')
+    s.wln('String instance = config.getInstanceName();')
+    s.wln('int portno = config.getPortNumber();')
+    s.wln('String connectionformat = "jdbc:sqlserver://%s:%d;databaseName=%s;user=%s;password=%s;encrypt=true;trustServerCertificate=true;";')
+    s.wln('String connectionstr = String.format(connectionformat, instance, portno, database, username, password);')
+    s.w('try ').o()
+    s.wln('connection = DriverManager.getConnection(connectionstr);')
+    s.b(" catch (SQLException e) ")
+    s.wln("e.printStackTrace();")
+    s.c()
     return s 
   
   def GoInitializeConnection(self, s):

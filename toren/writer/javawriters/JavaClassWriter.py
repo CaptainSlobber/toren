@@ -73,9 +73,10 @@ class JavaClassWriter(ClassWriter):
     def writeNamespace(self, s:JavaStringWriter):
         p = self.Class.ParentModule.ParentProject.Name
         e = self.Class.ParentModule.ParentProject.Entity.lower()
-        m = self.Class.ParentModule.Name
+        m = self.Class.ParentModule.Name.lower()
         b = self.Module.Name.lower()
-        s.wln(f"package {m};")
+        t = self.Class.ParentModule.ParentProject.TLD.lower()
+        s.wln(f"package {t}.{e}.{p}.{m};")
         s.ret()
         return s
     
@@ -111,7 +112,6 @@ class JavaClassWriter(ClassWriter):
     def writeParentClassInitializer_(self, s:JavaStringWriter):
         if self.Class.InheritsFrom is not None:
             for propertyid, property in self.Class.InheritedProperties.Data.items():
-                #s.wln(f"if ({property.Name.lower()}==null) {{ {property.Name.lower()} = {property.Java_DefaultValue()}; }}")
                 s.wln(f"this._{property.Name} = {property.Name.lower()};")
 
         return s
@@ -151,7 +151,6 @@ class JavaClassWriter(ClassWriter):
 
 
         for propertyid, property in self.Class.Properties.Data.items():
-            #s.wln(f"if ({property.Name.lower()}==null) {{ {property.Name.lower()} = {property.Java_DefaultValue()}; }}")
             s.wln(f"this._{property.Name.lower()} = {property.Name.lower()};")
         s.ret()
         s.c()
@@ -193,7 +192,29 @@ class JavaClassWriter(ClassWriter):
 
         return s
     
+    def getParentModulePath(self):
+        p = self.Module.ParentProject.Name.lower()
+        e = self.Module.ParentProject.Entity.lower()
+        m = self.Module.Name.lower()
+        t = self.Module.ParentProject.TLD.lower()
+        src = "src"
+        main = "main"
+        java = "java"
 
+        path_list = [self.Language.OutputDirectory]
+        path_list.append(p)
+        path_list.append(m)
+        path_list.append(src)
+        path_list.append(main)
+        path_list.append(java)
+        path_list.append(t)
+        path_list.append(e)
+        path_list.append(p)
+        for item in m.split("."):
+            path_list.append(item)
+
+        module_path = os.path.join(*path_list)
+        return module_path
 
     def writeClassCollectionInitializer(self, s:JavaStringWriter):
 
