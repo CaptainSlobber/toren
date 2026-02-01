@@ -4,7 +4,7 @@ import os
 from pathlib import Path
 
 from typing import List
-from .WriterObject import WriterObject
+from .DataWriterObject import DataWriterObject
 from .PropertyWriter import PropertyWriter
 from .StringWriter import StringWriter
 from ..Project import Project
@@ -14,7 +14,7 @@ from ..Class import Class
 from ..languages import *
 from ..tracer.Logger import Logger
 
-class DataClassWriter(WriterObject):
+class DataClassWriter(DataWriterObject):
 
     def __init__(self, project: Project, 
                  module: Module, 

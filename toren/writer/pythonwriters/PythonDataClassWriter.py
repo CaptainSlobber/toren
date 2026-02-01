@@ -189,7 +189,7 @@ class PythonDataClassWriter(DataClassWriter):
             s.wln(f"if {iin} is not None:").o()
             s.wln(f"if isinstance({iin}, uuid.UUID):").o()
             s.wln(f"id = str({iin})")
-            s.wln(f'return f"{db.GetTableName(self.Class, "{id}")}"')     
+            s.wln(f'return f"{db.GetTableName(self.Class, ".{id}")}"')     
             s.c().c()
             s.wln(f'return innerquery')
             s.c()

@@ -8,7 +8,7 @@ from ..datatypes.DatatypeInt import DatatypeInt
 from ..datatypes.DatatypeNetworkAddress import DatatypeNetworkAddress
 from ..datatypes.DatatypeString import DatatypeString
 from ..datastores.Database import Database
-from .WriterObject import WriterObject
+from .DataWriterObject import DataWriterObject
 from .ClassWriter import ClassWriter
 from .DataClassWriter import DataClassWriter
 from .StringWriter import StringWriter
@@ -19,7 +19,7 @@ from ..Class import Class
 from ..languages import *
 from ..tracer.Logger import Logger
 
-class DataModuleWriter(WriterObject):
+class DataModuleWriter(DataWriterObject):
 
     def __init__(self, project: Project, 
                  module: Module, 
@@ -90,11 +90,7 @@ class DataModuleWriter(WriterObject):
             c.write()
 
 
-    def getDLPrefix(self):
-        return "DL"
-    
-    def getDLSuffix(self):
-        return ""
+
     
     def writeDataModuleHeader(self, path, filename):
         s = self.S
