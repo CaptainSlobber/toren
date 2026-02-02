@@ -63,11 +63,28 @@ class JavaDataClassWriter(DataClassWriter):
         uuiddep = "import java.util.UUID;"
         listdep = "import java.util.ArrayList;"
         arrlistdep = "import java.util.List;"
+        gsondep = "import com.google.gson.Gson;"
+        charsetsdep = "import java.nio.charset.StandardCharsets;"
         if self.Class.Cloneable: 
             dependency_map[uuiddep] = uuiddep
         dependency_map[listdep] = listdep
         dependency_map[arrlistdep] = arrlistdep
-        dependency_map[object_import] = object_import
+        if self.hasHigherDimensionalProperty():
+            dependency_map[gsondep] = gsondep
+            dependency_map[charsetsdep] = charsetsdep
+        
+
+
+
+        if self.Class.InheritsFrom is not None:
+            for propertyid, property in self.Class.InheritedProperties.Data.items():
+                for dependency in property.Java_Datalayer_Dependencies():
+                    dependency_map[dependency] = dependency
+        for propertyid, property in self.Class.Properties.Data.items():
+            for dependency in property.Java_Datalayer_Dependencies():
+                dependency_map[dependency] = dependency
+
+        dependency_map[object_import] = object_import    
         return dependency_map
     
     def writeDLPackage(self, s:JavaStringWriter):
@@ -342,35 +359,50 @@ class JavaDataClassWriter(DataClassWriter):
 
 
         s.w(f"public static void InsertSingle{self.Class.Name}({conobjclass} config, {self.Class.Name} {self.Class.Name.lower()}{iid2}) ").o()
-        #s.wln(f"params = {self.getDLClassName()}.Parameterize{self.Class.Name}({self.Class.Name.lower()})")
 
         s.wln(f"Connection connection = {self.CommonFunctionsClassName}.GetConnection(config);")
         s.wln(f"String insertquery = {self.getDLClassName()}.Get{self.Class.Name}InsertQuery({iin});")
 
         s.w("try ").o()
         s.wln("PreparedStatement statement = connection.prepareStatement(insertquery);")
-        s.wln(f'statement = {self.getDLClassName()}.Prepare{self.Class.Name}Statement(statement, {self.Class.Name.lower()});')
-        s = self.writeCommonCleanupConnection(s)
-        #s.wln(f"{self.CommonFunctionsClassName}.ExecuteParameterizedNonQuery(config, insertquery, params)")
-        s.c()
-        s.ret()
-
-
-        s.w(f"private static PreparedStatement Prepare{self.Class.Name}Statement(PreparedStatement statement, {self.Class.Name} {self.Class.Name.lower()})").o()
-        
+        if self.hasHigherDimensionalProperty():
+            s.wln("Gson gson = new Gson();")
         n = 0
         if self.Class.InheritsFrom is not None:
             for propertyid, property in self.Class.InheritedProperties.Data.items():
                 n = n + 1
-                s.wln(f'statement.setString({n}, {self.Class.Name.lower()}.get{property.Name}());')
+                setval = property.To(self.Language, self.Database, n, self.Class.Name.lower(), property.Name)
+                s.wln(f'{setval}')
         for propertyid, property in self.Class.Properties.Data.items():
             n = n + 1
-            s.wln(f'statement.setString({n}, {self.Class.Name.lower()}.get{property.Name}());')
-        s.wln("return statement;")
+            setval = property.To(self.Language, self.Database, n, self.Class.Name.lower(), property.Name)
+            s.wln(f'{setval}')
+
+        s.wln("int affectedRows = statement.executeUpdate();")
+        s.wln("// if (affectedRows > 0) { } ")
+        #s.wln(f'statement = {self.getDLClassName()}.Prepare{self.Class.Name}Statement(statement, {self.Class.Name.lower()});')
+        s = self.writeCommonCleanupConnection(s)
+
         s.c()
         s.ret()
+
+
+        # s.w(f"private static PreparedStatement Prepare{self.Class.Name}Statement(PreparedStatement statement, {self.Class.Name} {self.Class.Name.lower()})").o()
+        # s.wln("return statement;")
+        # s.c()
+        # s.ret()
         return s
     
+    def hasHigherDimensionalProperty(self):
+        higherdimension = False
+        if self.Class.InheritsFrom is not None:
+            for propertyid, property in self.Class.InheritedProperties.Data.items():
+                if hasattr(property, 'Dimensinality'):
+                    if (len(property.Dimensinality) > 0): higherdimension = True
+        for propertyid, property in self.Class.Properties.Data.items():
+            if hasattr(property, 'Dimensinality'):
+                if (len(property.Dimensinality) > 0): higherdimension = True
+        return higherdimension
 
     def writeCommonCleanupConnection(self, s:JavaStringWriter):
         cfn = self.CommonFunctionsClassName

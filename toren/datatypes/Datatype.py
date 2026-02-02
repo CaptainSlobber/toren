@@ -199,7 +199,7 @@ class Datatype(TorenObject):
     _to[f"{LanguageJavaScript().getID()}{DatabaseMicrosoftSQL().getID()}"] = self.JavaScript_to_MicrosoftSQL
     _to[f"{LanguageJavaScript().getID()}{DatabaseOracle().getID()}"] = self.JavaScript_to_Oracle
 
-    return _to[f"{language.getID()}{database.getID()}"](args[0])
+    return _to[f"{language.getID()}{database.getID()}"](args)
 
 
   ##########################################################################
@@ -233,7 +233,7 @@ class Datatype(TorenObject):
     _from[f"{LanguageJavaScript().getID()}{DatabaseMicrosoftSQL().getID()}"] = self.JavaScript_from_MicrosoftSQL
     _from[f"{LanguageJavaScript().getID()}{DatabaseOracle().getID()}"] = self.JavaScript_from_Oracle
 
-    return _from[f"{language.ID}{database.ID}"](args[0])
+    return _from[f"{language.ID}{database.ID}"](args)
   
   ##########################################################################
   # Dependencies
@@ -369,7 +369,10 @@ class Datatype(TorenObject):
   def Java_Type(self, *args) -> str:
     raise NotImplementedError
   
-  def Java_Dependencies(self, *args) -> str:
+  def Java_Datalayer_Dependencies(self, *args) -> list:
+    return []
+
+  def Java_Dependencies(self, *args) -> list:
     raise NotImplementedError
   
   def Java_DefaultValue(self, *args) -> str:

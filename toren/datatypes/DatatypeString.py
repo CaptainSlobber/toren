@@ -164,3 +164,28 @@ class DatatypeString(Datatype):
     if self.hasDefaultValue():
       return self._DefaultValueDoubleQuote()
     return self._DoubleQuote("")
+  
+
+  ##########################################################################
+  # Java methods for converting to and from various database types
+  ##########################################################################
+
+  def _Java_to_(self, *args)-> str:
+    argt = args[0][0]
+    indx = str(int(argt[0]))
+    objname = str(argt[1])
+    propertyname = str(argt[2])
+    setval = f'statement.setString({indx}, {objname}.get{propertyname}());'
+    return setval
+
+  def Java_to_Oracle(self, *args) -> str:
+    return self._Java_to_(args)
+  
+  def Java_to_MicrosoftSQL(self, *args) -> str:
+    return self._Java_to_(args)
+  
+  def Java_to_PostgreSQL(self, *args) -> str:
+    return self._Java_to_(args)
+  
+  def Java_to_SQLite(self, *args) -> str:
+    return self._Java_to_(args)

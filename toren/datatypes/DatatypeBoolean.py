@@ -150,3 +150,27 @@ class DatatypeBoolean(Datatype):
     if self.hasDefaultValue():
       return f"{self.DefaultValue.lower()}"
     return "false"
+
+  ##########################################################################
+  # Java methods for converting to and from various database types
+  ##########################################################################
+
+  def _Java_to_(slef, *args)-> str:
+    argt = args[0][0]
+    indx = str(int(argt[0]))
+    objname = str(argt[1])
+    propertyname = str(argt[2])
+    setval = f'statement.setBoolean({indx}, {objname}.get{propertyname}());'
+    return setval
+
+  def Java_to_Oracle(self, *args) -> str:
+    return self._Java_to_(args)
+  
+  def Java_to_MicrosoftSQL(self, *args) -> str:
+    return self._Java_to_(args)
+  
+  def Java_to_PostgreSQL(self, *args) -> str:
+    return self._Java_to_(args)
+  
+  def Java_to_SQLite(self, *args) -> str:
+    return self._Java_to_(args)
