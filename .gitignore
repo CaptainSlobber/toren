@@ -1,2 +1,9 @@
 *.pyc
 *.json
+build/*
+scr/toren.egg-info/*
+src/toren.egg-info/PKG-INFO
+src/toren.egg-info/top_level.txt
+src/toren.egg-info/SOURCES.txt
+src/toren.egg-info/dependency_links.txt
+src/toren.egg-info/requires.txt
