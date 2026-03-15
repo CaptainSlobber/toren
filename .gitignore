@@ -1,5 +1,6 @@
 *.pyc
 *.json
+*.notes
 build/*
 scr/toren.egg-info/*
 src/toren.egg-info/PKG-INFO
