@@ -91,6 +91,7 @@ class DataClassWriter(DataWriterObject):
         s = self.writeInsertItem(s)     
         s = self.writeInsertCollection(s)
         s = self.writeUpdate(s) 
+        s = self.writePersistRecord(s)
         s = self.writeDelete(s)
         s = self.writeSelectSingleRecordByPK(s)
         s = self.writeSelectWhere(s)
@@ -136,6 +137,9 @@ class DataClassWriter(DataWriterObject):
     def writeUpdate(self, s:StringWriter):
         return s
     
+    def writePersistRecord(self, s:StringWriter):
+        return s
+    
     def writeDelete(self, s:StringWriter):
         return s
     
@@ -167,6 +171,8 @@ class DataClassWriter(DataWriterObject):
     def writeDLPackage(self, s:StringWriter):
         return s
     
+
+
 
     def write(self):
         self.writeDLClass()

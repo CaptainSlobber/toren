@@ -379,13 +379,15 @@ class PythonDataClassWriter(DataClassWriter):
             s.wln("params = []")
         if self.Class.InheritsFrom is not None:
             for propertyid, property in self.Class.InheritedProperties.Data.items():
-                converted = property.To(self.Language, self.Database, f"{self.Class.Name.lower()}.{property.Name}")
+                prop_val = f"{self.Class.Name.lower()}.{property.Name}"
+                converted = property.To(self.Language, self.Database, prop_val)
                 if db.UsesNamedParameters(self.Language):
                     s.wln(f"params['{property.Name.lower()}'] = {converted}")
                 else:
                     s.wln(f"params.append({converted})")        
         for propertyid, property in self.Class.Properties.Data.items():
-            converted = property.To(self.Language, self.Database, f"{self.Class.Name.lower()}.{property.Name}")
+            prop_val = f"{self.Class.Name.lower()}.{property.Name}"
+            converted = property.To(self.Language, self.Database, prop_val)
             if db.UsesNamedParameters(self.Language):
                 s.wln(f"params['{property.Name.lower()}'] = {converted}")
             else:
@@ -424,6 +426,108 @@ class PythonDataClassWriter(DataClassWriter):
         s.ret()
         return s
     
+
+
+    def writePersistWhereForProperty(self, s:PythonStringWriter, property, pk):
+
+        (db, schema, tablename, iid, iid2, iin, iin2) = self.getCommonItems()
+
+
+        s.wln("@staticmethod")
+        s.wln(f"def Get{self.Class.Name}UpdateWhere{property.Name}EqualsQuery({iid2}):").o()
+        #s.writeline(f'innerquery = "{tablename}"')
+
+        #s.wln(f"if whereclause is None:").o()
+        s.wln(f'whereclause = " WHERE {db.OB()}{property.Name}{db.CB()} = {db.GetParameter(property.Name.lower())}{db.EndQuery()}"')
+        s = self.writeInstanceStr(s, "\"" + tablename + "\"")
+        s.wln(f'updatequery = f"UPDATE {{innerquery}} SET "')
+        if self.Class.InheritsFrom is not None:
+            for propertyid, _property in self.Class.InheritedProperties.Data.items():
+                if not _property.IsPrimaryKey: 
+                    if _property.ID != property.ID:
+                        s.wln(f'updatequery += "{db.OB()}{_property.Name}{db.CB()} = {db.GetParameter(_property.Name.lower())},"')
+        for propertyid, _property in self.Class.Properties.Data.items():
+            if not _property.IsPrimaryKey:
+                if _property.ID != property.ID:
+                    s.wln(f'updatequery += "{db.OB()}{_property.Name}{db.CB()} = {db.GetParameter(_property.Name.lower())},"')
+        s.wln(f'updatequery = updatequery[:-1] + " " + whereclause')
+        s.wln("return updatequery")
+        s.c().ret()
+
+        s.wln("@staticmethod")
+        s.wln(f'def Persist{self.Class.Name}Where{property.Name}Equals(config, {self.Class.Name.lower()}: {self.Class.Name}{iid2}):').o()
+
+
+
+        #s.wln(f'whereclause = "WHERE {db.OB()}{property.Name}{db.CB()} = {db.GetParameter(property.Name.lower())}{db.EndQuery()}"')
+        s.wln(f'whereclause = f"WHERE {db.OB()}{property.Name}{db.CB()} = \'{{str({self.Class.Name.lower()}.{property.Name})}}\'"')
+        s.wln(f"_{pk.Name.lower()} = {self.Class.Name.lower()}.{pk.Name}")
+        s.wln(f"{self.Class.Name.lower()}_items = {self.getDLClassName()}.SelectAll{self.Class.Name}Where(config, whereclause)")
+
+
+        s.wln(f"if len({self.Class.Name.lower()}_items.Data.keys()) == 1:").o()
+            
+        s.wln(f"params = {self.getDLClassName()}.Parameterize{self.Class.Name}({self.Class.Name.lower()})")
+        s.wln(f"updatequery = {self.getDLClassName()}.Get{self.Class.Name}UpdateWhere{property.Name}EqualsQuery({iin})")
+        s.wln(f"{self.CommonFunctionsClassName}.ExecuteParameterizedNonQuery(config, updatequery, params)")
+        #s.wln(f"_{pk.Name.lower()} = _{self.Class.Name.lower()}.{pk.Name}").c()
+        s.wln(f"_{pk.Name.lower()} = list({self.Class.Name.lower()}_items.Data.keys())[0]").c()
+        s.wln("else:").o()
+        s.wln(f"params = {self.getDLClassName()}.Parameterize{self.Class.Name}({self.Class.Name.lower()})")
+        s.wln(f"insertquery = {self.getDLClassName()}.Get{self.Class.Name}InsertQuery({iin})")
+        s.wln(f"{self.CommonFunctionsClassName}.ExecuteParameterizedNonQuery(config, insertquery, params)")
+        s.c()
+        s.wln(f"return _{pk.Name.lower()}")
+        s.c()
+        s.ret()
+
+
+
+
+
+        return s
+
+
+
+    def writePersistRecord(self, s:PythonStringWriter):
+        (db, schema, tablename, iid, iid2, iin, iin2) = self.getCommonItems()
+        if self.Class.hasPrimaryKeyPoperty():
+            pk = self.Class.getPrimaryKeyProperty()
+            s.wln("@staticmethod")
+            s.wln(f"def PersistSingle{self.Class.Name}(config, {self.Class.Name.lower()}: {self.Class.Name}{iid2}):").o()
+            s.wln(f'whereclause = "WHERE {db.OB()}{pk.Name}{db.CB()} = {db.GetParameter(pk.Name.lower())}{db.EndQuery()}"')
+
+            s.wln(f"_{pk.Name.lower()} = {self.Class.Name.lower()}.{pk.Name}")
+            s.wln(f"{self.Class.Name.lower()}_items = {self.getDLClassName()}.SelectAll{self.Class.Name}Where(config, whereclause)")
+            #s.wln(f'innerquery = "{tablename}"')
+            #s.wln(f"_{self.Class.Name.lower()} = {self.getDLClassName()}.SelectSingle{self.Class.Name}By{pk.Name}(config, {self.Class.Name.lower()}.{pk.Name}, innerquery{iin2})")
+            s#.wln(f"if _{self.Class.Name.lower()} is not None:").o()
+
+            s.wln(f"if len({self.Class.Name.lower()}_items.Data.keys()) == 1:").o()
+            
+            s.wln(f"params = {self.getDLClassName()}.Parameterize{self.Class.Name}({self.Class.Name.lower()})")
+            s.wln(f"updatequery = {self.getDLClassName()}.Get{self.Class.Name}UpdateQuery({iin})")
+            s.wln(f"{self.CommonFunctionsClassName}.ExecuteParameterizedNonQuery(config, updatequery, params)")
+            #s.wln(f"_{pk.Name.lower()} = _{self.Class.Name.lower()}.{pk.Name}").c()
+            s.wln(f"_{pk.Name.lower()} = list({self.Class.Name.lower()}_items.Data.keys())[0]").c()
+            s.wln("else:").o()
+            s.wln(f"params = {self.getDLClassName()}.Parameterize{self.Class.Name}({self.Class.Name.lower()})")
+            s.wln(f"insertquery = {self.getDLClassName()}.Get{self.Class.Name}InsertQuery({iin})")
+            s.wln(f"{self.CommonFunctionsClassName}.ExecuteParameterizedNonQuery(config, insertquery, params)")
+            s.c()
+            s.wln(f"return _{pk.Name.lower()}")
+            s.c()
+            s.ret()
+            if self.Class.InheritsFrom is not None:
+                for propertyid, property in self.Class.InheritedProperties.Data.items():
+                    if property.IsUnique and not property.IsPrimaryKey and (property.Type == DatatypeString().getType()):
+                        s = self.writePersistWhereForProperty(s, property, pk)
+
+            for propertyid, property in self.Class.Properties.Data.items(): 
+                if property.IsUnique and not property.IsPrimaryKey and (property.Type == DatatypeString().getType()):
+                    s = self.writePersistWhereForProperty(s, property, pk)
+        return s
+    
     def writeUpdate(self, s:PythonStringWriter):
         (db, schema, tablename, iid, iid2, iin, iin2) = self.getCommonItems()
         if self.Class.hasPrimaryKeyPoperty():
@@ -431,6 +535,9 @@ class PythonDataClassWriter(DataClassWriter):
             s.wln("@staticmethod")
             s.wln(f"def Get{self.Class.Name}UpdateQuery({iid}):").o()
             #s.writeline(f'innerquery = "{tablename}"')
+
+            #s.wln(f"if whereclause is None:").o()
+            s.wln(f'whereclause = " WHERE {db.OB()}{pk.Name}{db.CB()} = {db.GetParameter(pk.Name.lower())}{db.EndQuery()}"')
             s = self.writeInstanceStr(s, "\"" + tablename + "\"")
             s.wln(f'updatequery = f"UPDATE {{innerquery}} SET "')
             if self.Class.InheritsFrom is not None:
@@ -440,7 +547,7 @@ class PythonDataClassWriter(DataClassWriter):
             for propertyid, property in self.Class.Properties.Data.items():
                 if not property.IsPrimaryKey:
                     s.wln(f'updatequery += "{db.OB()}{property.Name}{db.CB()} = {db.GetParameter(property.Name.lower())},"')
-            s.wln(f'updatequery += "WHERE {db.OB()}{pk.Name}{db.CB()} = {db.GetParameter(pk.Name.lower())}{db.EndQuery()}"')
+            s.wln(f'updatequery = updatequery[:-1] + " " + whereclause')
             s.wln("return updatequery")
             s.c().ret()
 
@@ -451,6 +558,8 @@ class PythonDataClassWriter(DataClassWriter):
             s.wln(f"{self.CommonFunctionsClassName}.ExecuteParameterizedNonQuery(config, updatequery, params)")
             s.c()
             s.ret()
+
+
         return s
     
     def writeDelete(self, s:PythonStringWriter):

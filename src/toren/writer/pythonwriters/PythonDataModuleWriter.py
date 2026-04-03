@@ -199,7 +199,7 @@ class PythonDataModuleWriter(DataModuleWriter):
         s.wln(f"@staticmethod")
         s.wln(f"def ExecuteFetchOne(config, query: str, data: {data_data_type}, translation) -> dict:").o()
         s = self.writeCommonSetupConnection(s)
-        s.wln("result = {}")
+        s.wln("result = None")
         s.wln(f"try:").o()
         s.wln(f"cursor = connection.cursor()")
         s.wln(f"cursor.execute(query, data)")

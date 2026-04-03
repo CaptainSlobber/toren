@@ -199,7 +199,15 @@ class Datatype(TorenObject):
     _to[f"{LanguageJavaScript().getID()}{DatabaseMicrosoftSQL().getID()}"] = self.JavaScript_to_MicrosoftSQL
     _to[f"{LanguageJavaScript().getID()}{DatabaseOracle().getID()}"] = self.JavaScript_to_Oracle
 
-    return _to[f"{language.getID()}{database.getID()}"](args)
+
+    f = _to[f"{language.getID()}{database.getID()}"]
+    r = None
+    #print(f"To(args): {args}")
+    if len(args) == 1:
+      r = f(args[0])
+    else:
+      r = f(args)
+    return r
 
 
   ##########################################################################
@@ -233,7 +241,14 @@ class Datatype(TorenObject):
     _from[f"{LanguageJavaScript().getID()}{DatabaseMicrosoftSQL().getID()}"] = self.JavaScript_from_MicrosoftSQL
     _from[f"{LanguageJavaScript().getID()}{DatabaseOracle().getID()}"] = self.JavaScript_from_Oracle
 
-    return _from[f"{language.ID}{database.ID}"](args)
+    f = _from[f"{language.getID()}{database.getID()}"]
+    r = None
+    #print(f"From(args): {args}")
+    if len(args) == 1:
+      r = f(args[0])
+    else:
+      r = f(args)
+    return r
   
   ##########################################################################
   # Dependencies
