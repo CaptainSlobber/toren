@@ -133,7 +133,7 @@ class DatatypeDatetime(Datatype):
   ##########################################################################
   
   def CSharp_Type(self, *args) -> str:
-    return "Datetime"
+    return "DateTime"
   
   def CSharp_Dependencies(self) -> list:
     return ["using System.Globalization;"]

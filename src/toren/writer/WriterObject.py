@@ -47,6 +47,7 @@ class WriterObject():
 
     def writeFile(self, path, filename, content):
         file_path = os.path.join(path, filename)
+        self.writeDirectory(path, False)
         with open(file_path, "w") as file:
             file.write(content)
         return file_path

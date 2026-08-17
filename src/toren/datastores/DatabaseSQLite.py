@@ -93,6 +93,9 @@ class DatabaseSQLite(Database):
   
   def JavaConnectionClass(self):
     return "Connection"
+
+  def CSharpConnectionClass(self):
+    return "SqliteConnection"
   
   ##########################################################################
   # Initialize Connection

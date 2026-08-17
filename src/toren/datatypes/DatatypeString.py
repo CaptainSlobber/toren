@@ -147,7 +147,7 @@ class DatatypeString(Datatype):
   def CSharp_DefaultValue(self, *args) -> str:
     if self.hasDefaultValue():
       return self._DefaultValueDoubleQuote()
-    return "String.Empty"
+    return '""'
   
 
   ##########################################################################

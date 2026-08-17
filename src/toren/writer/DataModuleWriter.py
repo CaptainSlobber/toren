@@ -59,7 +59,7 @@ class DataModuleWriter(DataWriterObject):
         self.Logger.Log(f"=> Writing Data Module: {self.Module.Name}")
         data_module_path = self.getDataModulePath()
         self.Logger.Log(f"=> To Path: {data_module_path}")
-        self.writeDirectory(data_module_path, clear=True)
+        self.writeDirectory(data_module_path, clear=False)
 
 
 

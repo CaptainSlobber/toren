@@ -57,7 +57,7 @@ class CSharpClassWriter(ClassWriter):
                     _modl = property.ForeignKey.FKClass.ParentModule.Name
                     _proj = property.ForeignKey.FKClass.ParentModule.ParentProject.Name
                     fkdep = f"using {_proj}.{_modl}.{_clss};"
-                    dependency_map[fkdep] = fkdep
+                    #dependency_map[fkdep] = fkdep
 
         for _classid, _class in self.Module.Classes.Data.items():
             for _propertyid, _property in _class.Properties.Data.items():
@@ -67,7 +67,7 @@ class CSharpClassWriter(ClassWriter):
                         _proj = _class.ParentModule.ParentProject.Name
                         coll = f"{_class.SetDescription}"
                         reference_coll_dep = f"using {_proj}.{_modl}.{coll};"
-                        dependency_map[reference_coll_dep] = reference_coll_dep
+                        #dependency_map[reference_coll_dep] = reference_coll_dep
         return dependency_map
 
 
@@ -80,6 +80,18 @@ class CSharpClassWriter(ClassWriter):
         s.ret()
         return s
     
+
+    def getParentModulePath(self):
+        p = self.Class.ParentModule.ParentProject.Name
+        e = self.Class.ParentModule.ParentProject.Entity.lower()
+        m = self.Class.ParentModule.Name
+        b = self.Module.Name.lower()
+        language = self.Language
+        project = self.Project
+        module = self.Module
+        mod = f"{e.lower()}.{p.lower()}.{self.Module.Name.lower()}"
+        return os.path.join(language.OutputDirectory, project.Name, mod)
+
     def writeClassOpen(self, s: CSharpStringWriter):
         e = self.Class.ParentModule.ParentProject.Entity.lower()
         p = self.Class.ParentModule.ParentProject.Name.lower()
@@ -91,7 +103,7 @@ class CSharpClassWriter(ClassWriter):
             pproj = self.Class.InheritsFrom.ParentModule.ParentProject.Name.lower()
             pmodl = self.Class.InheritsFrom.ParentModule.Name.lower()
             pclss = self.Class.InheritsFrom.Name.lower()
-            s.wln(f"using {pent}.{pproj}.{pmodl}.{pclss};")
+            #s.wln(f"using {pent}.{pproj}.{pmodl}.{pclss};")
             s.ret()
 
             s.write(f"public class {self.Class.Name}: {self.ParentClassName} ").o()
@@ -111,7 +123,7 @@ class CSharpClassWriter(ClassWriter):
     def writeParentClassInitializer(self, s:CSharpStringWriter):
         if self.Class.InheritsFrom is not None:
             for propertyid, property in self.Class.InheritedProperties.Data.items():
-                s.wln(f"this._{property.Name} = {property.Name.lower()};")
+                s.wln(f"this.{property.Name} = {property.Name.lower()};")
 
         return s
 
@@ -119,8 +131,18 @@ class CSharpClassWriter(ClassWriter):
     def writeParentClassParameters(self, s:CSharpStringWriter):
         if self.Class.InheritsFrom is not None:
             for propertyid, property in self.Class.InheritedProperties.Data.items():
-                s.wln(f"{property.CSharp_Type()} {property.Name.lower()} = {property.CSharp_DefaultValue()},")
+                s.wln(f"{property.CSharp_Type()} {property.Name.lower()},")
         return s
+
+
+    def getBaseInit(self):
+        base_init = ""
+        if self.Class.InheritsFrom is not None:
+            input_list = []
+            for propertyid, property in self.Class.InheritedProperties.Data.items():
+                input_list.append(f"{property.Name.lower()}")
+            base_init = f": base({', '.join(input_list)})"
+        return base_init
 
     def writeClassInitializer(self, s: CSharpStringWriter):
 
@@ -129,19 +151,22 @@ class CSharpClassWriter(ClassWriter):
 
         s = self.writeParentClassParameters(s)
         for propertyid, property in self.Class.Properties.Data.items():
-            s.wln(f"{property.CSharp_Type()} {property.Name.lower()} = {property.CSharp_DefaultValue()},")
+            s.wln(f"{property.CSharp_Type()} {property.Name.lower()},")
         
         s.rem(2).newline()
         s.Dec()
-        s.a(")").o()
+        s.a(")").a(self.getBaseInit()).o()
         s.Dec()
         s.ret()
-        s = self.writeParentClassInitializer(s)
+        #s = self.writeParentClassInitializer(s)
         for propertyid, property in self.Class.Properties.Data.items():
-            s.wln(f"this._{property.Name} = {property.Name.lower()};")
+            s.wln(f"this._{property.Name.lower()} = {property.Name.lower()};")
         s.ret()
         s.c()
         s.ret()
+
+        #  = {property.CSharp_DefaultValue()}
+
         return s
     
     def writePropertyHelperFunctions(self, property, s:CSharpStringWriter):
@@ -251,7 +276,7 @@ class CSharpClassWriter(ClassWriter):
         csharpCollectionObject = self.getCollectionObject()
         s.w(f"public {self.Class.SetDescription} fromArray({self.Class.Name}[] {self.Class.Name.lower()}Arr)" ).o()
         s.wln(f"this._data = new {csharpCollectionObject}();")
-        s.w(f"for (int i = 0; i < {self.Class.Name.lower()}Arr.length; i++)").o()
+        s.w(f"for (int i = 0; i < {self.Class.Name.lower()}Arr.Length; i++)").o()
         s.wln(f"this._data.Add({self.Class.Name.lower()}Arr[i].{pkproperty.Name}, {self.Class.Name.lower()}Arr[i]);").c()
         s.wln("return this;").c().ret()
         return s
@@ -265,7 +290,7 @@ class CSharpClassWriter(ClassWriter):
     def writeClassCollectionFromList(self, s:CSharpStringWriter):
         pkproperty = self.getPrimaryKeyProperty()
         csharpCollectionObject = self.getCollectionObject()
-        s.w(f"public {self.Class.SetDescription} fromList(ArrayList<{self.Class.Name}> {self.Class.Name.lower()}List) ").o()
+        s.w(f"public {self.Class.SetDescription} fromList(List<{self.Class.Name}> {self.Class.Name.lower()}List) ").o()
         s.wln(f"this._data = new {csharpCollectionObject}();")
         s.w(f"foreach ({self.Class.Name} _{self.Class.Name.lower()} in {self.Class.Name.lower()}List)").o()
         s.wln(f"this._data.Add(_{self.Class.Name.lower()}.{pkproperty.Name}, _{self.Class.Name.lower()});").c()
@@ -273,8 +298,8 @@ class CSharpClassWriter(ClassWriter):
         return s
 
     def writeClassCollectionToList(self, s:CSharpStringWriter):
-        s.w(f"public ArrayList<{self.Class.Name}> toList() ").o()
-        s.wln(f"ArrayList<{self.Class.Name}> arr = new ArrayList<{self.Class.Name}>(this._data.Values);")
+        s.w(f"public List<{self.Class.Name}> toList() ").o()
+        s.wln(f"List<{self.Class.Name}> arr = new List<{self.Class.Name}>(this._data.Values);")
         s.wln(f"return arr;").c().ret()
         return s 
     
@@ -319,7 +344,7 @@ class CSharpClassWriter(ClassWriter):
 
         dependency_map[_system] = _system
         dependency_map[_collections] = _collections
-        dependency_map[_cls] = _cls
+        #dependency_map[_cls] = _cls
 
         return dependency_map
     

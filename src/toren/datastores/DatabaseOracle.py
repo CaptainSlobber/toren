@@ -80,6 +80,9 @@ class DatabaseOracle(Database):
   
   def JavaConnectionClass(self):
     return "Connection"
+
+  def CSharpConnectionClass(self):
+    return "OracleConnection"
   
   ##########################################################################
   # Initialize Connection

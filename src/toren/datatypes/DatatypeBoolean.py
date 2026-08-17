@@ -116,10 +116,10 @@ class DatatypeBoolean(Datatype):
     return f"int({args[0]})"
 
   def Python_to_MicrosoftSQL(self, *args) -> str:
-    return f"int({args[0]})"
+    return f"bool({args[0]})"
   
   def Python_to_PostgreSQL(self, *args) -> str:
-    return f"int({args[0]})"
+    return f"bool({args[0]})"
   
   def Python_to_SQLite(self, *args) -> str:
     return f"int({args[0]})"

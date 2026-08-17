@@ -84,6 +84,9 @@ class DatabasePostgreSQL(Database):
   
   def JavaConnectionClass(self):
     return "Connection"
+
+  def CSharpConnectionClass(self):
+    return "NpgsqlConnection"
   
   ##########################################################################
   # Initialize Connection

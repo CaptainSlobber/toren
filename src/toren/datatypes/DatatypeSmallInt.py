@@ -192,9 +192,9 @@ class DatatypeSmallInt(DatatypeNumeric):
   def CSharp_Type(self, *args) -> str:
     if self.hasHigherDimensionality():
       commas = ","*(len(self.Dimensinality)-1)  
-      return f"int16[{commas}]" #multidimensional array
+      return f"short[{commas}]" #multidimensional array
     else:
-      return "int16"
+      return "short"
   
   def CSharp_Dependencies(self) -> list:
     if self.hasHigherDimensionality():
@@ -204,7 +204,7 @@ class DatatypeSmallInt(DatatypeNumeric):
   
   def CSharp_DefaultValue(self, *args) -> str:
     if self.hasHigherDimensionality():
-      return f"new int16[{','.join(list(map(str, self.Dimensinality)))}]"
+      return f"new short[{','.join(list(map(str, self.Dimensinality)))}]"
     else:
       if self.hasDefaultValue():
           return f"{self.DefaultValue}"
