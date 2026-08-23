@@ -71,7 +71,7 @@ class DatabaseMicrosoftSQL(Database):
   ##########################################################################
 
   def CSharpDependencies(self):
-    return ["using System.Data.SqlClient;"]
+    return ["using Microsoft.Data.SqlClient;"] # using System.Data.SqlClient;
   
   def PythonDependencies(self):
     return ["import pyodbc"]
@@ -103,6 +103,20 @@ class DatabaseMicrosoftSQL(Database):
     
   def JavaScriptConnectionClass(self):
     return ""
+
+  ##########################################################################
+  # Command
+  ##########################################################################
+
+  def CSharpCommandClass(self):
+    return "SqlCommand"
+
+  ##########################################################################
+  # SQL Exception 
+  ##########################################################################
+
+  def CSharpSQLExceptionClass(self):
+    return "SqlException"
   
   ##########################################################################
   # Initialize Connection

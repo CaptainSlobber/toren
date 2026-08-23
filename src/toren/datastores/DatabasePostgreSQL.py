@@ -87,6 +87,21 @@ class DatabasePostgreSQL(Database):
 
   def CSharpConnectionClass(self):
     return "NpgsqlConnection"
+
+  ##########################################################################
+  # Command
+  ##########################################################################
+
+  def CSharpCommandClass(self):
+    return "NpgsqlCommand"
+
+  ##########################################################################
+  # SQL Exception 
+  ##########################################################################
+
+  def CSharpSQLExceptionClass(self):
+    return "NpgsqlException"
+  
   
   ##########################################################################
   # Initialize Connection

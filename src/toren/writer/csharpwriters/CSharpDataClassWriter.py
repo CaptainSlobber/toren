@@ -74,4 +74,32 @@ class CSharpDataClassWriter(DataClassWriter):
                                                 dbmod)
         return data_module_path
 
-   
+    def writeDLClassOpen(self, s:CSharpStringWriter):
+
+        
+        c = self.Class.Name
+        d = self.getDLClassName()
+        
+        s.ret()
+        s.write(f"public static class {d} ").o()
+        s.ret()
+        s.wln("/*")
+        s.wln(f" {self.Database.Name} Data Layer for Class: {self.Class.Name}")
+        s.wln(f" Class ID: {self.Class.ID}")
+        s.wln("*/")
+        s.ret()
+        return s
+
+
+    def writeParentClassInitializer(self, s:CSharpStringWriter):
+        return s
+
+    def writeDLClassInitializer(self, s:CSharpStringWriter):
+        #d = self.getDLClassName()
+        #s.wln(f"public {d}() {{}}")
+        #s.ret()
+        return s
+
+    def writeDLClassClose(self, s:CSharpStringWriter):
+        s.c()
+        return s

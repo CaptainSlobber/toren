@@ -209,6 +209,25 @@ class Database(TorenObject):
     _conn[LanguageGo().getID()] = self.GoConnectionClass
     _conn[LanguageJavaScript().getID()] = self.JavaScriptConnectionClass
     return _conn[language.ID]()
+
+
+  def CommandClass(self, language: Language):
+    _conn = {}
+    _conn[LanguagePython().getID()] = self.PythonCommandClass
+    _conn[LanguageCSharp().getID()] = self.CSharpCommandClass
+    _conn[LanguageJava().getID()] = self.JavaCommandClass
+    _conn[LanguageGo().getID()] = self.GoCommandClass
+    _conn[LanguageJavaScript().getID()] = self.JavaScriptCommandClass
+    return _conn[language.ID]()
+
+  def SQLExceptionClass(self, language: Language):
+    _conn = {}
+    _conn[LanguagePython().getID()] = self.PythonSQLExceptionClass
+    _conn[LanguageCSharp().getID()] = self.CSharpSQLExceptionClass
+    _conn[LanguageJava().getID()] = self.JavaSQLExceptionClass
+    _conn[LanguageGo().getID()] = self.GoSQLExceptionClass
+    _conn[LanguageJavaScript().getID()] = self.JavaScriptSQLExceptionClass
+    return _conn[language.ID]()
   
   def WriteConnectionInitialization(self, language: Language, s):
     _conn = {}
@@ -255,6 +274,43 @@ class Database(TorenObject):
     raise NotImplementedError()   
   
   def JavaScriptConnectionClass(self):
+    raise NotImplementedError()
+
+  ##########################################################################
+  # Command Class
+  ##########################################################################
+  def CSharpCommandClass(self):
+    raise NotImplementedError()
+  
+  def PythonCommandClass(self):
+    raise NotImplementedError()
+  
+  def JavaCommandClass(self):
+    raise NotImplementedError()  
+  
+  def GoCommandClass(self):
+    raise NotImplementedError()   
+  
+  def JavaScriptCommandClass(self):
+    raise NotImplementedError()
+
+
+  ##########################################################################
+  # SQLException Class
+  ##########################################################################
+  def CSharpSQLExceptionClass(self):
+    raise NotImplementedError()
+  
+  def PythonSQLExceptionClass(self):
+    raise NotImplementedError()
+  
+  def JavaSQLExceptionClass(self):
+    raise NotImplementedError()  
+  
+  def GoSQLExceptionClass(self):
+    raise NotImplementedError()   
+  
+  def JavaScriptSQLExceptionClass(self):
     raise NotImplementedError()
   
   ##########################################################################

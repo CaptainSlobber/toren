@@ -57,7 +57,7 @@ class DatabaseOracle(Database):
   ##########################################################################
 
   def CSharpDependencies(self):
-    return ["using Oracle.DataAccess.Client;", "using Oracle.ManagedDataAccess.Client;"] #System.Data.OracleClient
+    return ["using Oracle.ManagedDataAccess.Client;"] #"System.Data.OracleClient;", "using Oracle.DataAccess.Client;"
   
   def PythonDependencies(self):
     return ["import oracledb"]
@@ -83,6 +83,20 @@ class DatabaseOracle(Database):
 
   def CSharpConnectionClass(self):
     return "OracleConnection"
+
+  ##########################################################################
+  # Command
+  ##########################################################################
+
+  def CSharpCommandClass(self):
+    return "OracleCommand"
+
+  ##########################################################################
+  # SQL Exception 
+  ##########################################################################
+
+  def CSharpSQLExceptionClass(self):
+    return "OracleException"
   
   ##########################################################################
   # Initialize Connection

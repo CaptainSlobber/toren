@@ -102,4 +102,176 @@ class CSharpDataModuleWriter(DataModuleWriter):
                           logger=self.Logger)
             c.write()
         return mDataLayer
-   
+
+    
+    def writeOpenCommonDataFunctions(self, classname: str, s:CSharpStringWriter):
+        
+        s.ret()
+
+        s.write(f"public class {classname} ").o()
+
+        s.wln("/*")
+        s.wln(f" Class: {classname}")
+        s.wln(f" Description: Common Datalayer Functions")
+        s.wln("*/")
+        s.ret()
+
+        
+        return s
+    
+    def writeCommonCreateConnection(self, s:CSharpStringWriter):
+        db = self.Database
+        connclass = db.ConnectionClass(self.Language)
+        conobjclass = f"{self.getDLPrefix()}{ self.ConnectionObjectClassName}{self.getDLSuffix()}"
+        s.w(f"public static {connclass} GetConnection({conobjclass} config) ").o()
+        s.wln(f"{connclass} connection = null;")
+        s = db.WriteConnectionInitialization(self.Language, s)    
+        s.wln("return connection;")
+        s.c()
+        s.ret()
+        return s
+    
+    def writeCloseCommonDataFunctions(self, s:CSharpStringWriter):
+        s.c()
+        s.ret()
+        
+        return s
+
+
+    def writeOpenCommonAdminFunctions(self, classname: str, s:CSharpStringWriter):
+        conclass = f"{self.getDLPrefix()}{ self.ConnectionObjectClassName}{self.getDLSuffix()}"
+        cfn = f"{self.getDLPrefix()}{ self.CommonFunctionsClassName}{self.getDLSuffix()}"
+        for classid, _class in self.Module.Classes.Data.items():
+            dlclassname = f"{self.getDLPrefix()}{ _class.Name}{self.getDLSuffix()}"
+            class_dep = f"{dlclassname}"
+            #s.wln(class_dep)    
+        s.ret()
+        s.write(f"public class {classname} ").o()
+        s.ret()
+        s.wln("/*")
+        s.wln(f" Class: {classname}")
+        s.wln(f" Description: Common Admin Functions")
+        s.wln("*/")
+        s.ret()
+        
+        return s
+
+    def writeCloseCommonAdminFunctions(self, s:CSharpStringWriter):
+        s.c()
+        s.ret()
+        
+        return s
+    
+    
+    def writeCommonSetupConnection(self, s:CSharpStringWriter):
+        db = self.Database
+        cfn = f"{self.getDLPrefix()}{ self.CommonFunctionsClassName}{self.getDLSuffix()}"
+
+        connclass = db.ConnectionClass(self.Language)
+        s.wln(f"{connclass} connection = {cfn}.GetConnection(config);")
+        #s.wln(f"connection.setAutoCommit(false);")
+        return s
+    
+    def writeCommonHandleQueryException(self, s:CSharpStringWriter): 
+        db = self.Database
+        cfn = f"{self.getDLPrefix()}{ self.CommonFunctionsClassName}{self.getDLSuffix()}"
+        exceptionclass = db.SQLExceptionClass(self.Language)
+        s.w(f"public static void Handle{exceptionclass}({exceptionclass} e) ").o()
+        s.wln("Console.WriteLine(e.ToString());")
+        s.c()
+        s.ret()
+        return s
+
+    def writeCommonExecuteParameterizedNonQuery(self, s:CSharpStringWriter):
+        db = self.Database
+        cfn = f"{self.getDLPrefix()}{ self.CommonFunctionsClassName}{self.getDLSuffix()}"
+        connclass = db.ConnectionClass(self.Language)
+        conobjclass = f"{self.getDLPrefix()}{ self.ConnectionObjectClassName}{self.getDLSuffix()}"
+        commandclass = db.CommandClass(self.Language)
+
+        s.w(f"public static int ExecuteParameterizedNonQuery({conobjclass} config, string query, Dictionary<string, object> parameters) ").o()
+        s.wln(f"int rowsAffected = 0;")
+        s.w(f"using ({connclass} connection = {cfn}.GetConnection(config))").o()
+        s.w(f"using ({commandclass} command = new {commandclass}(query, connection))").o()
+        s.w("try ").o()
+        s.wln("connection.Open();")
+        if db.Name.lower() == "oracle":
+            s.wln("command.BindByName = true;")
+        s.w("foreach (var paramater in parameters)").o()
+        s.wln("Dictionary<string, object> paramValue = (Dictionary<string, object>)paramater.Value;")
+        s.wln("var dbtype = paramValue[\"DbType\"]; ")
+        s.wln("var value = paramValue[\"Value\"];")
+        if db.Name.lower() == "oracle": # Oracle requires the OracleDbType to be specified for each parameter
+            s.wln("command.Parameters.Add(paramater.Key, (OracleDbType) dbtype).Value = value;")
+        else:
+            s.wln("command.Parameters.AddWithValue(paramater.Key, value);")
+        s.c()
+        s.wln("rowsAffected = command.ExecuteNonQuery();")
+        s = self.closeTry(s)
+        s.c()
+        s.c()
+        s.wln(f"return rowsAffected;")
+        s.c()
+        s.ret()
+
+        return s
+    
+    
+    def closeTry(self, s: CSharpStringWriter):
+        db = self.Database
+        cfn = f"{self.getDLPrefix()}{ self.CommonFunctionsClassName}{self.getDLSuffix()}"
+        exceptionclass = db.SQLExceptionClass(self.Language)
+        s.b(f" catch ({exceptionclass} e) ")
+        s.wln(f"{cfn}.Handle{exceptionclass}(e);")
+        s.c()
+        return s
+
+    def writeCommonExecuteNonQuery(self, s:CSharpStringWriter):
+        db = self.Database
+        cfn = f"{self.getDLPrefix()}{ self.CommonFunctionsClassName}{self.getDLSuffix()}"
+        connclass = db.ConnectionClass(self.Language)
+        commandclass = db.CommandClass(self.Language)
+        exceptionclass = db.SQLExceptionClass(self.Language)
+        conobjclass = f"{self.getDLPrefix()}{ self.ConnectionObjectClassName}{self.getDLSuffix()}"
+
+        s.w(f"public static int ExecuteNonQuery({conobjclass} config, string query) ").o()
+        s.wln(f"int rowsAffected = 0;")
+        s.w(f"using ({connclass} connection = {cfn}.GetConnection(config))").o()
+        s.w(f"using ({commandclass} command = new {commandclass}(query, connection))").o()
+        s.w("try ").o()
+        s.wln("connection.Open();")
+        s.wln("rowsAffected = command.ExecuteNonQuery();")
+        s = self.closeTry(s)
+        s.c()
+        s.c()
+        s.wln(f"return rowsAffected;")
+        s.c()
+        s.ret()
+
+        s.w(f"public static int ExecuteNonQueries({conobjclass} config, string[] queries) ").o()
+        s.wln(f"int rowsAffected = 0;")
+        s.w(f"using ({connclass} connection = {cfn}.GetConnection(config))").o()
+        s.w(f"for (int i = 0; i < queries.Length; i++) ").o()
+        s.w(f"using ({commandclass} command = new {commandclass}(queries[i], connection))").o()
+        s.w("try ").o()
+        s.wln("connection.Open();")
+        s.wln("rowsAffected += command.ExecuteNonQuery();")
+        s = self.closeTry(s)
+        s.c()
+        s.c()
+        s.c()
+        s.wln("return rowsAffected;")
+        s.c()
+        s.ret()
+        return s
+    
+    def writeCommonCleanupConnection(self, s:CSharpStringWriter):
+        db = self.Database
+        cfn = f"{self.getDLPrefix()}{ self.CommonFunctionsClassName}{self.getDLSuffix()}"
+        exceptionclass = db.SQLExceptionClass(self.Language)
+        s.w("try ").o()
+        s.wln(f"connection.Close();")
+        s.b(f" catch ({exceptionclass} e) ")
+        s.wln(f"{cfn}.Handle{exceptionclass}(e);")
+        s.c()
+        return s
