@@ -4,6 +4,7 @@ import os
 from pathlib import Path
 
 from typing import List
+
 from ..DataClassWriter import DataClassWriter
 from .CSharpStringWriter import CSharpStringWriter
 from ...datastores.Database import Database
@@ -57,8 +58,12 @@ class CSharpDataClassWriter(DataClassWriter):
         p = self.Class.ParentModule.ParentProject.Name
         m = self.Class.ParentModule.Name
         c = self.Class.Name
-        
+        textdep = "using System.Text;"
+        dependency_map[textdep] = textdep
+        jsondep = "using System.Text.Json;"
+        dependency_map[jsondep] = jsondep
 
+        
         return dependency_map
     
 
@@ -73,6 +78,18 @@ class CSharpDataClassWriter(DataClassWriter):
                                                 self.Project.Name, 
                                                 dbmod)
         return data_module_path
+
+
+    def writeDLPackage(self, s:CSharpStringWriter):
+        p = self.Module.ParentProject.Name
+        e = self.Module.ParentProject.Entity.lower()
+        m = self.Module.Name
+        b = self.Database.Name.lower()
+        t = self.Module.ParentProject.TLD
+        s.wln(f"namespace {e}.{p}.{m}.{b};")
+        s.ret()
+        return s
+
 
     def writeDLClassOpen(self, s:CSharpStringWriter):
 
@@ -102,4 +119,252 @@ class CSharpDataClassWriter(DataClassWriter):
 
     def writeDLClassClose(self, s:CSharpStringWriter):
         s.c()
+        return s
+
+    def writeDLClassProperties(self, s:CSharpStringWriter):
+        s.wln(f"public static string SCHEMA_NAME = \"{self.Class.ParentModule.Name}\";")
+        s.wln(f"public static string TABLE_NAME = \"{self.Class.Name}\";")
+        if self.Class.InheritsFrom is not None:
+            for propertyid, property in self.Class.InheritedProperties.Data.items():
+                s.wln(f"public static string COL_NAME_{property.Name.upper()} = \"{property.Name}\";")
+        for propertyid, property in self.Class.Properties.Data.items():
+            s.wln(f"public static string COL_NAME_{property.Name.upper()} = \"{property.Name}\";")
+        s.ret()
+        return s
+
+    def writeCreateTableColumn(self, s:CSharpStringWriter, property):
+        db = self.Database
+        NOTNULL = " NOT NULL"
+        if property.AllowNulls:
+            NOTNULL = ""
+        PRIMARYKEY = ""
+        if property.IsPrimaryKey: 
+            PRIMARYKEY = " PRIMARY KEY"
+        UNIQUE = ""
+        if property.IsUnique:
+            UNIQUE = " UNIQUE"
+        DATATYPE = property.DatabasePropertyType(db)
+            
+        s.wln(f'createquery += "{db.OB()}{property.Name}{db.CB()} {DATATYPE}{NOTNULL}{UNIQUE}{PRIMARYKEY},";')
+        return s
+
+    def getInstanceIDParameter(self, prefix: str = ""):
+        if self.Class.Cloneable:
+            return prefix + "Guid " + self.getInstanceIDParemeterName() + ""
+        else:
+            return ""
+    
+    def  getInstanceIDParemeterName(self, prefix: str = ""):
+        if self.Class.Cloneable:
+            return prefix + "instanceID"
+        else:
+            return ""
+        
+    def getInstanceIDExt(self):
+        if self.Class.Cloneable:
+            return "" + self.getInstanceIDParemeterName() + "Str" + ""
+
+        else:
+            return ""
+
+    def writeGetTableName(self, s:CSharpStringWriter):
+        
+        iin = self.getInstanceIDParemeterName("")
+        if self.Class.Cloneable:
+            s.wln(f"string tableName = {self.getDLClassName()}.GetTableName({iin});")
+        else:
+            s.wln(f"string tableName = {self.getDLClassName()}.GetTableName();")
+        return s
+    
+    def getCommonItems(self):
+        db = self.Database
+        iin = self.getInstanceIDParemeterName()
+        iin2 = self.getInstanceIDParemeterName(", ")
+
+        iid = self.getInstanceIDParameter()
+        iid2 = self.getInstanceIDParameter(", ")
+        schema = self.getSchema()
+        tablename = db.GetTableName(self.Class)
+        conobjclass = f"{self.ConnectionObjectClassName}"
+        return (db, schema, tablename, iid, iid2, iin, iin2, conobjclass)
+
+    def writeCreateTable(self, s:CSharpStringWriter):
+        (db, schema, tablename, iid, iid2, iin, iin2, conobjclass) = self.getCommonItems()
+        
+        if self.Class.Cloneable:
+            s.w(f'private static string GetTableName({iid}) ').o()
+            s.wln(f"string id = {iin}.ToString();")
+            s.wln(f'string tableName = $"{db.GetTableName(self.Class, ".{id}")}";')     
+            s.wln(f'return tableName;')
+            s.c()
+            s.ret()
+        else:
+            s.w(f'private static string GetTableName() ').o()
+            s.wln(f'string tableName = "{db.GetTableName(self.Class)}";')
+            s.wln(f'return tableName;')
+            s.c()
+            s.ret()
+
+
+        s.w(f"private static string GetCreate{self.Class.Name}TableQuery({iid})").o()
+        s = self.writeGetTableName(s)
+        s.wln(f'string createquery = $"CREATE TABLE{db.IfNotExists()} {{tableName}} (";')
+        if self.Class.InheritsFrom is not None:
+            for propertyid, property in self.Class.InheritedProperties.Data.items():
+                s = self.writeCreateTableColumn(s, property)
+        for propertyid, property in self.Class.Properties.Data.items():
+            s = self.writeCreateTableColumn(s, property)
+        s.wln(f'createquery += "){db.EndQuery()}";')
+        s.wln("return createquery;")
+        s.c().ret()
+
+        s.w(f"public static void Create{self.Class.Name}Table({conobjclass} config{iid2}) ").o()
+        s.wln(f'string createquery = {self.getDLClassName()}.GetCreate{self.Class.Name}TableQuery({iin});')
+        s.wln(f"{self.CommonFunctionsClassName}.ExecuteNonQuery(config, createquery);")
+        s.c()
+        s.ret()
+        return s
+
+    
+    def writeClearTable(self, s:CSharpStringWriter):
+        (db, schema, tablename, iid, iid2, iin, iin2, conobjclass) = self.getCommonItems()
+        s.w(f"private static string GetClear{self.Class.Name}TableQuery({iid}) ").o()
+        s = self.writeGetTableName(s)
+        s.wln(f'string clearquery = $"DELETE FROM {{tableName}}{db.EndQuery()}";')
+        s.wln("return clearquery;")
+        s.c()
+        s.ret()
+
+        s.w(f"public static void Clear{self.Class.Name}Table({conobjclass} config{iid2}) ").o()
+        s.wln(f"string clearquery = {self.getDLClassName()}.GetClear{self.Class.Name}TableQuery({iin});")
+        s.wln(f"{self.CommonFunctionsClassName}.ExecuteNonQuery(config, clearquery);")
+        s.c()
+        s.ret()
+        return s
+
+
+    def writeDropTable(self, s:CSharpStringWriter):
+        (db, schema, tablename, iid, iid2, iin, iin2, conobjclass) = self.getCommonItems()
+        s.w(f"private static string GetDrop{self.Class.Name}TableQuery({iid}) ").o()
+        s = self.writeGetTableName(s)
+        s.wln(f'string dropquery = $"DROP TABLE{db.IfExists()} {{tableName}}{db.EndQuery()}";')
+        s.wln("return dropquery;")
+        s.c()
+        s.ret()
+
+        s.w(f"public static void Drop{self.Class.Name}Table({conobjclass} config{iid2}) ").o()
+        s.wln(f"string dropquery = {self.getDLClassName()}.GetDrop{self.Class.Name}TableQuery({iin});")
+        s.wln(f"{self.CommonFunctionsClassName}.ExecuteNonQuery(config, dropquery);")
+        s.c()
+        s.ret()
+        return s
+
+    def writeGetColumnNames(self, s:CSharpStringWriter):
+        db = self.Database
+        columns = []
+        if self.Class.InheritsFrom is not None:
+            for propertyid, property in self.Class.InheritedProperties.Data.items():
+                columns.append(f"{db.OB()}{property.Name}{db.CB()}")
+        for propertyid, property in self.Class.Properties.Data.items():
+            columns.append(f"{db.OB()}{property.Name}{db.CB()}")
+        columns_string = ", ".join(columns)
+        s.w(f"private static string Get{self.Class.Name}ColumnNames() ").o()
+        s.wln(f'string columns = "{columns_string}";')
+        s.wln("return columns;")
+        s.c()
+        s.ret()
+        return s
+
+    def writeGetColumnParameters(self, s:CSharpStringWriter):
+        db = self.Database
+        params = []
+        n = 0
+        if self.Class.InheritsFrom is not None:
+            for propertyid, property in self.Class.InheritedProperties.Data.items():
+                n = n + 1
+                params.append(f"{db.GetParameter(property.Name.lower(), n)}")
+        for propertyid, property in self.Class.Properties.Data.items():
+            n = n + 1
+            params.append(f"{db.GetParameter(property.Name.lower(), n)}")
+        params_string = ", ".join(params)
+        s.w(f"private static string Get{self.Class.Name}ColumnParameters() ").o()
+        s.wln(f'string parameters = "{params_string}";')
+        s.wln("return parameters;")
+        s.c()
+        s.ret()
+        return s
+
+    def writeCreateForeignKeys(self, s:CSharpStringWriter):
+        (db, schema, tablename, iid, iid2, iin, iin2, conobjclass) = self.getCommonItems()
+        if db.SeparateForeignKeyCreation():
+            s.w(f"private static List<string> Get{self.Class.Name}ForeignKeyQueries({iid}) ").o()
+            s = self.writeGetTableName(s)
+
+            s.wln("List<string> foreignkeyqueries = new List<string>();")
+            if self.Class.InheritsFrom is not None:
+                for propertyid, property in self.Class.InheritedProperties.Data.items():
+                    if property.ForeignKey is not None:
+                        create_fk = db.GetCreateForeignKeyQuery(schema, self.Class, property, property.ForeignKey, "%s")
+                        s.wln(f'foreignkeyqueries.Add(string.Format("{create_fk}", tableName));')
+                        
+
+            for propertyid, property in self.Class.Properties.Data.items():
+                if property.ForeignKey is not None:
+                    create_fk = db.GetCreateForeignKeyQuery(schema, self.Class, property, property.ForeignKey, "%s")
+                    s.wln(f'foreignkeyqueries.Add(string.Format("{create_fk}", tableName));')
+            s.writeline("return foreignkeyqueries;")
+            s.c()
+            s.ret()
+
+            s.w(f"public static void Create{self.Class.Name}ForeignKeys({conobjclass} config{iid2}) ").o()
+            s.wln(f"List<string> foreignkeyqueries = {self.getDLClassName()}.Get{self.Class.Name}ForeignKeyQueries({iin});")
+            s.w(f"foreach (string foreignkeyquery in foreignkeyqueries) ").o()
+            s.wln(f"{self.CommonFunctionsClassName}.ExecuteNonQuery(config, foreignkeyquery);")
+            s.c()
+            s.c()
+            s.ret()
+        return s
+
+    def writeInsertItem(self, s:CSharpStringWriter):
+        (db, schema, tablename, iid, iid2, iin, iin2, conobjclass) = self.getCommonItems()
+
+        s.w(f"private static string Get{self.Class.Name}InsertQuery({iid}) ").o()
+        s = self.writeGetTableName(s)
+        s.wln(f'string columns = {self.getDLClassName()}.Get{self.Class.Name}ColumnNames();')
+        s.wln(f"string parameters = {self.getDLClassName()}.Get{self.Class.Name}ColumnParameters();")
+        s.wln(f'string insertquery = string.Format("INSERT INTO %s (%s) VALUES (%s){db.EndQuery()}", tableName, columns, parameters);')
+        s.wln("return insertquery;")
+        s.c().ret()
+
+
+        s.wln(f"private static Dictionary<string, Dictionary<string, object>> Parameterize{self.Class.Name}({self.Class.Name} {self.Class.Name.lower()})").o()
+        s.wln("Dictionary<string, Dictionary<string, object>> parameters = new Dictionary<string, Dictionary<string, object>>();")
+        s.wln("string param_value_key = \"Value\";")
+        s.wln("string param_dbtype_key = \"DbType\";")
+        n = 0
+        if self.Class.InheritsFrom is not None:
+            for propertyid, property in self.Class.InheritedProperties.Data.items():
+                n = n + 1
+                prop_val = f"{self.Class.Name.lower()}.{property.Name}"
+                converted = property.To(self.Language, self.Database, n, self.Class.Name.lower(), property.Name)
+
+
+                s.wln(f'parameters.Add("{property.Name}", new Dictionary<string, object>() {{ {{param_value_key, {converted}}}, {{param_dbtype_key, "{property.DatabasePropertyType(self.Database)}"}} }});')
+        for propertyid, property in self.Class.Properties.Data.items():
+            n = n + 1
+            prop_val = f"{self.Class.Name.lower()}.{property.Name}"
+            converted = property.To(self.Language, self.Database, n, self.Class.Name.lower(), property.Name)
+
+            s.wln(f'parameters.Add("{property.Name}", new Dictionary<string, object>() {{ {{param_value_key, {converted}}}, {{param_dbtype_key, "{property.DatabasePropertyType(self.Database)}"}} }});')
+        s.wln("return parameters;")
+        s.c().ret()
+
+
+        s.w(f"public static void InsertSingle{self.Class.Name}({conobjclass} config, {self.Class.Name} {self.Class.Name.lower()}{iid2}) ").o()
+        s.wln(f"Dictionary<string, Dictionary<string, object>> parameters = {self.getDLClassName()}.Parameterize{self.Class.Name}({self.Class.Name.lower()});")
+        s.wln(f"string insertquery = {self.getDLClassName()}.Get{self.Class.Name}InsertQuery({iin});")
+        s.wln(f"{self.CommonFunctionsClassName}.ExecuteParameterizedNonQuery(config, insertquery, parameters);")
+        s.c()
+        s.ret()
+
         return s

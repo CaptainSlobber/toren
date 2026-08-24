@@ -96,22 +96,7 @@ class DatatypeBoolean(Datatype):
     if self.hasDefaultValue():
       return f"{self.DefaultValue.capitalize()}"
     return "False"
-  
 
-  ##########################################################################
-  # C# methods
-  ##########################################################################
-  def CSharp_Type(self, *args) -> str:
-    return "bool"
-  
-  def CSharp_Dependencies(self) -> list:
-    return []
-  
-  def CSharp_DefaultValue(self, *args) -> str:
-    if self.hasDefaultValue():
-      return f"{self.DefaultValue.lower()}"
-    return "false"
-  
   def Python_to_Oracle(self, *args) -> str:
     return f"int({args[0]})"
 
@@ -135,6 +120,52 @@ class DatatypeBoolean(Datatype):
   
   def Python_from_SQLite(self, *args) -> str:
     return f"bool({args[0]})"
+  
+  
+
+  ##########################################################################
+  # C# methods
+  ##########################################################################
+  def CSharp_Type(self, *args) -> str:
+    return "bool"
+  
+  def CSharp_Dependencies(self) -> list:
+    return []
+  
+  def CSharp_DefaultValue(self, *args) -> str:
+    if self.hasDefaultValue():
+      return f"{self.DefaultValue.lower()}"
+    return "false"
+
+  ##########################################################################
+  # C# methods for converting to and from various database types
+  ##########################################################################
+
+  def _CSharp_to_(self, *args)-> str:
+    argt = args[0][0]
+    indx = str(int(argt[0]))
+    objname = str(argt[1])
+    propertyname = str(argt[2])
+    setval = f'{objname}.{propertyname}'
+    return setval
+
+  def CSharp_to_Oracle(self, *args) -> str:
+    return self._CSharp_to_(args)
+  
+  def CSharp_to_MicrosoftSQL(self, *args) -> str:
+    return self._CSharp_to_(args)
+  
+  def CSharp_to_PostgreSQL(self, *args) -> str:
+    return self._CSharp_to_(args)
+  
+  def CSharp_to_SQLite(self, *args) -> str:
+    argt = args[0]
+    indx = str(int(argt[0]))
+    objname = str(argt[1])
+    propertyname = str(argt[2])
+    setval = f'Convert.ToInt32({objname}.{propertyname})'
+    return setval
+  
   
 
   ##########################################################################

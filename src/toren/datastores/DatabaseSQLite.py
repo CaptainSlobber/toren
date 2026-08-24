@@ -67,7 +67,7 @@ class DatabaseSQLite(Database):
   ##########################################################################
   
   def CSharpDependencies(self):
-    return ["using Microsoft.Data.Sqlite;"]
+    return ["using Microsoft.Data.Sqlite;", "using System.Text;"]
   
   def PythonDependencies(self):
     return ["import sqlite3"]
@@ -117,6 +117,9 @@ class DatabaseSQLite(Database):
   ##########################################################################
 
   def CSharpInitializeConnection(self, s):
+    s.wln('string datapath = config.DataPath;')
+    s.wln('string connectionString = $"Data Source={datapath};";')
+    s.wln(f"connection = new {self.CSharpConnectionClass()}(connectionString);")  
     return s
   
   def PythonInitializeConnection(self, s):

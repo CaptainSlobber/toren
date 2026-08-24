@@ -169,7 +169,7 @@ class CSharpDataModuleWriter(DataModuleWriter):
 
         connclass = db.ConnectionClass(self.Language)
         s.wln(f"{connclass} connection = {cfn}.GetConnection(config);")
-        #s.wln(f"connection.setAutoCommit(false);")
+
         return s
     
     def writeCommonHandleQueryException(self, s:CSharpStringWriter): 
@@ -189,7 +189,7 @@ class CSharpDataModuleWriter(DataModuleWriter):
         conobjclass = f"{self.getDLPrefix()}{ self.ConnectionObjectClassName}{self.getDLSuffix()}"
         commandclass = db.CommandClass(self.Language)
 
-        s.w(f"public static int ExecuteParameterizedNonQuery({conobjclass} config, string query, Dictionary<string, object> parameters) ").o()
+        s.w(f"public static int ExecuteParameterizedNonQuery({conobjclass} config, string query, Dictionary<string, Dictionary<string, object>> parameters) ").o()
         s.wln(f"int rowsAffected = 0;")
         s.w(f"using ({connclass} connection = {cfn}.GetConnection(config))").o()
         s.w(f"using ({commandclass} command = new {commandclass}(query, connection))").o()
@@ -198,9 +198,8 @@ class CSharpDataModuleWriter(DataModuleWriter):
         if db.Name.lower() == "oracle":
             s.wln("command.BindByName = true;")
         s.w("foreach (var paramater in parameters)").o()
-        s.wln("Dictionary<string, object> paramValue = (Dictionary<string, object>)paramater.Value;")
-        s.wln("var dbtype = paramValue[\"DbType\"]; ")
-        s.wln("var value = paramValue[\"Value\"];")
+        s.wln("var dbtype = paramater.Value[\"DbType\"]; ")
+        s.wln("var value = paramater.Value[\"Value\"];")
         if db.Name.lower() == "oracle": # Oracle requires the OracleDbType to be specified for each parameter
             s.wln("command.Parameters.Add(paramater.Key, (OracleDbType) dbtype).Value = value;")
         else:

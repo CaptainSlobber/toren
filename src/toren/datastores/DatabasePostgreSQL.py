@@ -61,7 +61,7 @@ class DatabasePostgreSQL(Database):
   ##########################################################################
 
   def CSharpDependencies(self):
-    return ["using Npgsql;"]
+    return ["using Npgsql;", "using System.Text;"]
   
   def PythonDependencies(self):
     return ["import psycopg2"]
@@ -108,6 +108,13 @@ class DatabasePostgreSQL(Database):
   ##########################################################################
 
   def CSharpInitializeConnection(self, s):
+    s.wln('string password = Encoding.UTF8.GetString(Convert.FromBase64String(Environment.GetEnvironmentVariable(config.Credential)));')
+    s.wln('string username = config.Username;')
+    s.wln('string database = config.Database;')
+    s.wln('string instance = config.InstanceName;')
+    s.wln('string portno = config.PortNumber.ToString();')
+    s.wln('string connectionString = $"Server={instance};Port={portno};User Id={username};Password={password};Database={database}";')
+    s.wln(f"connection = new {self.CSharpConnectionClass()}(connectionString);") 
     return s
   
   def PythonInitializeConnection(self, s):

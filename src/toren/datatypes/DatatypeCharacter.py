@@ -136,6 +136,30 @@ class DatatypeCharacter(Datatype):
         #return f"new char[1] {{{self.DefaultValue}}}"
         return f"['{self.DefaultValue}']"
     return "new char[1]"
+
+  ##########################################################################
+  # C# methods for converting to and from various database types
+  ##########################################################################
+
+  def _CSharp_to_(self, *args)-> str:
+    argt = args[0][0]
+    indx = str(int(argt[0]))
+    objname = str(argt[1])
+    propertyname = str(argt[2])
+    setval = f'new string({objname}.{propertyname})'
+    return setval
+
+  def CSharp_to_Oracle(self, *args) -> str:
+    return self._CSharp_to_(args)
+  
+  def CSharp_to_MicrosoftSQL(self, *args) -> str:
+    return self._CSharp_to_(args)
+  
+  def CSharp_to_PostgreSQL(self, *args) -> str:
+    return self._CSharp_to_(args)
+  
+  def CSharp_to_SQLite(self, *args) -> str:
+    return self._CSharp_to_(args)
   
   ##########################################################################
   # Java methods

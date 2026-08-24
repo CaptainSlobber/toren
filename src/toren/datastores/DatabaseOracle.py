@@ -57,7 +57,7 @@ class DatabaseOracle(Database):
   ##########################################################################
 
   def CSharpDependencies(self):
-    return ["using Oracle.ManagedDataAccess.Client;"] #"System.Data.OracleClient;", "using Oracle.DataAccess.Client;"
+    return ["using Oracle.ManagedDataAccess.Client;", "using System.Text;"] #"System.Data.OracleClient;", "using Oracle.DataAccess.Client;"
   
   def PythonDependencies(self):
     return ["import oracledb"]
@@ -103,6 +103,13 @@ class DatabaseOracle(Database):
   ##########################################################################
 
   def CSharpInitializeConnection(self, s):
+    s.wln('string password = Encoding.UTF8.GetString(Convert.FromBase64String(Environment.GetEnvironmentVariable(config.Credential)));')
+    s.wln('string username = config.Username;')
+    s.wln('string database = config.Database;')
+    s.wln('string instance = config.InstanceName;')
+    s.wln('string portno = config.PortNumber.ToString();')
+    s.wln('string connectionString = $"Data Source=(DESCRIPTION=(ADDRESS_LIST=(ADDRESS=(PROTOCOL=TCP)(HOST={instance})(PORT={portno})))(CONNECT_DATA=(SERVICE_NAME={database})));User Id={username};Password={password};";')
+    s.wln(f"connection = new {self.CSharpConnectionClass()}(connectionString);") 
     return s
   
   def PythonInitializeConnection(self, s):

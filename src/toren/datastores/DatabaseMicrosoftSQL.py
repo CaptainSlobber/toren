@@ -71,7 +71,7 @@ class DatabaseMicrosoftSQL(Database):
   ##########################################################################
 
   def CSharpDependencies(self):
-    return ["using Microsoft.Data.SqlClient;"] # using System.Data.SqlClient;
+    return ["using Microsoft.Data.SqlClient;", "using System.Text;"] # using System.Data.SqlClient;
   
   def PythonDependencies(self):
     return ["import pyodbc"]
@@ -123,6 +123,15 @@ class DatabaseMicrosoftSQL(Database):
   ##########################################################################
 
   def CSharpInitializeConnection(self, s):
+
+    s.wln('string password = Encoding.UTF8.GetString(Convert.FromBase64String(Environment.GetEnvironmentVariable(config.Credential)));')
+    s.wln('string username = config.Username;')
+    s.wln('string database = config.Database;')
+    s.wln('string instance = config.InstanceName;')
+    s.wln('int portno = config.PortNumber;')
+    s.wln('string server = $"{instance}:{portno.ToString()}";')
+    s.wln('string connectionString = $"Server={server};Database={database};User Id={username};Password={password};Trusted_Connection=True;TrustServerCertificate=True;";')
+    s.wln(f"connection = new {self.CSharpConnectionClass()}(connectionString);")  
     return s
   
   def PythonInitializeConnection(self, s):
