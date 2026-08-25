@@ -71,7 +71,7 @@ class DatabaseMicrosoftSQL(Database):
   ##########################################################################
 
   def CSharpDependencies(self):
-    return ["using Microsoft.Data.SqlClient;", "using System.Text;"] # using System.Data.SqlClient;
+    return ["using Microsoft.Data.SqlClient;", "using System.Data;", "using System.Text;"] # using System.Data.SqlClient;
   
   def PythonDependencies(self):
     return ["import pyodbc"]

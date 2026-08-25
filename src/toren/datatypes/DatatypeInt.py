@@ -226,16 +226,52 @@ class DatatypeInt(DatatypeNumeric):
     return setval
 
   def CSharp_to_Oracle(self, *args) -> str:
-    return self._CSharp_to_(args)
+    argt = args[0]
+    indx = str(int(argt[0]))
+    objname = str(argt[1])
+    propertyname = str(argt[2])
+    setval = f'{objname}.{propertyname}'
+    settype = f'OracleDbType.Int32'
+    if self.hasHigherDimensionality():
+      setval = f'Encoding.UTF8.GetBytes(JsonSerializer.Serialize({objname}.{propertyname}))'
+      settype = f'OracleDbType.Blob'
+    return f'{{param_value_key, {setval}}}, {{param_dbtype_key, {settype}}}'
   
   def CSharp_to_MicrosoftSQL(self, *args) -> str:
-    return self._CSharp_to_(args)
+    argt = args[0]
+    indx = str(int(argt[0]))
+    objname = str(argt[1])
+    propertyname = str(argt[2])
+    setval = f'{objname}.{propertyname}'
+    settype = f'SqlDbType.Int'
+    if self.hasHigherDimensionality():
+      setval = f'Encoding.UTF8.GetBytes(JsonSerializer.Serialize({objname}.{propertyname}))'
+      settype = f'SqlDbType.VarBinary'
+    return f'{{param_value_key, {setval}}}, {{param_dbtype_key, {settype}}}'
   
   def CSharp_to_PostgreSQL(self, *args) -> str:
-    return self._CSharp_to_(args)
+    argt = args[0]
+    indx = str(int(argt[0]))
+    objname = str(argt[1])
+    propertyname = str(argt[2])
+    setval = f'{objname}.{propertyname}'
+    settype = f'NpgsqlDbType.Integer'
+    if self.hasHigherDimensionality():
+      setval = f'Encoding.UTF8.GetBytes(JsonSerializer.Serialize({objname}.{propertyname}))'
+      settype = f'NpgsqlDbType.Bytea'
+    return f'{{param_value_key, {setval}}}, {{param_dbtype_key, {settype}}}'
   
   def CSharp_to_SQLite(self, *args) -> str:
-    return self._CSharp_to_(args)
+    argt = args[0]
+    indx = str(int(argt[0]))
+    objname = str(argt[1])
+    propertyname = str(argt[2])
+    setval = f'{objname}.{propertyname}'
+    settype = f'"{self.SQLite_Type()}"'
+    if self.hasHigherDimensionality():
+      setval = f'Encoding.UTF8.GetBytes(JsonSerializer.Serialize({objname}.{propertyname}))'
+      settype = f'"{self.SQLite_Type()}"'
+    return f'{{param_value_key, {setval}}}, {{param_dbtype_key, {settype}}}' 
 
     
   ##########################################################################

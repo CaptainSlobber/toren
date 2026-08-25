@@ -61,7 +61,7 @@ class DatabasePostgreSQL(Database):
   ##########################################################################
 
   def CSharpDependencies(self):
-    return ["using Npgsql;", "using System.Text;"]
+    return ["using Npgsql;", "using NpgsqlTypes;", "using System.Text;"]
   
   def PythonDependencies(self):
     return ["import psycopg2"]

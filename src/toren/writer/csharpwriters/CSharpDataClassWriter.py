@@ -349,13 +349,13 @@ class CSharpDataClassWriter(DataClassWriter):
                 converted = property.To(self.Language, self.Database, n, self.Class.Name.lower(), property.Name)
 
 
-                s.wln(f'parameters.Add("{property.Name}", new Dictionary<string, object>() {{ {{param_value_key, {converted}}}, {{param_dbtype_key, "{property.DatabasePropertyType(self.Database)}"}} }});')
+                s.wln(f'parameters.Add("{property.Name}", new Dictionary<string, object>() {{ {converted} }});')
         for propertyid, property in self.Class.Properties.Data.items():
             n = n + 1
             prop_val = f"{self.Class.Name.lower()}.{property.Name}"
             converted = property.To(self.Language, self.Database, n, self.Class.Name.lower(), property.Name)
 
-            s.wln(f'parameters.Add("{property.Name}", new Dictionary<string, object>() {{ {{param_value_key, {converted}}}, {{param_dbtype_key, "{property.DatabasePropertyType(self.Database)}"}} }});')
+            s.wln(f'parameters.Add("{property.Name}", new Dictionary<string, object>() {{ {converted} }});')
         s.wln("return parameters;")
         s.c().ret()
 
