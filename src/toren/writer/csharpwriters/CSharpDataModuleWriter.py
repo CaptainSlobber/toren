@@ -263,6 +263,8 @@ class CSharpDataModuleWriter(DataModuleWriter):
         s.c()
         s.ret()
         return s
+
+   
     
     def writeCommonCleanupConnection(self, s:CSharpStringWriter):
         db = self.Database

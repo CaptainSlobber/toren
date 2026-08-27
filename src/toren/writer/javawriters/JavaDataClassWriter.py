@@ -59,6 +59,7 @@ class JavaDataClassWriter(DataClassWriter):
         b = self.Module.Name.lower()
         t = self.Class.ParentModule.ParentProject.TLD.lower()
         object_import = f"import {t}.{e}.{p}.{m}.{self.Class.Name};"
+        object_set_import = f"import {t}.{e}.{p}.{m}.{self.Class.SetDescription};"
         
         uuiddep = "import java.util.UUID;"
         listdep = "import java.util.ArrayList;"
@@ -84,7 +85,8 @@ class JavaDataClassWriter(DataClassWriter):
             for dependency in property.Java_Datalayer_Dependencies():
                 dependency_map[dependency] = dependency
 
-        dependency_map[object_import] = object_import    
+        dependency_map[object_import] = object_import
+        dependency_map[object_set_import] = object_set_import       
         return dependency_map
     
     def writeDLPackage(self, s:JavaStringWriter):
@@ -187,13 +189,21 @@ class JavaDataClassWriter(DataClassWriter):
         else:
             return ""
 
+    def writeInstanceStr(self, s:JavaStringWriter, iq:str ="innerquery"):
+        iin2 = self.getInstanceIDParemeterName(", ")
+        if self.Class.Cloneable:
+            s.wln(f"String innerquery = {self.getDLClassName()}.GetInnerQuery({iq}{iin2});")
+        else:
+            s.wln(f"String innerquery = {self.getDLClassName()}.GetInnerQuery({iq});")
+        return s
+
     def writeGetTableName(self, s:JavaStringWriter):
         
         iin = self.getInstanceIDParemeterName("")
         if self.Class.Cloneable:
-            s.wln(f"String tableName = {self.getDLClassName()}.GetTableName({iin});")
+            s.wln(f"String tableName = {self.getDLClassName()}.GetInnerQuery({iin});")
         else:
-            s.wln(f"String tableName = {self.getDLClassName()}.GetTableName();")
+            s.wln(f"String tableName = {self.getDLClassName()}.GetInnerQuery();")
         return s
     
     def getCommonItems(self):
@@ -210,18 +220,32 @@ class JavaDataClassWriter(DataClassWriter):
 
     def writeCreateTable(self, s:JavaStringWriter):
         (db, schema, tablename, iid, iid2, iin, iin2, conobjclass) = self.getCommonItems()
-        
+        tablename = db.GetTableName(self.Class)
         if self.Class.Cloneable:
-            s.w(f'private static String GetTableName({iid}) ').o()
+            s.w(f'private static String GetInnerQuery({iid}) ').o()
             s.wln(f"String id = {iin}.toString();")
             s.wln(f'String tableName = String.format("{db.GetTableName(self.Class, ".%s")}", id);')     
             s.wln(f'return tableName;')
             s.c()
             s.ret()
+
+            s.w(f'private static String GetInnerQuery(String innerquery{iid2}) ').o()   
+            s.wln(f'return innerquery;')
+            s.c()
+            s.ret()
         else:
-            s.w(f'private static String GetTableName() ').o()
+            s.w(f'private static String GetInnerQuery() ').o()
             s.wln(f'String tableName = "{db.GetTableName(self.Class)}";')
             s.wln(f'return tableName;')
+            s.c()
+            s.ret()
+
+            s.w(f'private static String GetInnerQuery(String innerquery) ').o()
+            s.wln(f'String tableName = "{db.GetTableName(self.Class)}";')
+            s.w(f'if (innerquery==null)').o()
+            s.wln('innerquery = tableName;')
+            s.c()
+            s.wln(f'return innerquery;')
             s.c()
             s.ret()
 
@@ -358,11 +382,11 @@ class JavaDataClassWriter(DataClassWriter):
         s.c().ret()
 
 
-        s.w(f"public static void InsertSingle{self.Class.Name}({conobjclass} config, {self.Class.Name} {self.Class.Name.lower()}{iid2}) ").o()
+        s.w(f"public static int InsertSingle{self.Class.Name}({conobjclass} config, {self.Class.Name} {self.Class.Name.lower()}{iid2}) ").o()
 
         s.wln(f"Connection connection = {self.CommonFunctionsClassName}.GetConnection(config);")
         s.wln(f"String insertquery = {self.getDLClassName()}.Get{self.Class.Name}InsertQuery({iin});")
-
+        s.wln("int affectedRows = 0;")
         s.w("try ").o()
         s.wln("PreparedStatement statement = connection.prepareStatement(insertquery);")
         if self.hasHigherDimensionalProperty():
@@ -378,11 +402,11 @@ class JavaDataClassWriter(DataClassWriter):
             setval = property.To(self.Language, self.Database, n, self.Class.Name.lower(), property.Name)
             s.wln(f'{setval}')
 
-        s.wln("int affectedRows = statement.executeUpdate();")
-        s.wln("// if (affectedRows > 0) { } ")
+        s.wln("affectedRows += statement.executeUpdate();")
+        #s.wln("// if (affectedRows > 0) { } ")
         #s.wln(f'statement = {self.getDLClassName()}.Prepare{self.Class.Name}Statement(statement, {self.Class.Name.lower()});')
         s = self.writeCommonCleanupConnection(s)
-
+        s.wln("return affectedRows;")
         s.c()
         s.ret()
 
@@ -393,16 +417,7 @@ class JavaDataClassWriter(DataClassWriter):
         # s.ret()
         return s
     
-    def hasHigherDimensionalProperty(self):
-        higherdimension = False
-        if self.Class.InheritsFrom is not None:
-            for propertyid, property in self.Class.InheritedProperties.Data.items():
-                if hasattr(property, 'Dimensinality'):
-                    if (len(property.Dimensinality) > 0): higherdimension = True
-        for propertyid, property in self.Class.Properties.Data.items():
-            if hasattr(property, 'Dimensinality'):
-                if (len(property.Dimensinality) > 0): higherdimension = True
-        return higherdimension
+
 
     def writeCommonCleanupConnection(self, s:JavaStringWriter):
         cfn = self.CommonFunctionsClassName
@@ -414,9 +429,75 @@ class JavaDataClassWriter(DataClassWriter):
         return s
     
     def writeInsertCollection(self, s:JavaStringWriter):
+        (db, schema, tablename, iid, iid2, iin, iin2, conobjclass) = self.getCommonItems()
+    
+        s.w(f"public static int Insert{self.Class.SetDescription}({conobjclass} config, {self.Class.SetDescription} {self.Class.SetDescription.lower()}{iid2})").o()
+        s.wln(f"ArrayList<{self.Class.Name}> {self.Class.Name.lower()}list = {self.Class.SetDescription.lower()}.toList();")
+        s.wln(f"return {self.getDLClassName()}.Insert{self.Class.Name}List(config, {self.Class.Name.lower()}list{iin2});")
+        s.c()
+        s.ret()
+            
+        s.w(f"public static int Insert{self.Class.Name}List({conobjclass} config, ArrayList<{self.Class.Name}> {self.Class.Name.lower()}list{iid2})").o()
+        s.wln(f"int affectedRows = 0;")
+        s.w(f"for (int i=0; i<{self.Class.Name.lower()}list.size(); i++)").o()
+        s.wln(f"{self.Class.Name} {self.Class.Name.lower()} = {self.Class.Name.lower()}list.get(i);")
+        s.wln(f"affectedRows += {self.getDLClassName()}.InsertSingle{self.Class.Name}(config, {self.Class.Name.lower()}{iin2});")
+        s.c()
+        s.wln("return affectedRows;")
+        s.c()
+        s.ret()
         return s
+        
     
     def writeUpdate(self, s:JavaStringWriter):
+        (db, schema, tablename, iid, iid2, iin, iin2, conobjclass) = self.getCommonItems()
+        if self.Class.hasPrimaryKeyPoperty():
+            pk = self.Class.getPrimaryKeyProperty()
+            s.w(f"public static String Get{self.Class.Name}UpdateQuery({iid})").o()
+            s.wln(f'String whereclause = " WHERE {db.OB()}{pk.Name}{db.CB()} = {db.GetParameter(pk.Name.lower())}{db.EndQuery()}";')
+            s = self.writeGetTableName(s)
+            s.wln(f'String updatequery = String.format("UPDATE %s SET ", tableName);')
+            if self.Class.InheritsFrom is not None:
+                for propertyid, property in self.Class.InheritedProperties.Data.items():
+                    if not property.IsPrimaryKey:
+                        s.wln(f'updatequery += "{db.OB()}{property.Name}{db.CB()} = {db.GetParameter(property.Name.lower())},";')
+            for propertyid, property in self.Class.Properties.Data.items():
+                if not property.IsPrimaryKey:
+                    s.wln(f'updatequery += "{db.OB()}{property.Name}{db.CB()} = {db.GetParameter(property.Name.lower())},";')
+            s.wln(f'updatequery = updatequery.substring(0, updatequery.length() - 1) + " " + whereclause;')
+            s.wln("return updatequery;")
+            s.c().ret()
+
+            s.w(f"public static int UpdateSingle{self.Class.Name}({conobjclass} config, {self.Class.Name} {self.Class.Name.lower()}{iid2})").o()
+
+            s.wln(f"Connection connection = {self.CommonFunctionsClassName}.GetConnection(config);")
+            s.wln(f"String updatequery = {self.getDLClassName()}.Get{self.Class.Name}UpdateQuery({iin});")
+            s.wln("int affectedRows = 0;")
+            s.w("try ").o()
+            s.wln("PreparedStatement statement = connection.prepareStatement(updatequery);")
+            if self.hasHigherDimensionalProperty():
+                s.wln("Gson gson = new Gson();")
+            n = 0
+            if self.Class.InheritsFrom is not None:
+                for propertyid, property in self.Class.InheritedProperties.Data.items():
+                    if not property.IsPrimaryKey:
+                        n = n + 1
+                        setval = property.To(self.Language, self.Database, n, self.Class.Name.lower(), property.Name)
+                        s.wln(f'{setval}')
+            for propertyid, property in self.Class.Properties.Data.items():
+                if not property.IsPrimaryKey:
+                    n = n + 1
+                    setval = property.To(self.Language, self.Database, n, self.Class.Name.lower(), property.Name)
+                    s.wln(f'{setval}')
+            n = n + 1
+            setpkval = pk.To(self.Language, self.Database, n, self.Class.Name.lower(), pk.Name)
+            s.wln(f'{setpkval}')
+
+            s.wln("affectedRows += statement.executeUpdate();")
+            s = self.writeCommonCleanupConnection(s)
+            s.wln("return affectedRows;")
+            s.c()
+            s.ret()
         return s
     
     def writeDelete(self, s:JavaStringWriter):

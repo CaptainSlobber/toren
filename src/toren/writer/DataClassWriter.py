@@ -172,7 +172,16 @@ class DataClassWriter(DataWriterObject):
         return s
     
 
-
+    def hasHigherDimensionalProperty(self):
+        higherdimension = False
+        if self.Class.InheritsFrom is not None:
+            for propertyid, property in self.Class.InheritedProperties.Data.items():
+                if hasattr(property, 'Dimensinality'):
+                    if (len(property.Dimensinality) > 0): higherdimension = True
+        for propertyid, property in self.Class.Properties.Data.items():
+            if hasattr(property, 'Dimensinality'):
+                if (len(property.Dimensinality) > 0): higherdimension = True
+        return higherdimension
 
     def write(self):
         self.writeDLClass()

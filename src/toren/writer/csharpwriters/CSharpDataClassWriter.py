@@ -167,13 +167,21 @@ class CSharpDataClassWriter(DataClassWriter):
         else:
             return ""
 
+    def writeInstanceStr(self, s:CSharpStringWriter, iq:str ="innerquery"):
+        iin2 = self.getInstanceIDParemeterName(", ")
+        if self.Class.Cloneable:
+            s.wln(f"string innerquery = {self.getDLClassName()}.GetInnerQuery({iq}{iin2});")
+        else:
+            s.wln(f"string innerquery = {self.getDLClassName()}.GetInnerQuery({iq});")
+        return s
+
     def writeGetTableName(self, s:CSharpStringWriter):
         
         iin = self.getInstanceIDParemeterName("")
         if self.Class.Cloneable:
-            s.wln(f"string tableName = {self.getDLClassName()}.GetTableName({iin});")
+            s.wln(f"string tableName = {self.getDLClassName()}.GetInnerQuery({iin});")
         else:
-            s.wln(f"string tableName = {self.getDLClassName()}.GetTableName();")
+            s.wln(f"string tableName = {self.getDLClassName()}.GetInnerQuery();")
         return s
     
     def getCommonItems(self):
@@ -190,18 +198,31 @@ class CSharpDataClassWriter(DataClassWriter):
 
     def writeCreateTable(self, s:CSharpStringWriter):
         (db, schema, tablename, iid, iid2, iin, iin2, conobjclass) = self.getCommonItems()
-        
+        tablename = db.GetTableName(self.Class)
         if self.Class.Cloneable:
-            s.w(f'private static string GetTableName({iid}) ').o()
+
+            s.w(f'private static string GetInnerQuery({iid})').o()
+            #s.wln(f'string innerquery="{tablename}";')
+            #s.w(f"if ({iin} != null)").o()
             s.wln(f"string id = {iin}.ToString();")
-            s.wln(f'string tableName = $"{db.GetTableName(self.Class, ".{id}")}";')     
-            s.wln(f'return tableName;')
+            s.wln(f'return $"{db.GetTableName(self.Class, ".{id}")}";')     
+            #s.c()
             s.c()
             s.ret()
+
+            s.w(f'private static string GetInnerQuery(string innerquery{iid2})').o()
+            #s.w(f"if ({iin} != null)").o()
+            #s.wln(f"string id = {iin}.ToString();")
+            #s.wln(f'return $"{db.GetTableName(self.Class, ".{id}")}";')     
+            #s.c()
+            s.wln(f'return innerquery;')
+            s.c()
+            s.ret()
+
         else:
-            s.w(f'private static string GetTableName() ').o()
-            s.wln(f'string tableName = "{db.GetTableName(self.Class)}";')
-            s.wln(f'return tableName;')
+
+            s.w(f'private static string GetInnerQuery(string innerquery="{tablename}")').o()
+            s.wln(f'return innerquery;')
             s.c()
             s.ret()
 
@@ -360,11 +381,60 @@ class CSharpDataClassWriter(DataClassWriter):
         s.c().ret()
 
 
-        s.w(f"public static void InsertSingle{self.Class.Name}({conobjclass} config, {self.Class.Name} {self.Class.Name.lower()}{iid2}) ").o()
+        s.w(f"public static int InsertSingle{self.Class.Name}({conobjclass} config, {self.Class.Name} {self.Class.Name.lower()}{iid2}) ").o()
         s.wln(f"Dictionary<string, Dictionary<string, object>> parameters = {self.getDLClassName()}.Parameterize{self.Class.Name}({self.Class.Name.lower()});")
         s.wln(f"string insertquery = {self.getDLClassName()}.Get{self.Class.Name}InsertQuery({iin});")
-        s.wln(f"{self.CommonFunctionsClassName}.ExecuteParameterizedNonQuery(config, insertquery, parameters);")
+        s.wln(f"return {self.CommonFunctionsClassName}.ExecuteParameterizedNonQuery(config, insertquery, parameters);")
         s.c()
         s.ret()
 
         return s
+
+    def writeInsertCollection(self, s:CSharpStringWriter):
+        (db, schema, tablename, iid, iid2, iin, iin2, conobjclass) = self.getCommonItems()
+    
+        s.w(f"public static int Insert{self.Class.SetDescription}({conobjclass} config, {self.Class.SetDescription} {self.Class.SetDescription.lower()}{iid2})").o()
+        s.wln(f"List<{self.Class.Name}> {self.Class.Name.lower()}list = {self.Class.SetDescription.lower()}.toList();")
+        s.wln(f"return {self.getDLClassName()}.Insert{self.Class.Name}List(config, {self.Class.Name.lower()}list{iin2});")
+        s.c()
+        s.ret()
+            
+        s.w(f"public static int Insert{self.Class.Name}List({conobjclass} config, List<{self.Class.Name}> {self.Class.Name.lower()}list{iid2})").o()
+        s.wln(f"int affectedRows = 0;")
+        s.w(f"foreach({self.Class.Name} {self.Class.Name.lower()} in {self.Class.Name.lower()}list)").o()
+        s.wln(f"affectedRows += {self.getDLClassName()}.InsertSingle{self.Class.Name}(config, {self.Class.Name.lower()}{iin2});")
+        s.c()
+        s.wln("return affectedRows;")
+        s.c()
+        s.ret()
+        return s
+
+    def writeUpdate(self, s:CSharpStringWriter):
+        (db, schema, tablename, iid, iid2, iin, iin2, conobjclass) = self.getCommonItems()
+        if self.Class.hasPrimaryKeyPoperty():
+            pk = self.Class.getPrimaryKeyProperty()
+            s.w(f"public static string Get{self.Class.Name}UpdateQuery({iid})").o()
+            s.wln(f'string whereclause = " WHERE {db.OB()}{pk.Name}{db.CB()} = {db.GetParameter(pk.Name.lower())}{db.EndQuery()}";')
+            s = self.writeGetTableName(s)
+            s.wln(f'string updatequery = $"UPDATE {{tableName}} SET ";')
+            if self.Class.InheritsFrom is not None:
+                for propertyid, property in self.Class.InheritedProperties.Data.items():
+                    if not property.IsPrimaryKey:
+                        s.wln(f'updatequery += "{db.OB()}{property.Name}{db.CB()} = {db.GetParameter(property.Name.lower())},";')
+            for propertyid, property in self.Class.Properties.Data.items():
+                if not property.IsPrimaryKey:
+                    s.wln(f'updatequery += "{db.OB()}{property.Name}{db.CB()} = {db.GetParameter(property.Name.lower())},";')
+            s.wln(f'updatequery = updatequery.Remove(updatequery.Length-1) + " " + whereclause;')
+            s.wln("return updatequery;")
+            s.c().ret()
+
+            s.w(f"public static int UpdateSingle{self.Class.Name}({conobjclass} config, {self.Class.Name} {self.Class.Name.lower()}{iid2})").o()
+            s.wln(f"Dictionary<string, Dictionary<string, object>> parameters = {self.getDLClassName()}.Parameterize{self.Class.Name}({self.Class.Name.lower()});")
+            s.wln(f"string updatequery = {self.getDLClassName()}.Get{self.Class.Name}UpdateQuery({iin});")
+            s.wln(f"return {self.CommonFunctionsClassName}.ExecuteParameterizedNonQuery(config, updatequery, parameters);")
+            s.c()
+            s.ret()
+
+
+        return s
+        
