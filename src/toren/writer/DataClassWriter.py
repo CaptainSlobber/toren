@@ -183,6 +183,22 @@ class DataClassWriter(DataWriterObject):
                 if (len(property.Dimensinality) > 0): higherdimension = True
         return higherdimension
 
+    def getOrderByClause(self):
+        db = self.Database
+        orderby = ""
+        # if self.Class.hasPrimaryKeyPoperty():
+        #     pk = self.Class.getPrimaryKeyProperty()
+        #     orderby = f" ORDER BY {db.OB()}{pk.Name}{db.CB()} ASC"
+
+        if self.Class.InheritsFrom is not None:
+            for propertyid, property in self.Class.InheritedProperties.Data.items():
+                if property.IsUnique and not property.IsPrimaryKey:
+                    orderby = f" ORDER BY {db.OB()}{property.Name}{db.CB()} ASC"
+        for propertyid, property in self.Class.Properties.Data.items():
+            if property.IsUnique and not property.IsPrimaryKey:
+                    orderby = f" ORDER BY {db.OB()}{property.Name}{db.CB()} ASC"
+        return orderby
+
     def write(self):
         self.writeDLClass()
 

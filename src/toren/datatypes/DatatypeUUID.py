@@ -193,6 +193,26 @@ class DatatypeUUID(Datatype):
     return f'{{param_value_key, {setval}}}, {{param_dbtype_key, {settype}}}' 
 
   ##########################################################################
+  # C# methods for converting from various database types
+  ##########################################################################
+
+  def CSharp_from_Oracle(self, *args) -> str:
+    return self.CSharp_from_(args[0])
+  
+  def CSharp_from_MicrosoftSQL(self, *args) -> str:
+    return self.CSharp_from_(args[0])
+  
+  def CSharp_from_PostgreSQL(self, *args) -> str:
+    return self.CSharp_from_(args[0])
+  
+  def CSharp_from_SQLite(self, *args) -> str:
+    return f'System.Guid.NewGuid({args[0]})'
+
+  def CSharp_from_(self, *args) -> str:
+    argt = args
+    return f"(System.Guid){argt[0]}"    
+
+  ##########################################################################
   # Java methods
   ##########################################################################
 

@@ -105,12 +105,18 @@ class DatabaseSQLite(Database):
     return "SqliteCommand"
 
   ##########################################################################
+  # SQL Reader 
+  ##########################################################################
+
+  def CSharpReaderClass(self):
+    return "SqliteDataReader"
+
+  ##########################################################################
   # SQL Exception 
   ##########################################################################
 
   def CSharpSQLExceptionClass(self):
     return "SqliteException"
-
 
   ##########################################################################
   # Initialize Connection

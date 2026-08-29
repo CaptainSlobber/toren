@@ -7,6 +7,7 @@ from typing import List
 
 from ..DataClassWriter import DataClassWriter
 from .CSharpStringWriter import CSharpStringWriter
+from ...datatypes import *
 from ...datastores.Database import Database
 from ...Project import Project
 from ...Module import Module
@@ -409,6 +410,37 @@ class CSharpDataClassWriter(DataClassWriter):
         s.ret()
         return s
 
+    def writeSelectWhere(self, s:CSharpStringWriter):
+
+        (db, schema, tablename, iid, iid2, iin, iin2, conobjclass) = self.getCommonItems()
+        orderby = self.getOrderByClause()
+        s.w(f"public static string GetSelectAll{self.Class.Name}WhereQuery(string whereclause = \"WHERE 1=1\", int limit = {str(self.Class.PageSize)}, string innerquery = \"{tablename}\"{iid2})").o()
+        s.wln(f"string columns = {self.getDLClassName()}.Get{self.Class.Name}ColumnNames();")
+        #s = self.writeInstanceStr(s)
+        s.wln(f'string selectquery = $"SELECT {db.TOP("{limit}")}{{columns}} FROM {{innerquery}} {{whereclause}}{orderby}{db.LIMIT("{limit}")}{db.EndQuery()}";')
+        s.wln("return selectquery;")
+        s.c().ret()
+
+
+        s.w(f"public static {self.Class.SetDescription} SelectAll{self.Class.Name}Where({conobjclass} config, string whereclause = \"WHERE 1=1\", int limit = {str(self.Class.PageSize)}, string innerquery = \"{tablename}\"{iid2})").o()
+        s.wln("Dictionary<string, Dictionary<string, object>> parameters = new Dictionary<string, Dictionary<string, object>>();")
+        s.wln(f"string selectquery = {self.getDLClassName()}.GetSelectAll{self.Class.Name}WhereQuery(whereclause, limit, innerquery{iin2});")
+        s.wln(f"{self.Class.SetDescription} result = {self.getDLClassName()}.Select{self.Class.SetDescription}(config, selectquery, parameters);")
+        s.wln(f"return result;")
+        s.c()
+        s.ret()
+
+        if self.Class.InheritsFrom is not None:
+            for propertyid, property in self.Class.InheritedProperties.Data.items():
+                if property.IsUnique and not property.IsPrimaryKey and (property.Type == DatatypeString().getType()):
+                    s = self.writeSelectWhereForProperty(s, property)
+
+        for propertyid, property in self.Class.Properties.Data.items(): 
+            if property.IsUnique and not property.IsPrimaryKey and (property.Type == DatatypeString().getType()):
+                s = self.writeSelectWhereForProperty(s, property)
+
+        return s
+
     def writeUpdate(self, s:CSharpStringWriter):
         (db, schema, tablename, iid, iid2, iin, iin2, conobjclass) = self.getCommonItems()
         if self.Class.hasPrimaryKeyPoperty():
@@ -437,4 +469,170 @@ class CSharpDataClassWriter(DataClassWriter):
 
 
         return s
-        
+
+    def writePersistRecord(self, s:CSharpStringWriter):
+        (db, schema, tablename, iid, iid2, iin, iin2, conobjclass) = self.getCommonItems()
+        if self.Class.hasPrimaryKeyPoperty():
+            pk = self.Class.getPrimaryKeyProperty()
+
+            s.w(f"public static {pk.PropertyType(self.Language)} PersistSingle{self.Class.Name}({conobjclass} config, {self.Class.Name} {self.Class.Name.lower()}{iid2})").o()
+            s.wln(f'string whereclause = "WHERE {db.OB()}{pk.Name}{db.CB()} = {db.GetParameter(pk.Name.lower())}{db.EndQuery()}";')
+
+            s.wln(f"{pk.PropertyType(self.Language)} _{pk.Name.lower()} = {self.Class.Name.lower()}.{pk.Name};")
+            s.wln(f"{self.Class.SetDescription} {self.Class.Name.lower()}_items = {self.getDLClassName()}.SelectAll{self.Class.Name}Where(config, whereclause);")
+    
+    
+            s.w(f"if ({self.Class.Name.lower()}_items.Data.Count == 1)").o()
+
+            s.wln(f"Dictionary<string, Dictionary<string, object>> parameters = {self.getDLClassName()}.Parameterize{self.Class.Name}({self.Class.Name.lower()});")
+            s.wln(f"string updatequery = {self.getDLClassName()}.Get{self.Class.Name}UpdateQuery({iin});")
+            s.wln(f"{self.CommonFunctionsClassName}.ExecuteParameterizedNonQuery(config, updatequery, parameters);")
+            #s.wln(f"_{pk.Name.lower()} = _{self.Class.Name.lower()}.{pk.Name}").c()
+            s.wln(f"_{pk.Name.lower()} = ({pk.PropertyType(self.Language)}) {self.Class.Name.lower()}_items.Data.Keys.First();")
+            s.b("else")
+            s.wln(f"Dictionary<string, Dictionary<string, object>> parameters = {self.getDLClassName()}.Parameterize{self.Class.Name}({self.Class.Name.lower()});")
+            s.wln(f"string insertquery = {self.getDLClassName()}.Get{self.Class.Name}InsertQuery({iin});")
+            s.wln(f"{self.CommonFunctionsClassName}.ExecuteParameterizedNonQuery(config, insertquery, parameters);")
+            s.c()
+            s.wln(f"return _{pk.Name.lower()};");
+            s.c()
+            s.ret()
+            if self.Class.InheritsFrom is not None:
+                for propertyid, property in self.Class.InheritedProperties.Data.items():
+                    if property.IsUnique and not property.IsPrimaryKey and (property.Type == DatatypeString().getType()):
+                        s = self.writePersistWhereForProperty(s, property, pk)
+
+            for propertyid, property in self.Class.Properties.Data.items(): 
+                if property.IsUnique and not property.IsPrimaryKey and (property.Type == DatatypeString().getType()):
+                    s = self.writePersistWhereForProperty(s, property, pk)
+        return s
+
+    def writeSelectWhereForProperty(self, s:CSharpStringWriter, property):
+        (db, schema, tablename, iid, iid2, iin, iin2, conobjclass) = self.getCommonItems()
+
+        s.wln(f'public static {self.Class.SetDescription} SelectAll{self.Class.Name}Where{property.Name}Like({conobjclass} config, string val, int limit = {str(self.Class.PageSize)}, string innerquery="{tablename}"{iid2}) ').o()
+        # if db.UsesNamedParameters(self.Language):
+        #     s.wln(f"params = {{ '{property.Name.lower()}': '%' + val + '%'}}")
+        # else:  
+        #     s.wln(f"params = ['%' + val + '%']")
+        # s.wln(f'string whereclause = "WHERE {db.OB()}{property.Name}{db.CB()} LIKE {db.GetParameter(property.Name.lower())}";')
+        s.wln(f'string whereclause = $"WHERE {db.OB()}{property.Name}{db.CB()} LIKE \'%{{val}}%\'";')
+        s.wln(f"string selectquery = {self.getDLClassName()}.GetSelectAll{self.Class.Name}WhereQuery(whereclause, limit, innerquery{iin2});")
+        s.wln("Dictionary<string, Dictionary<string, object>> parameters = new Dictionary<string, Dictionary<string, object>>();")
+        s.wln(f"{self.Class.SetDescription} result = {self.getDLClassName()}.Select{self.Class.SetDescription}(config, selectquery, parameters);")
+        s.wln(f"return result;")
+        s.c()
+        s.ret()
+        return s
+
+    def writePersistWhereForProperty(self, s:CSharpStringWriter, property, pk):
+
+        (db, schema, tablename, iid, iid2, iin, iin2, conobjclass) = self.getCommonItems()
+
+
+        s.w(f"public static string Get{self.Class.Name}UpdateWhere{property.Name}EqualsQuery({iid2})").o()
+        #s.writeline(f'innerquery = "{tablename}"')
+
+        #s.wln(f"if whereclause is None:").o()
+        s.wln(f'string whereclause = " WHERE {db.OB()}{property.Name}{db.CB()} = {db.GetParameter(property.Name.lower())}{db.EndQuery()}";')
+        s = self.writeInstanceStr(s, "\"" + tablename + "\"")
+        s.wln(f'string updatequery = $"UPDATE {{innerquery}} SET ";')
+        if self.Class.InheritsFrom is not None:
+            for propertyid, _property in self.Class.InheritedProperties.Data.items():
+                if not _property.IsPrimaryKey: 
+                    if _property.ID != property.ID:
+                        s.wln(f'updatequery += "{db.OB()}{_property.Name}{db.CB()} = {db.GetParameter(_property.Name.lower())},";')
+        for propertyid, _property in self.Class.Properties.Data.items():
+            if not _property.IsPrimaryKey:
+                if _property.ID != property.ID:
+                    s.wln(f'updatequery += "{db.OB()}{_property.Name}{db.CB()} = {db.GetParameter(_property.Name.lower())},";')
+        s.wln(f'updatequery = updatequery.Substring(0, updatequery.Length - 1) + " " + whereclause;')
+        s.wln("return updatequery;")
+        s.c().ret()
+
+
+        s.w(f"public static {pk.PropertyType(self.Language)} Persist{self.Class.Name}Where{property.Name}Equals({conobjclass} config, {self.Class.Name} {self.Class.Name.lower()}) ").o()
+        s.wln(f'string whereclause = $"WHERE {db.OB()}{property.Name}{db.CB()} = \'{{{self.Class.Name.lower()}.{property.Name}}}\'";');
+        s.wln(f"{pk.PropertyType(self.Language)} _{pk.Name.lower()} = {self.Class.Name.lower()}.{pk.Name};")
+        s.wln(f"{self.Class.SetDescription} {self.Class.Name.lower()}_items = {self.getDLClassName()}.SelectAll{self.Class.Name}Where(config, whereclause);")
+
+
+        s.w(f"if ({self.Class.Name.lower()}_items.Data.Count == 1)").o()
+            
+        s.wln(f"Dictionary<string, Dictionary<string, object>> parameters = {self.getDLClassName()}.Parameterize{self.Class.Name}({self.Class.Name.lower()});")
+        s.wln(f"string updatequery = {self.getDLClassName()}.Get{self.Class.Name}UpdateWhere{property.Name}EqualsQuery({iin});")
+        s.wln(f"{self.CommonFunctionsClassName}.ExecuteParameterizedNonQuery(config, updatequery, parameters);")
+        s.wln(f"_{pk.Name.lower()} = {self.Class.Name.lower()}_items.toList()[0].{pk.Name};")
+        s.b("else")
+        s.wln(f"Dictionary<string, Dictionary<string, object>> parameters = {self.getDLClassName()}.Parameterize{self.Class.Name}({self.Class.Name.lower()});")
+        s.wln(f"string insertquery = {self.getDLClassName()}.Get{self.Class.Name}InsertQuery({iin});")
+        s.wln(f"{self.CommonFunctionsClassName}.ExecuteParameterizedNonQuery(config, insertquery, parameters);")
+        s.c()
+        s.wln(f"return _{pk.Name.lower()};")
+        s.c()
+        s.ret()
+
+
+        return s
+
+
+    def writeSelectAll(self, s:CSharpStringWriter):
+        (db, schema, tablename, iid, iid2, iin, iin2, conobjclass) = self.getCommonItems()
+        orderby = self.getOrderByClause()
+        readerclass = db.ReaderClass(self.Language)
+
+        s.w(f'public static string GetSelectAll{self.Class.Name}Query(int limit={str(self.Class.PageSize)}, string innerquery="{tablename}"{iid2}) ').o()
+        s.wln(f"string columns = {self.getDLClassName()}.Get{self.Class.Name}ColumnNames();")
+        #s = self.writeInstanceStr(s)
+        s.wln(f'string selectquery = $"SELECT {db.TOP("{limit}")}{{columns}} FROM {{innerquery}}{orderby}{db.LIMIT("{limit}")}{db.EndQuery()}";')
+        s.wln("return selectquery;")
+        s.c().ret()
+
+
+        s.w(f'public static {self.Class.SetDescription} SelectAll{self.Class.Name}({conobjclass} config, int limit={str(self.Class.PageSize)}, string innerquery="{tablename}"{iid2}) ').o()
+        # if db.UsesNamedParameters(self.Language):
+        #     s.wln(f"parameters = {{ }}")
+        # else:  
+        #     s.wln(f"parameters = []")
+        s.wln("Dictionary<string, Dictionary<string, object>> parameters = new Dictionary<string, Dictionary<string, object>>();")
+        s.wln(f"string selectquery = {self.getDLClassName()}.GetSelectAll{self.Class.Name}Query(limit, innerquery{iin2});")
+        s.wln(f"{self.Class.SetDescription} result = {self.getDLClassName()}.Select{self.Class.SetDescription}(config, selectquery, parameters);")
+        s.wln(f"return result;")
+        s.c()
+        s.ret()
+
+
+        s.w(f"public static {self.Class.SetDescription} Select{self.Class.SetDescription}({conobjclass} config, string selectquery, Dictionary<string, Dictionary<string, object>> parameters) ").o()
+        s.wln(f"Func<{readerclass}, object> translation = {self.getDLClassName()}.Get{self.Class.Name}FromQueryResult;")
+        s.wln(f"List<{self.Class.Name}> _{self.Class.Name.lower()}_list = {self.CommonFunctionsClassName}.ExecuteFetchAll(config, selectquery, parameters, translation).Cast<{self.Class.Name}>().ToList();;")
+        s.wln(f"{self.Class.SetDescription} {self.Class.Name.lower()}_list = new {self.Class.SetDescription}().fromList(_{self.Class.Name.lower()}_list);")
+        s.wln(f"return {self.Class.Name.lower()}_list;")
+        s.c()
+        s.ret()
+        return s
+
+    def writeSelectSingleRecordByPK(self, s:CSharpStringWriter):
+        (db, schema, tablename, iid, iid2, iin, iin2, conobjclass) = self.getCommonItems()
+        orderby = self.getOrderByClause()
+        readerclass = db.ReaderClass(self.Language)
+
+        s.w(f"public static object Get{self.Class.Name}FromQueryResult({readerclass} reader) ").o()
+        s.wln(f"{self.Class.Name} {self.Class.Name.lower()} = new {self.Class.Name}(")
+        s.Inc()
+        index = 0
+        if self.Class.InheritsFrom is not None:
+            if self.Class.InheritedProperties is not None:
+                for propertyid, property in self.Class.InheritedProperties.Data.items():
+                    converted = property.From(self.Language, self.Database, f"reader[\"{property.Name}\"]")
+                    s.wln(f"{property.Name.lower()}: {converted},")
+        for propertyid, property in self.Class.Properties.Data.items():
+            converted = property.From(self.Language, self.Database, f"reader[\"{property.Name}\"]")
+            s.wln(f"{property.Name.lower()}: {converted},")
+        s.rem(2)
+        s.Dec()
+        s.wln(");")
+        s.wln(f"return (object){self.Class.Name.lower()};")
+        s.c()
+        s.ret()
+
+        return s

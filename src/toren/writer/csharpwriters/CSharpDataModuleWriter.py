@@ -264,7 +264,87 @@ class CSharpDataModuleWriter(DataModuleWriter):
         s.ret()
         return s
 
-   
+    def writeCommmonFetchOne(self, s:CSharpStringWriter):   
+        db = self.Database
+        cfn = f"{self.getDLPrefix()}{ self.CommonFunctionsClassName}{self.getDLSuffix()}"
+        connclass = db.ConnectionClass(self.Language)
+        commandclass = db.CommandClass(self.Language)
+        exceptionclass = db.SQLExceptionClass(self.Language)
+        readerclass = db.ReaderClass(self.Language)
+        connclass = db.ConnectionClass(self.Language)
+        conobjclass = f"{self.getDLPrefix()}{ self.ConnectionObjectClassName}{self.getDLSuffix()}"
+
+        s.w(f"public static object ExecuteFetchOne({conobjclass} config, string query, Dictionary<string, Dictionary<string, object>> parameters, Func<{readerclass}, object> translation) ").o()
+        #s = self.writeCommonSetupConnection(s)
+        s.wln("object result = null;")
+        s.w(f"using ({connclass} connection = {cfn}.GetConnection(config))").o()
+        s.w(f"using ({commandclass} command = new {commandclass}(query, connection))").o()
+        s.w("try ").o()
+        s.wln("connection.Open();")
+        if db.Name.lower() == "oracle":
+            s.wln("command.BindByName = true;")
+        s.w("foreach (var paramater in parameters)").o()
+        s.wln("var dbtype = paramater.Value[\"DbType\"]; ")
+        s.wln("var value = paramater.Value[\"Value\"];")
+        if db.Name.lower() == "oracle": # Oracle requires the OracleDbType to be specified for each parameter
+            s.wln("command.Parameters.Add(paramater.Key, (OracleDbType) dbtype).Value = value;")
+        else:
+            s.wln("command.Parameters.AddWithValue(paramater.Key, value);")
+        s.c()
+
+        s.w(f"using ({readerclass} reader = command.ExecuteReader())").o()
+        s.w(f"while (reader.Read())").o()
+        s.wln("result = (object) translation(reader);")
+        s.c()
+        s.c()
+        s = self.closeTry(s)
+        s.c()
+        s.c()
+        s.wln(f"return result;")
+        s.c()
+        s.ret()
+        return s
+
+    def writeCommonFetchAll(self, s:CSharpStringWriter):
+        db = self.Database
+        cfn = f"{self.getDLPrefix()}{ self.CommonFunctionsClassName}{self.getDLSuffix()}"
+        connclass = db.ConnectionClass(self.Language)
+        commandclass = db.CommandClass(self.Language)
+        exceptionclass = db.SQLExceptionClass(self.Language)
+        readerclass = db.ReaderClass(self.Language)
+        connclass = db.ConnectionClass(self.Language)
+        conobjclass = f"{self.getDLPrefix()}{ self.ConnectionObjectClassName}{self.getDLSuffix()}"
+
+        s.w(f"public static List<object> ExecuteFetchAll({conobjclass} config, string query, Dictionary<string, Dictionary<string, object>> parameters, Func<{readerclass}, object> translation) ").o()
+        #s = self.writeCommonSetupConnection(s)
+        s.wln("List<object> result = new List<object>();")
+        s.w(f"using ({connclass} connection = {cfn}.GetConnection(config))").o()
+        s.w(f"using ({commandclass} command = new {commandclass}(query, connection))").o()
+        s.w("try ").o()
+        s.wln("connection.Open();")
+        if db.Name.lower() == "oracle":
+            s.wln("command.BindByName = true;")
+        s.w("foreach (var paramater in parameters)").o()
+        s.wln("var dbtype = paramater.Value[\"DbType\"]; ")
+        s.wln("var value = paramater.Value[\"Value\"];")
+        if db.Name.lower() == "oracle": # Oracle requires the OracleDbType to be specified for each parameter
+            s.wln("command.Parameters.Add(paramater.Key, (OracleDbType) dbtype).Value = value;")
+        else:
+            s.wln("command.Parameters.AddWithValue(paramater.Key, value);")
+        s.c()
+
+        s.w(f"using ({readerclass} reader = command.ExecuteReader())").o()
+        s.w(f"while (reader.Read())").o()
+        s.wln("result.Add((object) translation(reader));")
+        s.c()
+        s.c()
+        s = self.closeTry(s)
+        s.c()
+        s.c()
+        s.wln(f"return result;")
+        s.c()
+        s.ret()
+        return s
     
     def writeCommonCleanupConnection(self, s:CSharpStringWriter):
         db = self.Database

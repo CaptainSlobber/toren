@@ -175,6 +175,26 @@ class DatatypeBinary(Datatype):
   
 
   ##########################################################################
+  # C# methods for converting from various database types
+  ##########################################################################
+
+  def CSharp_from_Oracle(self, *args) -> str:
+    return self.CSharp_from_(args[0])
+  
+  def CSharp_from_MicrosoftSQL(self, *args) -> str:
+    return self.CSharp_from_(args[0])
+  
+  def CSharp_from_PostgreSQL(self, *args) -> str:
+    return self.CSharp_from_(args[0])
+  
+  def CSharp_from_SQLite(self, *args) -> str:
+    return self.CSharp_from_(args[0])
+
+  def CSharp_from_(self, *args) -> str:
+    argt = args
+    return f"{argt[0]}"
+
+  ##########################################################################
   # Java methods
   ##########################################################################
   

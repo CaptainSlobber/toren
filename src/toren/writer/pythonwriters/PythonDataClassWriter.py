@@ -501,7 +501,7 @@ class PythonDataClassWriter(DataClassWriter):
             s.wln(f"{self.Class.Name.lower()}_items = {self.getDLClassName()}.SelectAll{self.Class.Name}Where(config, whereclause)")
             #s.wln(f'innerquery = "{tablename}"')
             #s.wln(f"_{self.Class.Name.lower()} = {self.getDLClassName()}.SelectSingle{self.Class.Name}By{pk.Name}(config, {self.Class.Name.lower()}.{pk.Name}, innerquery{iin2})")
-            s#.wln(f"if _{self.Class.Name.lower()} is not None:").o()
+            #s.wln(f"if _{self.Class.Name.lower()} is not None:").o()
 
             s.wln(f"if len({self.Class.Name.lower()}_items.Data.keys()) == 1:").o()
             
@@ -737,21 +737,7 @@ class PythonDataClassWriter(DataClassWriter):
         s.ret()
         return s
     
-    def getOrderByClause(self):
-        db = self.Database
-        orderby = ""
-        # if self.Class.hasPrimaryKeyPoperty():
-        #     pk = self.Class.getPrimaryKeyProperty()
-        #     orderby = f" ORDER BY {db.OB()}{pk.Name}{db.CB()} ASC"
-
-        if self.Class.InheritsFrom is not None:
-            for propertyid, property in self.Class.InheritedProperties.Data.items():
-                if property.IsUnique and not property.IsPrimaryKey:
-                    orderby = f" ORDER BY {db.OB()}{property.Name}{db.CB()} ASC"
-        for propertyid, property in self.Class.Properties.Data.items():
-            if property.IsUnique and not property.IsPrimaryKey:
-                    orderby = f" ORDER BY {db.OB()}{property.Name}{db.CB()} ASC"
-        return orderby
+    
     
     def writeSelectPage(self, s:PythonStringWriter):
         (db, schema, tablename, iid, iid2, iin, iin2) = self.getCommonItems()

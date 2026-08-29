@@ -117,6 +117,13 @@ class DatabaseMicrosoftSQL(Database):
 
   def CSharpSQLExceptionClass(self):
     return "SqlException"
+
+  ##########################################################################
+  # SQL Reader 
+  ##########################################################################
+
+  def CSharpReaderClass(self):
+    return "SqlDataReader"
   
   ##########################################################################
   # Initialize Connection

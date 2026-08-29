@@ -220,6 +220,15 @@ class Database(TorenObject):
     _conn[LanguageJavaScript().getID()] = self.JavaScriptCommandClass
     return _conn[language.ID]()
 
+  def ReaderClass(self, language: Language):
+    _conn = {}
+    _conn[LanguagePython().getID()] = self.PythonReaderClass
+    _conn[LanguageCSharp().getID()] = self.CSharpReaderClass
+    _conn[LanguageJava().getID()] = self.JavaReaderClass
+    _conn[LanguageGo().getID()] = self.GoReaderClass
+    _conn[LanguageJavaScript().getID()] = self.JavaScriptReaderClass
+    return _conn[language.ID]()
+
   def SQLExceptionClass(self, language: Language):
     _conn = {}
     _conn[LanguagePython().getID()] = self.PythonSQLExceptionClass
@@ -292,6 +301,24 @@ class Database(TorenObject):
     raise NotImplementedError()   
   
   def JavaScriptCommandClass(self):
+    raise NotImplementedError()
+
+  ##########################################################################
+  # Reader Class
+  ##########################################################################
+  def CSharpReaderClass(self):
+    raise NotImplementedError()
+  
+  def PythonReaderClass(self):
+    raise NotImplementedError()
+  
+  def JavaReaderClass(self):
+    raise NotImplementedError()  
+  
+  def GoReaderClass(self):
+    raise NotImplementedError()   
+  
+  def JavaScriptReaderClass(self):
     raise NotImplementedError()
 
 

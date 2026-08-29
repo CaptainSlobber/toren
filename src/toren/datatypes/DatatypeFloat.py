@@ -274,7 +274,30 @@ class DatatypeFloat(DatatypeNumeric):
       settype = f'"{self.SQLite_Type()}"'
     return f'{{param_value_key, {setval}}}, {{param_dbtype_key, {settype}}}' 
 
-    
+  ##########################################################################
+  # C# methods for converting from various database types
+  ##########################################################################
+
+  def CSharp_from_Oracle(self, *args) -> str:
+    return self.CSharp_from_(args[0])
+  
+  def CSharp_from_MicrosoftSQL(self, *args) -> str:
+    return self.CSharp_from_(args[0])
+  
+  def CSharp_from_PostgreSQL(self, *args) -> str:
+    return self.CSharp_from_(args[0])
+  
+  def CSharp_from_SQLite(self, *args) -> str:
+    return self.CSharp_from_(args[0])
+
+  def CSharp_from_(self, *args) -> str:
+    argt = args
+    if self.hasHigherDimensionality():
+      commas = ","*(len(self.Dimensinality)-1)  
+      datatype = f"float[{commas}]" #multidimensional array
+      return f"JsonSerializer.Deserialize<{datatype}>(System.Text.Encoding.UTF8.GetString({argt[0]}))"
+    else:
+      return f"(float){argt[0]}"     
 
   ##########################################################################
   # Java methods
