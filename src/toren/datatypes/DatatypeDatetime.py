@@ -209,11 +209,12 @@ class DatatypeDatetime(Datatype):
     return self.CSharp_from_(args[0])
   
   def CSharp_from_SQLite(self, *args) -> str:
-    return self.CSharp_from_(args[0])
+    argt = args
+    return f"(DateTimeOffset.FromUnixTimeSeconds((long){argt[0]})).DateTime"
 
   def CSharp_from_(self, *args) -> str:
     argt = args
-    return f"{argt[0]}"
+    return f"(DateTime){argt[0]}"
 
   ##########################################################################
   # Java methods

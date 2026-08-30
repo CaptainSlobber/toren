@@ -203,7 +203,7 @@ class DatatypeCharacter(Datatype):
 
   def CSharp_from_(self, *args) -> str:
     argt = args
-    return f"{argt[0]}.ToCharArray()"
+    return f"((string){argt[0]}).ToCharArray()"
   
   ##########################################################################
   # Java methods

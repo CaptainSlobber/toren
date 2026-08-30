@@ -294,7 +294,7 @@ class DatatypeDouble(DatatypeNumeric):
     if self.hasHigherDimensionality():
       commas = ","*(len(self.Dimensinality)-1)  
       datatype = f"double[{commas}]" #multidimensional array
-      return f"JsonSerializer.Deserialize<{datatype}>(System.Text.Encoding.UTF8.GetString({argt[0]}))"
+      return f"JsonSerializer.Deserialize<{datatype}>(System.Text.Encoding.UTF8.GetString((byte[]){argt[0]}))"
     else:
       return f"(double){argt[0]}"  
 

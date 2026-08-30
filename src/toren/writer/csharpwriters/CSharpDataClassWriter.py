@@ -151,7 +151,7 @@ class CSharpDataClassWriter(DataClassWriter):
 
     def getInstanceIDParameter(self, prefix: str = ""):
         if self.Class.Cloneable:
-            return prefix + "Guid " + self.getInstanceIDParemeterName() + ""
+            return prefix + "Guid? " + self.getInstanceIDParemeterName() + " = null"
         else:
             return ""
     

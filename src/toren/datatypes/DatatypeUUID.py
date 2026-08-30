@@ -141,7 +141,7 @@ class DatatypeUUID(Datatype):
   
   def CSharp_DefaultValue(self, *args) -> str:
     if self.hasDefaultValue() and self.isUUID(self.DefaultValue):
-        return f'System.Guid.NewGuid({self._DefaultValueDoubleQuote})'
+        return f' Guid.Parse({self._DefaultValueDoubleQuote})'
     return 'System.Guid.NewGuid()'
 
   ##########################################################################
@@ -206,7 +206,7 @@ class DatatypeUUID(Datatype):
     return self.CSharp_from_(args[0])
   
   def CSharp_from_SQLite(self, *args) -> str:
-    return f'System.Guid.NewGuid({args[0]})'
+    return f'Guid.Parse((string){args[0]})'
 
   def CSharp_from_(self, *args) -> str:
     argt = args

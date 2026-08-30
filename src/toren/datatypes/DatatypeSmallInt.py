@@ -293,7 +293,7 @@ class DatatypeSmallInt(DatatypeNumeric):
     if self.hasHigherDimensionality():
       commas = ","*(len(self.Dimensinality)-1)  
       datatype = f"short[{commas}]" #multidimensional array
-      return f"JsonSerializer.Deserialize<{datatype}>(System.Text.Encoding.UTF8.GetString({argt[0]}))"
+      return f"JsonSerializer.Deserialize<{datatype}>(System.Text.Encoding.UTF8.GetString((byte[]){argt[0]}))"
     else:
       return f"(short){argt[0]}"     
     

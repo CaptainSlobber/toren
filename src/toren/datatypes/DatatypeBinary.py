@@ -192,7 +192,7 @@ class DatatypeBinary(Datatype):
 
   def CSharp_from_(self, *args) -> str:
     argt = args
-    return f"{argt[0]}"
+    return f"(byte[]){argt[0]}"
 
   ##########################################################################
   # Java methods

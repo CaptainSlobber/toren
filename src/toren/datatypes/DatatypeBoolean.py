@@ -195,7 +195,7 @@ class DatatypeBoolean(Datatype):
 
   def CSharp_from_(self, *args) -> str:
     argt = args
-    return f"(boolean){argt[0]}"
+    return f"(bool){argt[0]}"
 
   ##########################################################################
   # Java methods
