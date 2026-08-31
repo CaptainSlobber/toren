@@ -223,7 +223,7 @@ class DatatypeBigInt(DatatypeNumeric):
     propertyname = str(argt[2])
     setval = f'{objname}.{propertyname}'
     if self.hasHigherDimensionality():
-      setval = f'Encoding.UTF8.GetBytes(JsonSerializer.Serialize({objname}.{propertyname}))'
+      setval = f'Encoding.UTF8.GetBytes(JsonConvert.SerializeObject({objname}.{propertyname}))'
     return setval
 
   def CSharp_to_Oracle(self, *args) -> str:
@@ -234,7 +234,7 @@ class DatatypeBigInt(DatatypeNumeric):
     setval = f'{objname}.{propertyname}'
     settype = f'OracleDbType.Int64'
     if self.hasHigherDimensionality():
-      setval = f'Encoding.UTF8.GetBytes(JsonSerializer.Serialize({objname}.{propertyname}))'
+      setval = f'Encoding.UTF8.GetBytes(JsonConvert.SerializeObject({objname}.{propertyname}))'
       settype = f'OracleDbType.Blob'
     return f'{{param_value_key, {setval}}}, {{param_dbtype_key, {settype}}}'
   
@@ -246,7 +246,7 @@ class DatatypeBigInt(DatatypeNumeric):
     setval = f'{objname}.{propertyname}'
     settype = f'SqlDbType.BigInt'
     if self.hasHigherDimensionality():
-      setval = f'Encoding.UTF8.GetBytes(JsonSerializer.Serialize({objname}.{propertyname}))'
+      setval = f'Encoding.UTF8.GetBytes(JsonConvert.SerializeObject({objname}.{propertyname}))'
       settype = f'SqlDbType.VarBinary'
     return f'{{param_value_key, {setval}}}, {{param_dbtype_key, {settype}}}'
   
@@ -258,7 +258,7 @@ class DatatypeBigInt(DatatypeNumeric):
     setval = f'{objname}.{propertyname}'
     settype = f'NpgsqlDbType.Bigint'
     if self.hasHigherDimensionality():
-      setval = f'Encoding.UTF8.GetBytes(JsonSerializer.Serialize({objname}.{propertyname}))'
+      setval = f'Encoding.UTF8.GetBytes(JsonConvert.SerializeObject({objname}.{propertyname}))'
       settype = f'NpgsqlDbType.Bytea'
     return f'{{param_value_key, {setval}}}, {{param_dbtype_key, {settype}}}'
   
@@ -270,7 +270,7 @@ class DatatypeBigInt(DatatypeNumeric):
     setval = f'{objname}.{propertyname}'
     settype = f'"{self.SQLite_Type()}"'
     if self.hasHigherDimensionality():
-      setval = f'Encoding.UTF8.GetBytes(JsonSerializer.Serialize({objname}.{propertyname}))'
+      setval = f'Encoding.UTF8.GetBytes(JsonConvert.SerializeObject({objname}.{propertyname}))'
       settype = f'"{self.SQLite_Type()}"'
     return f'{{param_value_key, {setval}}}, {{param_dbtype_key, {settype}}}' 
 
@@ -295,7 +295,7 @@ class DatatypeBigInt(DatatypeNumeric):
     if self.hasHigherDimensionality():
       commas = ","*(len(self.Dimensinality)-1)  
       datatype = f"long[{commas}]" #multidimensional array
-      return f"JsonSerializer.Deserialize<{datatype}>(System.Text.Encoding.UTF8.GetString((byte[]){argt[0]}))"
+      return f"JsonConvert.DeserializeObject<{datatype}>(System.Text.Encoding.UTF8.GetString((byte[]){argt[0]}))"
     else:
       return f"(int){argt[0]}"
 

@@ -136,7 +136,7 @@ class DatabaseMicrosoftSQL(Database):
     s.wln('string database = config.Database;')
     s.wln('string instance = config.InstanceName;')
     s.wln('int portno = config.PortNumber;')
-    s.wln('string server = $"{instance}:{portno.ToString()}";')
+    s.wln('string server = $"{instance},{portno.ToString()}";')
     s.wln('string connectionString = $"Server={server};Database={database};User Id={username};Password={password};Trusted_Connection=True;TrustServerCertificate=True;";')
     s.wln(f"connection = new {self.CSharpConnectionClass()}(connectionString);")  
     return s

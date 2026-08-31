@@ -61,7 +61,8 @@ class CSharpDataClassWriter(DataClassWriter):
         c = self.Class.Name
         textdep = "using System.Text;"
         dependency_map[textdep] = textdep
-        jsondep = "using System.Text.Json;"
+        #jsondep = "using System.Text.Json;"
+        jsondep = "using Newtonsoft.Json;"
         dependency_map[jsondep] = jsondep
 
         
