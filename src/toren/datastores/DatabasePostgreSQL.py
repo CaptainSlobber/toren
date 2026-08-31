@@ -1,4 +1,10 @@
 from .Database import Database
+from ..languages.Language import Language
+from ..languages.LanguageCSharp import LanguageCSharp
+from ..languages.LanguageGo import LanguageGo
+from ..languages.LanguagePython import LanguagePython
+from ..languages.LanguageJavaScript import LanguageJavaScript
+from ..languages.LanguageJava import LanguageJava
 import collections
 
 class DatabasePostgreSQL(Database):
@@ -28,8 +34,16 @@ class DatabasePostgreSQL(Database):
   # DB Specific Query Syntax
   ##########################################################################
   
-  def GetParameter(self, parameterName: str = "", index: int = -1):
-    return f"%({parameterName})s"
+
+
+  def GetParameter(self, language: Language, parametername:str= "", parameterNo: int= -1):
+    _params = {}
+    _params[LanguagePython().getID()] = f"%({parametername})s"
+    _params[LanguageCSharp().getID()] = f"@{parametername.lower()}"
+    _params[LanguageJava().getID()] = f"@{parametername.lower()}"
+    _params[LanguageGo().getID()] = f"@{parametername.lower()}"
+    _params[LanguageJavaScript().getID()] = f"@{parametername.lower()}"
+    return _params[language.getID()]
   
   def OpenBrackets(self):
     return ""
@@ -119,9 +133,9 @@ class DatabasePostgreSQL(Database):
     s.wln('string password = Encoding.UTF8.GetString(Convert.FromBase64String(Environment.GetEnvironmentVariable(config.Credential)));')
     s.wln('string username = config.Username;')
     s.wln('string database = config.Database;')
-    s.wln('string instance = config.InstanceName;')
+    s.wln('string host = config.Server;')
     s.wln('string portno = config.PortNumber.ToString();')
-    s.wln('string connectionString = $"Server={instance};Port={portno};User Id={username};Password={password};Database={database}";')
+    s.wln('string connectionString = $"Host={host};Port={portno};Username={username};Password={password};Database={database}";')
     s.wln(f"connection = new {self.CSharpConnectionClass()}(connectionString);") 
     return s
   

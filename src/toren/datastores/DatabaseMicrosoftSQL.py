@@ -43,14 +43,20 @@ class DatabaseMicrosoftSQL(Database):
   
   def IfExists(self):
     return " IF EXISTS"
-  
-  def GetParameter(self, parameterName: str = "", index: int = -1):
-    #return f"@{parameterName}"
-    return f"?"
-  
+
+  def GetParameter(self, language: Language, parametername:str= "", parameterNo: int= -1):
+    _params = {}
+    _params[LanguagePython().getID()] = f"?" 
+    _params[LanguageCSharp().getID()] = f"@{parametername.lower()}"
+    _params[LanguageJava().getID()] = f"@{parametername.lower()}"
+    _params[LanguageGo().getID()] = f"@{parametername.lower()}"
+    _params[LanguageJavaScript().getID()] = f"@{parametername.lower()}"
+    return _params[language.getID()]
+
+
   def UsesNamedParameters(self, language: Language):
     _unparams = {}
-    _unparams[LanguagePython().getID()] = False # pyodbc uses positional parameters with '?'
+    _unparams[LanguagePython().getID()] = False # False # pyodbc uses positional parameters with '?' # TODO: Test Python DL Implications
     _unparams[LanguageCSharp().getID()] = True
     _unparams[LanguageJava().getID()] = True
     _unparams[LanguageGo().getID()] = True

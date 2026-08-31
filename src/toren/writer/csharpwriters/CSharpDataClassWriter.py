@@ -305,10 +305,10 @@ class CSharpDataClassWriter(DataClassWriter):
         if self.Class.InheritsFrom is not None:
             for propertyid, property in self.Class.InheritedProperties.Data.items():
                 n = n + 1
-                params.append(f"{db.GetParameter(property.Name.lower(), n)}")
+                params.append(f"{db.GetParameter(self.Language, property.Name.lower(), n)}")
         for propertyid, property in self.Class.Properties.Data.items():
             n = n + 1
-            params.append(f"{db.GetParameter(property.Name.lower(), n)}")
+            params.append(f"{db.GetParameter(self.Language, property.Name.lower(), n)}")
         params_string = ", ".join(params)
         s.w(f"private static string Get{self.Class.Name}ColumnParameters() ").o()
         s.wln(f'string parameters = "{params_string}";')
@@ -355,7 +355,7 @@ class CSharpDataClassWriter(DataClassWriter):
         s = self.writeGetTableName(s)
         s.wln(f'string columns = {self.getDLClassName()}.Get{self.Class.Name}ColumnNames();')
         s.wln(f"string parameters = {self.getDLClassName()}.Get{self.Class.Name}ColumnParameters();")
-        s.wln(f'string insertquery = string.Format("INSERT INTO %s (%s) VALUES (%s){db.EndQuery()}", tableName, columns, parameters);')
+        s.wln(f'string insertquery = $"INSERT INTO {{tableName}} ({{columns}}) VALUES ({{parameters}}){db.EndQuery()}";')
         s.wln("return insertquery;")
         s.c().ret()
 
@@ -371,14 +371,16 @@ class CSharpDataClassWriter(DataClassWriter):
                 prop_val = f"{self.Class.Name.lower()}.{property.Name}"
                 converted = property.To(self.Language, self.Database, n, self.Class.Name.lower(), property.Name)
 
-
-                s.wln(f'parameters.Add("{property.Name}", new Dictionary<string, object>() {{ {converted} }});')
+                parameter_name = f"{db.GetParameter(self.Language, property.Name.lower(), n)}"
+                parameter_name = property.Name.lower()
+                s.wln(f'parameters.Add("{parameter_name}", new Dictionary<string, object>() {{ {converted} }});')
         for propertyid, property in self.Class.Properties.Data.items():
             n = n + 1
             prop_val = f"{self.Class.Name.lower()}.{property.Name}"
             converted = property.To(self.Language, self.Database, n, self.Class.Name.lower(), property.Name)
-
-            s.wln(f'parameters.Add("{property.Name}", new Dictionary<string, object>() {{ {converted} }});')
+            parameter_name = f"{db.GetParameter(self.Language, property.Name.lower(), n)}"
+            parameter_name = property.Name.lower()
+            s.wln(f'parameters.Add("{parameter_name}", new Dictionary<string, object>() {{ {converted} }});')
         s.wln("return parameters;")
         s.c().ret()
 
@@ -447,16 +449,16 @@ class CSharpDataClassWriter(DataClassWriter):
         if self.Class.hasPrimaryKeyPoperty():
             pk = self.Class.getPrimaryKeyProperty()
             s.w(f"public static string Get{self.Class.Name}UpdateQuery({iid})").o()
-            s.wln(f'string whereclause = " WHERE {db.OB()}{pk.Name}{db.CB()} = {db.GetParameter(pk.Name.lower())}{db.EndQuery()}";')
+            s.wln(f'string whereclause = " WHERE {db.OB()}{pk.Name}{db.CB()} = {db.GetParameter(self.Language, pk.Name.lower())}{db.EndQuery()}";')
             s = self.writeGetTableName(s)
             s.wln(f'string updatequery = $"UPDATE {{tableName}} SET ";')
             if self.Class.InheritsFrom is not None:
                 for propertyid, property in self.Class.InheritedProperties.Data.items():
                     if not property.IsPrimaryKey:
-                        s.wln(f'updatequery += "{db.OB()}{property.Name}{db.CB()} = {db.GetParameter(property.Name.lower())},";')
+                        s.wln(f'updatequery += "{db.OB()}{property.Name}{db.CB()} = {db.GetParameter(self.Language, property.Name.lower())},";')
             for propertyid, property in self.Class.Properties.Data.items():
                 if not property.IsPrimaryKey:
-                    s.wln(f'updatequery += "{db.OB()}{property.Name}{db.CB()} = {db.GetParameter(property.Name.lower())},";')
+                    s.wln(f'updatequery += "{db.OB()}{property.Name}{db.CB()} = {db.GetParameter(self.Language, property.Name.lower())},";')
             s.wln(f'updatequery = updatequery.Remove(updatequery.Length-1) + " " + whereclause;')
             s.wln("return updatequery;")
             s.c().ret()
@@ -477,7 +479,7 @@ class CSharpDataClassWriter(DataClassWriter):
             pk = self.Class.getPrimaryKeyProperty()
 
             s.w(f"public static {pk.PropertyType(self.Language)} PersistSingle{self.Class.Name}({conobjclass} config, {self.Class.Name} {self.Class.Name.lower()}{iid2})").o()
-            s.wln(f'string whereclause = "WHERE {db.OB()}{pk.Name}{db.CB()} = {db.GetParameter(pk.Name.lower())}{db.EndQuery()}";')
+            s.wln(f'string whereclause = "WHERE {db.OB()}{pk.Name}{db.CB()} = {db.GetParameter(self.Language, pk.Name.lower())}";')
 
             s.wln(f"{pk.PropertyType(self.Language)} _{pk.Name.lower()} = {self.Class.Name.lower()}.{pk.Name};")
             s.wln(f"{self.Class.SetDescription} {self.Class.Name.lower()}_items = {self.getDLClassName()}.SelectAll{self.Class.Name}Where(config, whereclause);")
@@ -516,7 +518,7 @@ class CSharpDataClassWriter(DataClassWriter):
         #     s.wln(f"params = {{ '{property.Name.lower()}': '%' + val + '%'}}")
         # else:  
         #     s.wln(f"params = ['%' + val + '%']")
-        # s.wln(f'string whereclause = "WHERE {db.OB()}{property.Name}{db.CB()} LIKE {db.GetParameter(property.Name.lower())}";')
+        # s.wln(f'string whereclause = "WHERE {db.OB()}{property.Name}{db.CB()} LIKE {db.GetParameter(self.Language, property.Name.lower())}";')
         s.wln(f'string whereclause = $"WHERE {db.OB()}{property.Name}{db.CB()} LIKE \'%{{val}}%\'";')
         s.wln(f"string selectquery = {self.getDLClassName()}.GetSelectAll{self.Class.Name}WhereQuery(whereclause, limit, innerquery{iin2});")
         s.wln("Dictionary<string, Dictionary<string, object>> parameters = new Dictionary<string, Dictionary<string, object>>();")
@@ -535,18 +537,18 @@ class CSharpDataClassWriter(DataClassWriter):
         #s.writeline(f'innerquery = "{tablename}"')
 
         #s.wln(f"if whereclause is None:").o()
-        s.wln(f'string whereclause = " WHERE {db.OB()}{property.Name}{db.CB()} = {db.GetParameter(property.Name.lower())}{db.EndQuery()}";')
+        s.wln(f'string whereclause = " WHERE {db.OB()}{property.Name}{db.CB()} = {db.GetParameter(self.Language, property.Name.lower())}{db.EndQuery()}";')
         s = self.writeInstanceStr(s, "\"" + tablename + "\"")
         s.wln(f'string updatequery = $"UPDATE {{innerquery}} SET ";')
         if self.Class.InheritsFrom is not None:
             for propertyid, _property in self.Class.InheritedProperties.Data.items():
                 if not _property.IsPrimaryKey: 
                     if _property.ID != property.ID:
-                        s.wln(f'updatequery += "{db.OB()}{_property.Name}{db.CB()} = {db.GetParameter(_property.Name.lower())},";')
+                        s.wln(f'updatequery += "{db.OB()}{_property.Name}{db.CB()} = {db.GetParameter(self.Language, _property.Name.lower())},";')
         for propertyid, _property in self.Class.Properties.Data.items():
             if not _property.IsPrimaryKey:
                 if _property.ID != property.ID:
-                    s.wln(f'updatequery += "{db.OB()}{_property.Name}{db.CB()} = {db.GetParameter(_property.Name.lower())},";')
+                    s.wln(f'updatequery += "{db.OB()}{_property.Name}{db.CB()} = {db.GetParameter(self.Language, _property.Name.lower())},";')
         s.wln(f'updatequery = updatequery.Substring(0, updatequery.Length - 1) + " " + whereclause;')
         s.wln("return updatequery;")
         s.c().ret()

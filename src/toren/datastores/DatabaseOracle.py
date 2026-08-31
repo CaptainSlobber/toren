@@ -1,5 +1,11 @@
 from .Database import Database
 import collections
+from ..languages.Language import Language
+from ..languages.LanguageCSharp import LanguageCSharp
+from ..languages.LanguageGo import LanguageGo
+from ..languages.LanguagePython import LanguagePython
+from ..languages.LanguageJavaScript import LanguageJavaScript
+from ..languages.LanguageJava import LanguageJava
 
 class DatabaseOracle(Database):
 
@@ -34,8 +40,15 @@ class DatabaseOracle(Database):
   def CloseBrackets(self):
     return "\\\"" # Double Escaped
   
-  def GetParameter(self, parameterName: str = "", index: int = -1):
-    return f":{parameterName}"
+  def GetParameter(self, language: Language, parametername:str= "", parameterNo: int= -1):
+    _params = {}
+    _params[LanguagePython().getID()] = f":{parametername.lower()}"
+    _params[LanguageCSharp().getID()] = f":{parametername.lower()}"
+    _params[LanguageJava().getID()] = f":{parametername.lower()}"
+    _params[LanguageGo().getID()] = f":{parametername.lower()}"
+    _params[LanguageJavaScript().getID()] = f":{parametername.lower()}"
+    return _params[language.getID()]
+  
   
   def EndQuery(self):
     return ""

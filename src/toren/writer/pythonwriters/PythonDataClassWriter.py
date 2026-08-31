@@ -344,10 +344,10 @@ class PythonDataClassWriter(DataClassWriter):
         if self.Class.InheritsFrom is not None:
             for propertyid, property in self.Class.InheritedProperties.Data.items():
                 n = n + 1
-                params.append(f"{db.GetParameter(property.Name.lower(), n)}")
+                params.append(f"{db.GetParameter(self.Language, property.Name.lower(), n)}")
         for propertyid, property in self.Class.Properties.Data.items():
             n = n + 1
-            params.append(f"{db.GetParameter(property.Name.lower(), n)}")
+            params.append(f"{db.GetParameter(self.Language, property.Name.lower(), n)}")
         params_string = ", ".join(params)
         s.wln("@staticmethod")
         s.wln(f"def Get{self.Class.Name}ColumnParameters():").o()
@@ -438,18 +438,18 @@ class PythonDataClassWriter(DataClassWriter):
         #s.writeline(f'innerquery = "{tablename}"')
 
         #s.wln(f"if whereclause is None:").o()
-        s.wln(f'whereclause = " WHERE {db.OB()}{property.Name}{db.CB()} = {db.GetParameter(property.Name.lower())}{db.EndQuery()}"')
+        s.wln(f'whereclause = " WHERE {db.OB()}{property.Name}{db.CB()} = {db.GetParameter(self.Language, property.Name.lower())}{db.EndQuery()}"')
         s = self.writeInstanceStr(s, "\"" + tablename + "\"")
         s.wln(f'updatequery = f"UPDATE {{innerquery}} SET "')
         if self.Class.InheritsFrom is not None:
             for propertyid, _property in self.Class.InheritedProperties.Data.items():
                 if not _property.IsPrimaryKey: 
                     if _property.ID != property.ID:
-                        s.wln(f'updatequery += "{db.OB()}{_property.Name}{db.CB()} = {db.GetParameter(_property.Name.lower())},"')
+                        s.wln(f'updatequery += "{db.OB()}{_property.Name}{db.CB()} = {db.GetParameter(self.Language, _property.Name.lower())},"')
         for propertyid, _property in self.Class.Properties.Data.items():
             if not _property.IsPrimaryKey:
                 if _property.ID != property.ID:
-                    s.wln(f'updatequery += "{db.OB()}{_property.Name}{db.CB()} = {db.GetParameter(_property.Name.lower())},"')
+                    s.wln(f'updatequery += "{db.OB()}{_property.Name}{db.CB()} = {db.GetParameter(self.Language, _property.Name.lower())},"')
         s.wln(f'updatequery = updatequery[:-1] + " " + whereclause')
         s.wln("return updatequery")
         s.c().ret()
@@ -459,7 +459,7 @@ class PythonDataClassWriter(DataClassWriter):
 
 
 
-        #s.wln(f'whereclause = "WHERE {db.OB()}{property.Name}{db.CB()} = {db.GetParameter(property.Name.lower())}{db.EndQuery()}"')
+        #s.wln(f'whereclause = "WHERE {db.OB()}{property.Name}{db.CB()} = {db.GetParameter(self.Language, property.Name.lower())}{db.EndQuery()}"')
         s.wln(f'whereclause = f"WHERE {db.OB()}{property.Name}{db.CB()} = \'{{str({self.Class.Name.lower()}.{property.Name})}}\'"')
         s.wln(f"_{pk.Name.lower()} = {self.Class.Name.lower()}.{pk.Name}")
         s.wln(f"{self.Class.Name.lower()}_items = {self.getDLClassName()}.SelectAll{self.Class.Name}Where(config, whereclause)")
@@ -495,7 +495,7 @@ class PythonDataClassWriter(DataClassWriter):
             pk = self.Class.getPrimaryKeyProperty()
             s.wln("@staticmethod")
             s.wln(f"def PersistSingle{self.Class.Name}(config, {self.Class.Name.lower()}: {self.Class.Name}{iid2}):").o()
-            s.wln(f'whereclause = "WHERE {db.OB()}{pk.Name}{db.CB()} = {db.GetParameter(pk.Name.lower())}{db.EndQuery()}"')
+            s.wln(f'whereclause = "WHERE {db.OB()}{pk.Name}{db.CB()} = {db.GetParameter(self.Language, pk.Name.lower())}{db.EndQuery()}"')
 
             s.wln(f"_{pk.Name.lower()} = {self.Class.Name.lower()}.{pk.Name}")
             s.wln(f"{self.Class.Name.lower()}_items = {self.getDLClassName()}.SelectAll{self.Class.Name}Where(config, whereclause)")
@@ -537,16 +537,16 @@ class PythonDataClassWriter(DataClassWriter):
             #s.writeline(f'innerquery = "{tablename}"')
 
             #s.wln(f"if whereclause is None:").o()
-            s.wln(f'whereclause = " WHERE {db.OB()}{pk.Name}{db.CB()} = {db.GetParameter(pk.Name.lower())}{db.EndQuery()}"')
+            s.wln(f'whereclause = " WHERE {db.OB()}{pk.Name}{db.CB()} = {db.GetParameter(self.Language, pk.Name.lower())}{db.EndQuery()}"')
             s = self.writeInstanceStr(s, "\"" + tablename + "\"")
             s.wln(f'updatequery = f"UPDATE {{innerquery}} SET "')
             if self.Class.InheritsFrom is not None:
                 for propertyid, property in self.Class.InheritedProperties.Data.items():
                     if not property.IsPrimaryKey:
-                        s.wln(f'updatequery += "{db.OB()}{property.Name}{db.CB()} = {db.GetParameter(property.Name.lower())},"')
+                        s.wln(f'updatequery += "{db.OB()}{property.Name}{db.CB()} = {db.GetParameter(self.Language, property.Name.lower())},"')
             for propertyid, property in self.Class.Properties.Data.items():
                 if not property.IsPrimaryKey:
-                    s.wln(f'updatequery += "{db.OB()}{property.Name}{db.CB()} = {db.GetParameter(property.Name.lower())},"')
+                    s.wln(f'updatequery += "{db.OB()}{property.Name}{db.CB()} = {db.GetParameter(self.Language, property.Name.lower())},"')
             s.wln(f'updatequery = updatequery[:-1] + " " + whereclause')
             s.wln("return updatequery")
             s.c().ret()
@@ -570,7 +570,7 @@ class PythonDataClassWriter(DataClassWriter):
             s.wln(f"def Get{self.Class.Name}DeleteQuery({iid}):").o()
             #s.writeline(f'innerquery = "{tablename}"')
             s = self.writeInstanceStr(s, "\"" + tablename + "\"")
-            s.wln(f'deletequery = f"DELETE FROM {{innerquery}} WHERE {db.OB()}{pk.Name}{db.CB()} = {db.GetParameter(pk.Name.lower())}{db.EndQuery()}"')
+            s.wln(f'deletequery = f"DELETE FROM {{innerquery}} WHERE {db.OB()}{pk.Name}{db.CB()} = {db.GetParameter(self.Language, pk.Name.lower())}{db.EndQuery()}"')
             s.wln("return deletequery")
             s.c().ret()
 
@@ -629,7 +629,7 @@ class PythonDataClassWriter(DataClassWriter):
             s.wln(f'def GetSelectSingle{self.Class.Name}By{pk.Name}Query(innerquery: str="{tablename}"{iid2}):').o()
             s = self.writeInstanceStr(s)
             s.wln(f"columns = {self.getDLClassName()}.Get{self.Class.Name}ColumnNames()")
-            s.wln(f'selectquery = f"SELECT {{columns}} FROM {{innerquery}} WHERE {db.OB()}{pk.Name}{db.CB()} = {db.GetParameter(pk.Name.lower())}{db.EndQuery()}"')
+            s.wln(f'selectquery = f"SELECT {{columns}} FROM {{innerquery}} WHERE {db.OB()}{pk.Name}{db.CB()} = {db.GetParameter(self.Language, pk.Name.lower())}{db.EndQuery()}"')
             s.wln("return selectquery")
             s.c().ret()
 
@@ -695,7 +695,7 @@ class PythonDataClassWriter(DataClassWriter):
             s.wln(f"params = {{ '{property.Name.lower()}': '%' + val + '%'}}")
         else:  
             s.wln(f"params = ['%' + val + '%']")
-        s.wln(f'whereclause = "WHERE {db.OB()}{property.Name}{db.CB()} LIKE {db.GetParameter(property.Name.lower())}"')
+        s.wln(f'whereclause = "WHERE {db.OB()}{property.Name}{db.CB()} LIKE {db.GetParameter(self.Language, property.Name.lower())}"')
         s.wln(f"selectquery = {self.getDLClassName()}.GetSelectAll{self.Class.Name}WhereQuery(whereclause, limit, innerquery{iin2})")
         s.wln(f"result = {self.getDLClassName()}.Select{self.Class.SetDescription}(config, selectquery, params)")
         s.wln(f"return result")
@@ -834,7 +834,7 @@ class PythonDataClassWriter(DataClassWriter):
             s.wln(f"params = {{ '{property.Name.lower()}': '%' + val + '%'}}")
         else:  
             s.wln(f"params = ['%' + val + '%']")
-        s.wln(f'whereclause = "WHERE {db.OB()}{property.Name}{db.CB()} LIKE {db.GetParameter(property.Name.lower())}"')
+        s.wln(f'whereclause = "WHERE {db.OB()}{property.Name}{db.CB()} LIKE {db.GetParameter(self.Language, property.Name.lower())}"')
         s.wln(f"selectquery = {self.getDLClassName()}.GetSelectPaged{self.Class.Name}WhereQuery(whereclause, pageno, limit, innerquery{iin2})")
         s.wln(f"result = {self.getDLClassName()}.Select{self.Class.SetDescription}(config, selectquery, params)")
         s.wln(f"return result")

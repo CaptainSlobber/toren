@@ -327,10 +327,10 @@ class JavaDataClassWriter(DataClassWriter):
         if self.Class.InheritsFrom is not None:
             for propertyid, property in self.Class.InheritedProperties.Data.items():
                 n = n + 1
-                params.append(f"{db.GetParameter(property.Name.lower(), n)}")
+                params.append(f"{db.GetParameter(self.Language, property.Name.lower(), n)}")
         for propertyid, property in self.Class.Properties.Data.items():
             n = n + 1
-            params.append(f"{db.GetParameter(property.Name.lower(), n)}")
+            params.append(f"{db.GetParameter(self.Language, property.Name.lower(), n)}")
         params_string = ", ".join(params)
         s.w(f"private static String Get{self.Class.Name}ColumnParameters() ").o()
         s.wln(f'String params = "{params_string}";')
@@ -454,16 +454,16 @@ class JavaDataClassWriter(DataClassWriter):
         if self.Class.hasPrimaryKeyPoperty():
             pk = self.Class.getPrimaryKeyProperty()
             s.w(f"public static String Get{self.Class.Name}UpdateQuery({iid})").o()
-            s.wln(f'String whereclause = " WHERE {db.OB()}{pk.Name}{db.CB()} = {db.GetParameter(pk.Name.lower())}{db.EndQuery()}";')
+            s.wln(f'String whereclause = " WHERE {db.OB()}{pk.Name}{db.CB()} = {db.GetParameter(self.Language, pk.Name.lower())}{db.EndQuery()}";')
             s = self.writeGetTableName(s)
             s.wln(f'String updatequery = String.format("UPDATE %s SET ", tableName);')
             if self.Class.InheritsFrom is not None:
                 for propertyid, property in self.Class.InheritedProperties.Data.items():
                     if not property.IsPrimaryKey:
-                        s.wln(f'updatequery += "{db.OB()}{property.Name}{db.CB()} = {db.GetParameter(property.Name.lower())},";')
+                        s.wln(f'updatequery += "{db.OB()}{property.Name}{db.CB()} = {db.GetParameter(self.Language, property.Name.lower())},";')
             for propertyid, property in self.Class.Properties.Data.items():
                 if not property.IsPrimaryKey:
-                    s.wln(f'updatequery += "{db.OB()}{property.Name}{db.CB()} = {db.GetParameter(property.Name.lower())},";')
+                    s.wln(f'updatequery += "{db.OB()}{property.Name}{db.CB()} = {db.GetParameter(self.Language, property.Name.lower())},";')
             s.wln(f'updatequery = updatequery.substring(0, updatequery.length() - 1) + " " + whereclause;')
             s.wln("return updatequery;")
             s.c().ret()
