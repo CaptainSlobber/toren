@@ -132,7 +132,7 @@ class Database(TorenObject):
   def HasSchema(self):
     return True
   
-  def GetParameter(self, parmeterNo: int):
+  def GetParameter(self, language: Language, parametername:str, parameterNo: int):
     return "*"
   
   def UsesNamedParameters(self, language: Language):
