@@ -5,4 +5,4 @@ class TorenObject(object):
     self.Type = "toren.TorenObject"
     self.Name = name
     self.ID = id
-    self.Version = "26.8.30"
+    self.Version = "26.8.31"

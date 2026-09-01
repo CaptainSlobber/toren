@@ -153,7 +153,7 @@ class DatatypeUUID(Datatype):
     indx = str(int(argt[0]))
     objname = str(argt[1])
     propertyname = str(argt[2])
-    setval = f'{objname}.{propertyname}'
+    setval = f'{objname}.{propertyname}' if (len(objname)>1) else f'{propertyname}'
     return setval
 
   def CSharp_to_Oracle(self, *args) -> str:
@@ -161,7 +161,7 @@ class DatatypeUUID(Datatype):
     indx = str(int(argt[0]))
     objname = str(argt[1])
     propertyname = str(argt[2])
-    setval = f'{objname}.{propertyname}'
+    setval = f'{objname}.{propertyname}' if (len(objname)>1) else f'{propertyname}'
     settype = f'OracleDbType.NVarchar2'
     return f'{{param_value_key, {setval}}}, {{param_dbtype_key, {settype}}}'
   
@@ -170,7 +170,7 @@ class DatatypeUUID(Datatype):
     indx = str(int(argt[0]))
     objname = str(argt[1])
     propertyname = str(argt[2])
-    setval = f'{objname}.{propertyname}'
+    setval = f'{objname}.{propertyname}' if (len(objname)>1) else f'{propertyname}'
     settype = f'SqlDbType.UniqueIdentifier'
     return f'{{param_value_key, {setval}}}, {{param_dbtype_key, {settype}}}'
   
@@ -179,7 +179,7 @@ class DatatypeUUID(Datatype):
     indx = str(int(argt[0]))
     objname = str(argt[1])
     propertyname = str(argt[2])
-    setval = f'{objname}.{propertyname}'
+    setval = f'{objname}.{propertyname}' if (len(objname)>1) else f'{propertyname}'
     settype = f'NpgsqlDbType.Uuid'
     return f'{{param_value_key, {setval}}}, {{param_dbtype_key, {settype}}}'
   
@@ -188,7 +188,7 @@ class DatatypeUUID(Datatype):
     indx = str(int(argt[0]))
     objname = str(argt[1])
     propertyname = str(argt[2])
-    setval = f'{objname}.{propertyname}'
+    setval = f'{objname}.{propertyname}' if (len(objname)>1) else f'{propertyname}'
     settype = f'"{self.SQLite_Type()}"'
     return f'{{param_value_key, {setval}}}, {{param_dbtype_key, {settype}}}' 
 

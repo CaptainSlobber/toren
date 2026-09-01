@@ -220,7 +220,7 @@ class DatatypeInt(DatatypeNumeric):
     indx = str(int(argt[0]))
     objname = str(argt[1])
     propertyname = str(argt[2])
-    setval = f'{objname}.{propertyname}'
+    setval = f'{objname}.{propertyname}' if (len(objname)>1) else f'{propertyname}'
     if self.hasHigherDimensionality():
       setval = f'Encoding.UTF8.GetBytes(JsonConvert.SerializeObject({objname}.{propertyname}))'
     return setval
@@ -230,7 +230,7 @@ class DatatypeInt(DatatypeNumeric):
     indx = str(int(argt[0]))
     objname = str(argt[1])
     propertyname = str(argt[2])
-    setval = f'{objname}.{propertyname}'
+    setval = f'{objname}.{propertyname}' if (len(objname)>1) else f'{propertyname}'
     settype = f'OracleDbType.Int32'
     if self.hasHigherDimensionality():
       setval = f'Encoding.UTF8.GetBytes(JsonConvert.SerializeObject({objname}.{propertyname}))'
@@ -242,7 +242,7 @@ class DatatypeInt(DatatypeNumeric):
     indx = str(int(argt[0]))
     objname = str(argt[1])
     propertyname = str(argt[2])
-    setval = f'{objname}.{propertyname}'
+    setval = f'{objname}.{propertyname}' if (len(objname)>1) else f'{propertyname}'
     settype = f'SqlDbType.Int'
     if self.hasHigherDimensionality():
       setval = f'Encoding.UTF8.GetBytes(JsonConvert.SerializeObject({objname}.{propertyname}))'
@@ -254,7 +254,7 @@ class DatatypeInt(DatatypeNumeric):
     indx = str(int(argt[0]))
     objname = str(argt[1])
     propertyname = str(argt[2])
-    setval = f'{objname}.{propertyname}'
+    setval = f'{objname}.{propertyname}' if (len(objname)>1) else f'{propertyname}'
     settype = f'NpgsqlDbType.Integer'
     if self.hasHigherDimensionality():
       setval = f'Encoding.UTF8.GetBytes(JsonConvert.SerializeObject({objname}.{propertyname}))'
@@ -266,7 +266,7 @@ class DatatypeInt(DatatypeNumeric):
     indx = str(int(argt[0]))
     objname = str(argt[1])
     propertyname = str(argt[2])
-    setval = f'{objname}.{propertyname}'
+    setval = f'{objname}.{propertyname}' if (len(objname)>1) else f'{propertyname}'
     settype = f'"{self.SQLite_Type()}"'
     if self.hasHigherDimensionality():
       setval = f'Encoding.UTF8.GetBytes(JsonConvert.SerializeObject({objname}.{propertyname}))'

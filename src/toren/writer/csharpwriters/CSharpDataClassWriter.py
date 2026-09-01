@@ -169,12 +169,16 @@ class CSharpDataClassWriter(DataClassWriter):
         else:
             return ""
 
-    def writeInstanceStr(self, s:CSharpStringWriter, iq:str ="innerquery"):
+    def writeInstanceStr(self, s:CSharpStringWriter, iq:str ="innerquery", initializevar:bool=True):
         iin2 = self.getInstanceIDParemeterName(", ")
+
+        strstr = ""
+        if (initializevar):
+            strstr = "string "
         if self.Class.Cloneable:
-            s.wln(f"string innerquery = {self.getDLClassName()}.GetInnerQuery({iq}{iin2});")
+            s.wln(f"{strstr}innerquery = {self.getDLClassName()}.GetInnerQuery({iq}{iin2});")
         else:
-            s.wln(f"string innerquery = {self.getDLClassName()}.GetInnerQuery({iq});")
+            s.wln(f"{strstr}innerquery = {self.getDLClassName()}.GetInnerQuery({iq});")
         return s
 
     def writeGetTableName(self, s:CSharpStringWriter):
@@ -327,15 +331,15 @@ class CSharpDataClassWriter(DataClassWriter):
             if self.Class.InheritsFrom is not None:
                 for propertyid, property in self.Class.InheritedProperties.Data.items():
                     if property.ForeignKey is not None:
-                        create_fk = db.GetCreateForeignKeyQuery(schema, self.Class, property, property.ForeignKey, "%s")
-                        s.wln(f'foreignkeyqueries.Add(string.Format("{create_fk}", tableName));')
+                        create_fk = db.GetCreateForeignKeyQuery(schema, self.Class, property, property.ForeignKey, "{tableName}")
+                        s.wln(f'foreignkeyqueries.Add($"{create_fk}");')
                         
 
             for propertyid, property in self.Class.Properties.Data.items():
                 if property.ForeignKey is not None:
-                    create_fk = db.GetCreateForeignKeyQuery(schema, self.Class, property, property.ForeignKey, "%s")
-                    s.wln(f'foreignkeyqueries.Add(string.Format("{create_fk}", tableName));')
-            s.writeline("return foreignkeyqueries;")
+                    create_fk = db.GetCreateForeignKeyQuery(schema, self.Class, property, property.ForeignKey, "{tableName}")
+                    s.wln(f'foreignkeyqueries.Add($"{create_fk}");')
+            s.wln("return foreignkeyqueries;")
             s.c()
             s.ret()
 
@@ -362,8 +366,7 @@ class CSharpDataClassWriter(DataClassWriter):
 
         s.wln(f"private static Dictionary<string, Dictionary<string, object>> Parameterize{self.Class.Name}({self.Class.Name} {self.Class.Name.lower()})").o()
         s.wln("Dictionary<string, Dictionary<string, object>> parameters = new Dictionary<string, Dictionary<string, object>>();")
-        s.wln("string param_value_key = \"Value\";")
-        s.wln("string param_dbtype_key = \"DbType\";")
+        s = self.writeParameterMapKeys(s)
         n = 0
         if self.Class.InheritsFrom is not None:
             for propertyid, property in self.Class.InheritedProperties.Data.items():
@@ -417,7 +420,7 @@ class CSharpDataClassWriter(DataClassWriter):
 
         (db, schema, tablename, iid, iid2, iin, iin2, conobjclass) = self.getCommonItems()
         orderby = self.getOrderByClause()
-        s.w(f"public static string GetSelectAll{self.Class.Name}WhereQuery(string whereclause = \"WHERE 1=1\", int limit = {str(self.Class.PageSize)}, string innerquery = \"{tablename}\"{iid2})").o()
+        s.w(f"private static string GetSelectAll{self.Class.Name}WhereQuery(string whereclause = \"WHERE 1=1\", int limit = {str(self.Class.PageSize)}, string innerquery = \"{tablename}\"{iid2})").o()
         s.wln(f"string columns = {self.getDLClassName()}.Get{self.Class.Name}ColumnNames();")
         #s = self.writeInstanceStr(s)
         s.wln(f'string selectquery = $"SELECT {db.TOP("{limit}")}{{columns}} FROM {{innerquery}} {{whereclause}}{orderby}{db.LIMIT("{limit}")}{db.EndQuery()}";')
@@ -448,7 +451,7 @@ class CSharpDataClassWriter(DataClassWriter):
         (db, schema, tablename, iid, iid2, iin, iin2, conobjclass) = self.getCommonItems()
         if self.Class.hasPrimaryKeyPoperty():
             pk = self.Class.getPrimaryKeyProperty()
-            s.w(f"public static string Get{self.Class.Name}UpdateQuery({iid})").o()
+            s.w(f"private static string Get{self.Class.Name}UpdateQuery({iid})").o()
             s.wln(f'string whereclause = " WHERE {db.OB()}{pk.Name}{db.CB()} = {db.GetParameter(self.Language, pk.Name.lower())}{db.EndQuery()}";')
             s = self.writeGetTableName(s)
             s.wln(f'string updatequery = $"UPDATE {{tableName}} SET ";')
@@ -533,7 +536,7 @@ class CSharpDataClassWriter(DataClassWriter):
         (db, schema, tablename, iid, iid2, iin, iin2, conobjclass) = self.getCommonItems()
 
 
-        s.w(f"public static string Get{self.Class.Name}UpdateWhere{property.Name}EqualsQuery({iid2})").o()
+        s.w(f"private static string Get{self.Class.Name}UpdateWhere{property.Name}EqualsQuery({iid2})").o()
         #s.writeline(f'innerquery = "{tablename}"')
 
         #s.wln(f"if whereclause is None:").o()
@@ -584,7 +587,7 @@ class CSharpDataClassWriter(DataClassWriter):
         orderby = self.getOrderByClause()
         readerclass = db.ReaderClass(self.Language)
 
-        s.w(f'public static string GetSelectAll{self.Class.Name}Query(int limit={str(self.Class.PageSize)}, string innerquery="{tablename}"{iid2}) ').o()
+        s.w(f'private static string GetSelectAll{self.Class.Name}Query(int limit={str(self.Class.PageSize)}, string innerquery="{tablename}"{iid2}) ').o()
         s.wln(f"string columns = {self.getDLClassName()}.Get{self.Class.Name}ColumnNames();")
         #s = self.writeInstanceStr(s)
         s.wln(f'string selectquery = $"SELECT {db.TOP("{limit}")}{{columns}} FROM {{innerquery}}{orderby}{db.LIMIT("{limit}")}{db.EndQuery()}";')
@@ -638,4 +641,122 @@ class CSharpDataClassWriter(DataClassWriter):
         s.c()
         s.ret()
 
+        if self.Class.hasPrimaryKeyPoperty():
+            pk = self.Class.getPrimaryKeyProperty()
+
+            s.w(f'private static string GetSelectSingle{self.Class.Name}By{pk.Name}Query(string innerquery="{tablename}"{iid2}) ').o()
+            s = self.writeInstanceStr(s=s, initializevar=False)
+            s.wln(f"string columns = {self.getDLClassName()}.Get{self.Class.Name}ColumnNames();")
+            s.wln(f'string selectquery = $"SELECT {{columns}} FROM {{innerquery}} WHERE {db.OB()}{pk.Name}{db.CB()} = {db.GetParameter(self.Language, pk.Name.lower())}{db.EndQuery()}";')
+            s.wln("return selectquery;")
+            s.c().ret()
+
+            s.w(f'public static {self.Class.Name} SelectSingle{self.Class.Name}By{pk.Name}({conobjclass} config, {pk.CSharp_Type()} {pk.Name.lower()}, string innerquery ="{tablename}"{iid2}) ').o()
+            s.wln("Dictionary<string, Dictionary<string, object>> parameters = new Dictionary<string, Dictionary<string, object>>();")
+            s = self.writeParameterMapKeys(s)
+            converted = pk.To(self.Language, self.Database, 1, "", pk.Name.lower())
+            parameter_name = f"{db.GetParameter(self.Language, pk.Name.lower(), 1)}"
+            parameter_name = pk.Name.lower()
+            s.wln(f'parameters.Add("{parameter_name}", new Dictionary<string, object>() {{ {converted} }});')
+            s.wln(f"string selectquery = {self.getDLClassName()}.GetSelectSingle{self.Class.Name}By{pk.Name}Query(innerquery{iin2});")
+
+            s.wln(f"Func<{readerclass}, object> translation = {self.getDLClassName()}.Get{self.Class.Name}FromQueryResult;")
+            s.wln(f"{self.Class.Name} {self.Class.Name.lower()} = ({self.Class.Name}) {self.CommonFunctionsClassName}.ExecuteFetchOne(config, selectquery, parameters, translation);")
+            s.wln(f"return {self.Class.Name.lower()};")
+            s.c()
+            s.ret()
+
+        return s
+
+
+    def writeSelectPage(self, s:CSharpStringWriter):
+        (db, schema, tablename, iid, iid2, iin, iin2, conobjclass) = self.getCommonItems()
+        orderby = self.getOrderByClause()
+        s.w(f'private static string GetSelectPaged{self.Class.Name}Query(int pageno=1, int limit={str(self.Class.PageSize)}, string innerquery="{tablename}"{iid2}) ').o()
+        s.wln(f"int offset = (pageno - 1) * limit;")
+        s.wln(f"string columns = {self.getDLClassName()}.Get{self.Class.Name}ColumnNames();")
+        s = self.writeInstanceStr(s=s, initializevar=False)
+        s.wln(f'string selectquery = $"SELECT {{columns}} FROM {{innerquery}}{orderby}{db.LIMIT_OFFSET("{limit}","{offset}")}{db.EndQuery()}";')
+        s.wln("return selectquery;")
+        s.c().ret()
+
+        s.w(f'public static {self.Class.SetDescription} SelectPaged{self.Class.Name}({conobjclass} config, int pageno=1, int limit={str(self.Class.PageSize)}, string innerquery="{tablename}"{iid2}) ').o()
+        s.wln("Dictionary<string, Dictionary<string, object>> parameters = new Dictionary<string, Dictionary<string, object>>();")
+        s.wln(f"string selectquery = {self.getDLClassName()}.GetSelectPaged{self.Class.Name}Query(pageno, limit, innerquery{iin2});")
+        s.wln(f"{self.Class.SetDescription} result = {self.getDLClassName()}.Select{self.Class.SetDescription}(config, selectquery, parameters);")
+        s.wln(f"return result;")
+        s.c()
+        s.ret()
+        return s
+
+
+    def writeSelectPageWhere(self, s:CSharpStringWriter):
+        (db, schema, tablename, iid, iid2, iin, iin2, conobjclass) = self.getCommonItems()
+        orderby = self.getOrderByClause()
+
+        s.wln(f'private static string GetSelectPaged{self.Class.Name}WhereQuery(string whereclause="WHERE 1=1", int pageno=1, int limit={str(self.Class.PageSize)}, string innerquery="{tablename}"{iid2}) ').o()
+        s.wln(f"int offset = (pageno - 1) * limit;")
+        s.wln(f"string columns = {self.getDLClassName()}.Get{self.Class.Name}ColumnNames();")
+        s = self.writeInstanceStr(s=s, initializevar=False)
+        s.wln(f'string selectquery = $"SELECT {{columns}} FROM {{innerquery}} {{whereclause}}{orderby}{db.LIMIT_OFFSET("{limit}","{offset}")}{db.EndQuery()}";')
+        s.wln("return selectquery;")
+        s.c().ret()
+
+        s.wln(f'public static {self.Class.SetDescription} SelectPaged{self.Class.Name}Where({conobjclass} config, string whereclause="WHERE 1=1", int pageno=1, int limit={str(self.Class.PageSize)}, string innerquery="{tablename}"{iid2}) ').o()
+        s.wln("Dictionary<string, Dictionary<string, object>> parameters = new Dictionary<string, Dictionary<string, object>>();")
+        s.wln(f"string selectquery = {self.getDLClassName()}.GetSelectPaged{self.Class.Name}WhereQuery(whereclause, pageno, limit, innerquery{iin2});")
+        s.wln(f"{self.Class.SetDescription} result = {self.getDLClassName()}.Select{self.Class.SetDescription}(config, selectquery, parameters);")
+        s.wln(f"return result;")
+        s.c()
+        s.ret()
+
+        return s
+
+    def writeSelectPagedWhereForProperty(self, s:CSharpStringWriter, property):
+        (db, schema, tablename, iid, iid2, iin, iin2, conobjclass) = self.getCommonItems()
+
+
+        s.wln(f'public static {self.Class.SetDescription} SelectPaged{self.Class.Name}Where{property.Name}Like({conobjclass} config, string val, int pageno=1, int limit={str(self.Class.PageSize)}, string innerquery="{tablename}"{iid2}) ').o()
+        s.wln(f'string whereclause = "WHERE {db.OB()}{property.Name}{db.CB()} LIKE \'%{{val}}%\'";')
+        s.wln(f"string selectquery = {self.getDLClassName()}.GetSelectPaged{self.Class.Name}WhereQuery(whereclause, pageno, limit, innerquery{iin2});")
+        s.wln(f"{self.Class.SetDescription} result = {self.getDLClassName()}.Select{self.Class.SetDescription}(config, selectquery, params);")
+        s.wln(f"return result;")
+        s.c()
+        s.ret()
+        return s
+
+
+    def writeParameterMapKeys(self, s:CSharpStringWriter):
+        s.wln("string param_value_key = \"Value\";")
+        s.wln("string param_dbtype_key = \"DbType\";")
+        return s
+
+    def writeDelete(self, s:CSharpStringWriter):
+        (db, schema, tablename, iid, iid2, iin, iin2, conobjclass) = self.getCommonItems()
+        if self.Class.hasPrimaryKeyPoperty():
+            pk = self.Class.getPrimaryKeyProperty()
+
+            s.w(f"private static string Get{self.Class.Name}DeleteQuery({iid}) ").o()
+            s = self.writeInstanceStr(s, "\"" + tablename + "\"")
+            s.wln(f'string deletequery = $"DELETE FROM {{innerquery}} WHERE {db.OB()}{pk.Name}{db.CB()} = {db.GetParameter(self.Language, pk.Name.lower())}{db.EndQuery()}";')
+            s.wln("return deletequery;")
+            s.c().ret()
+
+            s.w(f"public static void DeleteSingle{self.Class.Name}By{pk.Name}({conobjclass} config, {pk.CSharp_Type()} {pk.Name.lower()}{iid2}) ").o()
+            s = self.writeParameterMapKeys(s)
+            s.wln("Dictionary<string, Dictionary<string, object>> parameters = new Dictionary<string, Dictionary<string, object>>();")
+
+            converted = pk.To(self.Language, self.Database, 1, "", pk.Name.lower())
+            parameter_name = f"{db.GetParameter(self.Language, pk.Name.lower(), 1)}"
+            parameter_name = pk.Name.lower()
+            s.wln(f'parameters.Add("{parameter_name}", new Dictionary<string, object>() {{ {converted} }});')
+            s.wln(f"string deletequery = {self.getDLClassName()}.Get{self.Class.Name}DeleteQuery({iin});")
+            s.wln(f"{self.CommonFunctionsClassName}.ExecuteParameterizedNonQuery(config, deletequery, parameters);")
+            s.c()
+            s.ret()
+
+            s.w(f"public static void DeleteSingle{self.Class.Name}({conobjclass} config, {self.Class.Name} {self.Class.Name.lower()}{iid2}) ").o()
+            s.wln(f"{self.getDLClassName()}.DeleteSingle{self.Class.Name}By{pk.Name}(config, {self.Class.Name.lower()}.{pk.Name}{iin2});")
+            s.c()
+            s.ret()
         return s
