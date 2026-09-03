@@ -146,6 +146,9 @@ class CSharpClassWriter(ClassWriter):
 
     def writeClassInitializer(self, s: CSharpStringWriter):
 
+        ###############################################################
+        #
+        ###############################################################
         
         s.wln(f"public {self.Class.Name} (").Inc(2)
 
@@ -165,8 +168,17 @@ class CSharpClassWriter(ClassWriter):
         s.c()
         s.ret()
 
-        #  = {property.CSharp_DefaultValue()}
-
+        ###############################################################
+        # Default Values
+        ###############################################################
+        s.w(f"public {self.Class.Name} ()").o()
+        if self.Class.InheritsFrom is not None:
+            for propertyid, property in self.Class.InheritedProperties.Data.items():
+                s.wln(f"this.{property.Name} = {property.CSharp_DefaultValue()};")
+        for propertyid, property in self.Class.Properties.Data.items():
+            s.wln(f"this._{property.Name.lower()} = {property.CSharp_DefaultValue()};")
+        s.c()
+        s.ret()
         return s
     
     def writePropertyHelperFunctions(self, property, s:CSharpStringWriter):

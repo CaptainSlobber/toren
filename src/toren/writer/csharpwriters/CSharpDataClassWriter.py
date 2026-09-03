@@ -241,6 +241,7 @@ class CSharpDataClassWriter(DataClassWriter):
                 s = self.writeCreateTableColumn(s, property)
         for propertyid, property in self.Class.Properties.Data.items():
             s = self.writeCreateTableColumn(s, property)
+        s.wln(f'createquery = createquery.Substring(0, createquery.Length - 1);')
         s.wln(f'createquery += "){db.EndQuery()}";')
         s.wln("return createquery;")
         s.c().ret()
@@ -482,12 +483,12 @@ class CSharpDataClassWriter(DataClassWriter):
             pk = self.Class.getPrimaryKeyProperty()
 
             s.w(f"public static {pk.PropertyType(self.Language)} PersistSingle{self.Class.Name}({conobjclass} config, {self.Class.Name} {self.Class.Name.lower()}{iid2})").o()
-            s.wln(f'string whereclause = "WHERE {db.OB()}{pk.Name}{db.CB()} = {db.GetParameter(self.Language, pk.Name.lower())}";')
+            
 
             s.wln(f"{pk.PropertyType(self.Language)} _{pk.Name.lower()} = {self.Class.Name.lower()}.{pk.Name};")
+            #s.wln(f'string whereclause = "WHERE {db.OB()}{pk.Name}{db.CB()} = {db.GetParameter(self.Language, pk.Name.lower())}";')
+            s.wln(f'string whereclause = $"WHERE {db.OB()}{pk.Name}{db.CB()} = \'{{_{pk.Name.lower()}}}\'";')
             s.wln(f"{self.Class.SetDescription} {self.Class.Name.lower()}_items = {self.getDLClassName()}.SelectAll{self.Class.Name}Where(config, whereclause);")
-    
-    
             s.w(f"if ({self.Class.Name.lower()}_items.Data.Count == 1)").o()
 
             s.wln(f"Dictionary<string, Dictionary<string, object>> parameters = {self.getDLClassName()}.Parameterize{self.Class.Name}({self.Class.Name.lower()});")

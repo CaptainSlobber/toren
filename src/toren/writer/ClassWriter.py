@@ -113,12 +113,15 @@ class ClassWriter(WriterObject):
     def writeClassReferenceCollections(self, s:StringWriter):
         s.ret()
 
+        mapped_collections = {}
+    
         for _classid, _class in self.Module.Classes.Data.items():
             for _propertyid, _property in _class.Properties.Data.items():
                 if _property.ForeignKey is not None:
                     if _property.ForeignKey.FKClassID == self.Class.ID:
-                        s = self.writeClassReferenceCollection(_class, s)
-                
+                        if not _class.ID in mapped_collections:
+                            s = self.writeClassReferenceCollection(_class, s)
+                        mapped_collections[_class.ID] = _class.Name
 
 
         return s

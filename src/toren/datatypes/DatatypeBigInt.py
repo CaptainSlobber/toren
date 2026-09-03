@@ -297,7 +297,7 @@ class DatatypeBigInt(DatatypeNumeric):
       datatype = f"long[{commas}]" #multidimensional array
       return f"JsonConvert.DeserializeObject<{datatype}>(System.Text.Encoding.UTF8.GetString((byte[]){argt[0]}))"
     else:
-      return f"(int){argt[0]}"
+      return f"(long){argt[0]}"
 
 
   ##########################################################################
