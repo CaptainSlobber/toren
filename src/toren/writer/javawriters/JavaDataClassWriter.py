@@ -51,6 +51,18 @@ class JavaDataClassWriter(DataClassWriter):
 
     def getDLDependencies(self):
         dependency_map = {}
+
+        for propertyid, property in self.Class.Properties.Data.items():
+            for dependency in property.Java_Dependencies():
+                if dependency not in dependency_map:
+                    dependency_map[dependency] = dependency
+
+        if self.Class.InheritsFrom is not None:
+            for propertyid, property in self.Class.InheritedProperties.Data.items():
+                for dependency in property.Java_Dependencies():
+                    if dependency not in dependency_map:
+                        dependency_map[dependency] = dependency
+
         for dependency in self.Database.JavaDependencies():
             dependency_map[dependency] = dependency
         p = self.Class.ParentModule.ParentProject.Name
@@ -189,13 +201,18 @@ class JavaDataClassWriter(DataClassWriter):
         else:
             return ""
 
-    def writeInstanceStr(self, s:JavaStringWriter, iq:str ="innerquery"):
+    def writeInstanceStr(self, s:JavaStringWriter, iq:str ="innerquery", initializevar:bool=True):
         iin2 = self.getInstanceIDParemeterName(", ")
+
+        strstr = ""
+        if (initializevar):
+            strstr = "String "
         if self.Class.Cloneable:
-            s.wln(f"String innerquery = {self.getDLClassName()}.GetInnerQuery({iq}{iin2});")
+            s.wln(f"{strstr}innerquery = {self.getDLClassName()}.GetInnerQuery({iq}{iin2});")
         else:
-            s.wln(f"String innerquery = {self.getDLClassName()}.GetInnerQuery({iq});")
+            s.wln(f"{strstr}innerquery = {self.getDLClassName()}.GetInnerQuery({iq});")
         return s
+
 
     def writeGetTableName(self, s:JavaStringWriter):
         
@@ -250,7 +267,7 @@ class JavaDataClassWriter(DataClassWriter):
             s.ret()
 
 
-        s.w(f"private static String GetCreate{self.Class.Name}TableQuery ({iid})").o()
+        s.w(f"private static String GetCreate{self.Class.Name}TableQuery({iid}) ").o()
         s = self.writeGetTableName(s)
         s.wln(f'String createquery = String.format("CREATE TABLE{db.IfNotExists()} %s (", tableName);')
         if self.Class.InheritsFrom is not None:
@@ -262,7 +279,7 @@ class JavaDataClassWriter(DataClassWriter):
         s.wln("return createquery;")
         s.c().ret()
 
-        s.w(f"public static void Create{self.Class.Name}Table ({conobjclass} config{iid2}) ").o()
+        s.w(f"public static void Create{self.Class.Name}Table({conobjclass} config{iid2}) ").o()
         s.wln(f'String createquery = {self.getDLClassName()}.GetCreate{self.Class.Name}TableQuery({iin});')
         s.wln(f"{self.CommonFunctionsClassName}.ExecuteNonQuery(config, createquery);")
         s.c()
@@ -307,11 +324,19 @@ class JavaDataClassWriter(DataClassWriter):
     def writeGetColumnNames(self, s:JavaStringWriter):
         db = self.Database
         columns = []
+        n = 0
         if self.Class.InheritsFrom is not None:
             for propertyid, property in self.Class.InheritedProperties.Data.items():
-                columns.append(f"{db.OB()}{property.Name}{db.CB()}")
+                if not property.IsPrimaryKey:
+                    n = n + 1
+                    columns.append(f"{db.OB()}{property.Name}{db.CB()}")
         for propertyid, property in self.Class.Properties.Data.items():
-            columns.append(f"{db.OB()}{property.Name}{db.CB()}")
+            if not property.IsPrimaryKey:
+                n = n + 1
+                columns.append(f"{db.OB()}{property.Name}{db.CB()}")
+        n = n + 1
+        pk = self.Class.getPrimaryKeyProperty()
+        columns.append(f"{db.OB()}{pk.Name}{db.CB()}")
         columns_string = ", ".join(columns)
         s.w(f"private static String Get{self.Class.Name}ColumnNames() ").o()
         s.wln(f'String columns = "{columns_string}";')
@@ -326,11 +351,16 @@ class JavaDataClassWriter(DataClassWriter):
         n = 0
         if self.Class.InheritsFrom is not None:
             for propertyid, property in self.Class.InheritedProperties.Data.items():
+                if not property.IsPrimaryKey:
+                    n = n + 1
+                    params.append(f"{db.GetParameter(self.Language, property.Name.lower(), n)}")
+        for propertyid, property in self.Class.Properties.Data.items():
+            if not property.IsPrimaryKey:
                 n = n + 1
                 params.append(f"{db.GetParameter(self.Language, property.Name.lower(), n)}")
-        for propertyid, property in self.Class.Properties.Data.items():
-            n = n + 1
-            params.append(f"{db.GetParameter(self.Language, property.Name.lower(), n)}")
+        n = n + 1
+        pk = self.Class.getPrimaryKeyProperty()
+        params.append(f"{db.GetParameter(self.Language, pk.Name.lower(), n)}")
         params_string = ", ".join(params)
         s.w(f"private static String Get{self.Class.Name}ColumnParameters() ").o()
         s.wln(f'String params = "{params_string}";')
@@ -372,7 +402,6 @@ class JavaDataClassWriter(DataClassWriter):
 
     def writeInsertItem(self, s:JavaStringWriter):
         (db, schema, tablename, iid, iid2, iin, iin2, conobjclass) = self.getCommonItems()
-
         s.w(f"private static String Get{self.Class.Name}InsertQuery({iid}) ").o()
         s = self.writeGetTableName(s)
         s.wln(f'String columns = {self.getDLClassName()}.Get{self.Class.Name}ColumnNames();')
@@ -381,43 +410,22 @@ class JavaDataClassWriter(DataClassWriter):
         s.wln("return insertquery;")
         s.c().ret()
 
-
         s.w(f"public static int InsertSingle{self.Class.Name}({conobjclass} config, {self.Class.Name} {self.Class.Name.lower()}{iid2}) ").o()
-
         s.wln(f"Connection connection = {self.CommonFunctionsClassName}.GetConnection(config);")
         s.wln(f"String insertquery = {self.getDLClassName()}.Get{self.Class.Name}InsertQuery({iin});")
-        s.wln("int affectedRows = 0;")
-        s.w("try ").o()
-        s.wln("PreparedStatement statement = connection.prepareStatement(insertquery);")
-        if self.hasHigherDimensionalProperty():
-            s.wln("Gson gson = new Gson();")
-        n = 0
-        if self.Class.InheritsFrom is not None:
-            for propertyid, property in self.Class.InheritedProperties.Data.items():
-                n = n + 1
-                setval = property.To(self.Language, self.Database, n, self.Class.Name.lower(), property.Name)
-                s.wln(f'{setval}')
-        for propertyid, property in self.Class.Properties.Data.items():
-            n = n + 1
-            setval = property.To(self.Language, self.Database, n, self.Class.Name.lower(), property.Name)
-            s.wln(f'{setval}')
-
-        s.wln("affectedRows += statement.executeUpdate();")
-        #s.wln("// if (affectedRows > 0) { } ")
-        #s.wln(f'statement = {self.getDLClassName()}.Prepare{self.Class.Name}Statement(statement, {self.Class.Name.lower()});')
-        s = self.writeCommonCleanupConnection(s)
+        s.wln(f"PreparedStatement statement = {self.getDLClassName()}.GetPreparedStatementFrom{self.Class.Name}(connection, {self.Class.Name.lower()}, insertquery);")
+        s.wln(f"int affectedRows = {self.CommonFunctionsClassName}.ExecuteParameterizedNonQuery(connection, statement);")
         s.wln("return affectedRows;")
         s.c()
         s.ret()
-
-
-        # s.w(f"private static PreparedStatement Prepare{self.Class.Name}Statement(PreparedStatement statement, {self.Class.Name} {self.Class.Name.lower()})").o()
-        # s.wln("return statement;")
-        # s.c()
-        # s.ret()
         return s
     
-
+    def writeCloseTry(self, s:JavaStringWriter):
+        cfn = self.CommonFunctionsClassName
+        s.b(" catch (SQLException e) ")
+        s.wln(f"{cfn}.HandleSQLException(e);")
+        s.c()
+        return s
 
     def writeCommonCleanupConnection(self, s:JavaStringWriter):
         cfn = self.CommonFunctionsClassName
@@ -431,13 +439,13 @@ class JavaDataClassWriter(DataClassWriter):
     def writeInsertCollection(self, s:JavaStringWriter):
         (db, schema, tablename, iid, iid2, iin, iin2, conobjclass) = self.getCommonItems()
     
-        s.w(f"public static int Insert{self.Class.SetDescription}({conobjclass} config, {self.Class.SetDescription} {self.Class.SetDescription.lower()}{iid2})").o()
+        s.w(f"public static int Insert{self.Class.SetDescription}({conobjclass} config, {self.Class.SetDescription} {self.Class.SetDescription.lower()}{iid2}) ").o()
         s.wln(f"ArrayList<{self.Class.Name}> {self.Class.Name.lower()}list = {self.Class.SetDescription.lower()}.toList();")
         s.wln(f"return {self.getDLClassName()}.Insert{self.Class.Name}List(config, {self.Class.Name.lower()}list{iin2});")
         s.c()
         s.ret()
             
-        s.w(f"public static int Insert{self.Class.Name}List({conobjclass} config, ArrayList<{self.Class.Name}> {self.Class.Name.lower()}list{iid2})").o()
+        s.w(f"public static int Insert{self.Class.Name}List({conobjclass} config, ArrayList<{self.Class.Name}> {self.Class.Name.lower()}list{iid2}) ").o()
         s.wln(f"int affectedRows = 0;")
         s.w(f"for (int i=0; i<{self.Class.Name.lower()}list.size(); i++)").o()
         s.wln(f"{self.Class.Name} {self.Class.Name.lower()} = {self.Class.Name.lower()}list.get(i);")
@@ -453,7 +461,7 @@ class JavaDataClassWriter(DataClassWriter):
         (db, schema, tablename, iid, iid2, iin, iin2, conobjclass) = self.getCommonItems()
         if self.Class.hasPrimaryKeyPoperty():
             pk = self.Class.getPrimaryKeyProperty()
-            s.w(f"public static String Get{self.Class.Name}UpdateQuery({iid})").o()
+            s.w(f"public static String Get{self.Class.Name}UpdateQuery({iid}) ").o()
             s.wln(f'String whereclause = " WHERE {db.OB()}{pk.Name}{db.CB()} = {db.GetParameter(self.Language, pk.Name.lower())}{db.EndQuery()}";')
             s = self.writeGetTableName(s)
             s.wln(f'String updatequery = String.format("UPDATE %s SET ", tableName);')
@@ -468,13 +476,11 @@ class JavaDataClassWriter(DataClassWriter):
             s.wln("return updatequery;")
             s.c().ret()
 
-            s.w(f"public static int UpdateSingle{self.Class.Name}({conobjclass} config, {self.Class.Name} {self.Class.Name.lower()}{iid2})").o()
 
-            s.wln(f"Connection connection = {self.CommonFunctionsClassName}.GetConnection(config);")
-            s.wln(f"String updatequery = {self.getDLClassName()}.Get{self.Class.Name}UpdateQuery({iin});")
-            s.wln("int affectedRows = 0;")
+            s.w(f"public static PreparedStatement GetPreparedStatementFrom{self.Class.Name}(Connection connection, {self.Class.Name} {self.Class.Name.lower()}, String query) ").o()
+            s.wln("PreparedStatement statement = null;")
             s.w("try ").o()
-            s.wln("PreparedStatement statement = connection.prepareStatement(updatequery);")
+            s.wln("statement = connection.prepareStatement(query);")
             if self.hasHigherDimensionalProperty():
                 s.wln("Gson gson = new Gson();")
             n = 0
@@ -492,13 +498,97 @@ class JavaDataClassWriter(DataClassWriter):
             n = n + 1
             setpkval = pk.To(self.Language, self.Database, n, self.Class.Name.lower(), pk.Name)
             s.wln(f'{setpkval}')
+            s = self.writeCloseTry(s)
+            s.wln("return statement;")
+            s.c()
+            s.ret()
 
-            s.wln("affectedRows += statement.executeUpdate();")
-            s = self.writeCommonCleanupConnection(s)
+
+
+            s.w(f"public static int UpdateSingle{self.Class.Name}({conobjclass} config, {self.Class.Name} {self.Class.Name.lower()}{iid2}) ").o()
+
+            s.wln(f"Connection connection = {self.CommonFunctionsClassName}.GetConnection(config);")
+            s.wln(f"String updatequery = {self.getDLClassName()}.Get{self.Class.Name}UpdateQuery({iin});")
+            s.wln(f"PreparedStatement statement = {self.getDLClassName()}.GetPreparedStatementFrom{self.Class.Name}(connection, {self.Class.Name.lower()}, updatequery);")
+            s.wln(f"int affectedRows = {self.CommonFunctionsClassName}.ExecuteParameterizedNonQuery(connection, statement);")
             s.wln("return affectedRows;")
             s.c()
             s.ret()
         return s
+
+
+    def writePersistRecord(self, s:JavaStringWriter):
+        (db, schema, tablename, iid, iid2, iin, iin2, conobjclass) = self.getCommonItems()
+        if self.Class.hasPrimaryKeyPoperty():
+            pk = self.Class.getPrimaryKeyProperty()
+
+            s.w(f"public static {pk.PropertyType(self.Language)} PersistSingle{self.Class.Name}({conobjclass} config, {self.Class.Name} {self.Class.Name.lower()}{iid2}) ").o()
+            
+            s.wln(f"Connection connection = {self.CommonFunctionsClassName}.GetConnection(config);")
+            s.wln(f"{pk.PropertyType(self.Language)} _{pk.Name.lower()} = {self.Class.Name.lower()}.get{pk.Name}();")
+            s.wln(f'String whereclause = String.format("WHERE {db.OB()}{pk.Name}{db.CB()} = \'%s\'", _{pk.Name.lower()});')
+            s.wln(f"{self.Class.SetDescription} {self.Class.Name.lower()}_items = {self.getDLClassName()}.SelectAll{self.Class.Name}Where(config, whereclause);")
+            s.w(f"if ({self.Class.Name.lower()}_items.count() == 1)").o()
+
+            s.wln(f"String updatequery = {self.getDLClassName()}.Get{self.Class.Name}UpdateQuery({iin});")
+            s.wln(f"PreparedStatement statement = {self.getDLClassName()}.GetPreparedStatementFrom{self.Class.Name}(connection, {self.Class.Name.lower()}, updatequery);")
+            s.wln(f"int affectedRows = {self.CommonFunctionsClassName}.ExecuteParameterizedNonQuery(connection, statement);")
+            s.wln(f"_{pk.Name.lower()} = ({pk.PropertyType(self.Language)}) {self.Class.Name.lower()}_items.toArray()[0].get{pk.Name}();")
+            s.b("else")
+            
+            s.wln(f"String insertquery = {self.getDLClassName()}.Get{self.Class.Name}InsertQuery({iin});")
+            s.wln(f"PreparedStatement statement = {self.getDLClassName()}.GetPreparedStatementFrom{self.Class.Name}(connection, {self.Class.Name.lower()}, insertquery);")
+            s.wln(f"int affectedRows = {self.CommonFunctionsClassName}.ExecuteParameterizedNonQuery(connection, statement);")
+            s.c()
+            s.wln(f"return _{pk.Name.lower()};");
+            s.c()
+            s.ret()
+            # if self.Class.InheritsFrom is not None:
+            #     for propertyid, property in self.Class.InheritedProperties.Data.items():
+            #         if property.IsUnique and not property.IsPrimaryKey and (property.Type == DatatypeString().getType()):
+            #             s = self.writePersistWhereForProperty(s, property, pk)
+
+            # for propertyid, property in self.Class.Properties.Data.items(): 
+            #     if property.IsUnique and not property.IsPrimaryKey and (property.Type == DatatypeString().getType()):
+            #         s = self.writePersistWhereForProperty(s, property, pk)
+        return s
+
+
+    def writeSelectAll(self, s:JavaStringWriter):
+        (db, schema, tablename, iid, iid2, iin, iin2, conobjclass) = self.getCommonItems()
+        orderby = self.getOrderByClause()
+
+        s.w(f'private static String GetSelectAll{self.Class.Name}Query(int limit, String innerquery{iid2}) ').o()
+        #limit={str(self.Class.PageSize)}
+        s = self.writeInstanceStr(s, initializevar=False)
+        s.wln(f"String columns = {self.getDLClassName()}.Get{self.Class.Name}ColumnNames();")
+
+        s.wln(f'String topstring = String.format("{db.TOP("%d")}", limit);')
+        s.wln(f'String limitstring = String.format("{db.LIMIT("%d")}", limit);')
+        s.wln(f'String selectquery = String.format("SELECT %s%s FROM %s{orderby}%s{db.EndQuery()}", topstring, columns, innerquery, limitstring);')
+        s.wln("return selectquery;")
+        s.c().ret()
+
+
+        s.w(f'public static {self.Class.SetDescription} SelectAll{self.Class.Name}({conobjclass} config, int limit, String innerquery{iid2}) ').o()
+        s = self.writeInstanceStr(s, initializevar=False)
+        s.wln(f"String selectquery = {self.getDLClassName()}.GetSelectAll{self.Class.Name}Query(limit, innerquery{iin2});")
+        s.wln(f"{self.Class.SetDescription} result = {self.getDLClassName()}.Select{self.Class.SetDescription}(config, selectquery);")
+        s.wln(f"return result;")
+        s.c()
+        s.ret()
+
+
+        s.w(f"public static {self.Class.SetDescription} Select{self.Class.SetDescription}({conobjclass} config, String selectquery) ").o()
+        # s.wln(f"Func<{readerclass}, object> translation = {self.getDLClassName()}.Get{self.Class.Name}FromQueryResult;")
+        # s.wln(f"List<{self.Class.Name}> _{self.Class.Name.lower()}_list = {self.CommonFunctionsClassName}.ExecuteFetchAll(config, selectquery, parameters, translation).Cast<{self.Class.Name}>().ToList();;")
+        # s.wln(f"{self.Class.SetDescription} {self.Class.Name.lower()}_list = new {self.Class.SetDescription}().fromList(_{self.Class.Name.lower()}_list);")
+        s.wln(f"return {self.Class.Name.lower()}_list;")
+        s.c()
+        s.ret()
+        return s
+
+    
     
     def writeDelete(self, s:JavaStringWriter):
         return s

@@ -217,10 +217,10 @@ class CSharpDataClassWriter(DataClassWriter):
             s.ret()
 
             s.w(f'private static string GetInnerQuery(string innerquery{iid2})').o()
-            #s.w(f"if ({iin} != null)").o()
-            #s.wln(f"string id = {iin}.ToString();")
-            #s.wln(f'return $"{db.GetTableName(self.Class, ".{id}")}";')     
-            #s.c()
+            s.w(f"if ({iin} != null)").o()
+            s.wln(f"string id = {iin}.ToString();")
+            s.wln(f'return $"{db.GetTableName(self.Class, ".{id}")}";')     
+            s.c()
             s.wln(f'return innerquery;')
             s.c()
             s.ret()
@@ -233,7 +233,7 @@ class CSharpDataClassWriter(DataClassWriter):
             s.ret()
 
 
-        s.w(f"private static string GetCreate{self.Class.Name}TableQuery({iid})").o()
+        s.w(f"private static string GetCreate{self.Class.Name}TableQuery({iid}) ").o()
         s = self.writeGetTableName(s)
         s.wln(f'string createquery = $"CREATE TABLE{db.IfNotExists()} {{tableName}} (";')
         if self.Class.InheritsFrom is not None:
@@ -417,36 +417,6 @@ class CSharpDataClassWriter(DataClassWriter):
         s.ret()
         return s
 
-    def writeSelectWhere(self, s:CSharpStringWriter):
-
-        (db, schema, tablename, iid, iid2, iin, iin2, conobjclass) = self.getCommonItems()
-        orderby = self.getOrderByClause()
-        s.w(f"private static string GetSelectAll{self.Class.Name}WhereQuery(string whereclause = \"WHERE 1=1\", int limit = {str(self.Class.PageSize)}, string innerquery = \"{tablename}\"{iid2})").o()
-        s.wln(f"string columns = {self.getDLClassName()}.Get{self.Class.Name}ColumnNames();")
-        #s = self.writeInstanceStr(s)
-        s.wln(f'string selectquery = $"SELECT {db.TOP("{limit}")}{{columns}} FROM {{innerquery}} {{whereclause}}{orderby}{db.LIMIT("{limit}")}{db.EndQuery()}";')
-        s.wln("return selectquery;")
-        s.c().ret()
-
-
-        s.w(f"public static {self.Class.SetDescription} SelectAll{self.Class.Name}Where({conobjclass} config, string whereclause = \"WHERE 1=1\", int limit = {str(self.Class.PageSize)}, string innerquery = \"{tablename}\"{iid2})").o()
-        s.wln("Dictionary<string, Dictionary<string, object>> parameters = new Dictionary<string, Dictionary<string, object>>();")
-        s.wln(f"string selectquery = {self.getDLClassName()}.GetSelectAll{self.Class.Name}WhereQuery(whereclause, limit, innerquery{iin2});")
-        s.wln(f"{self.Class.SetDescription} result = {self.getDLClassName()}.Select{self.Class.SetDescription}(config, selectquery, parameters);")
-        s.wln(f"return result;")
-        s.c()
-        s.ret()
-
-        if self.Class.InheritsFrom is not None:
-            for propertyid, property in self.Class.InheritedProperties.Data.items():
-                if property.IsUnique and not property.IsPrimaryKey and (property.Type == DatatypeString().getType()):
-                    s = self.writeSelectWhereForProperty(s, property)
-
-        for propertyid, property in self.Class.Properties.Data.items(): 
-            if property.IsUnique and not property.IsPrimaryKey and (property.Type == DatatypeString().getType()):
-                s = self.writeSelectWhereForProperty(s, property)
-
-        return s
 
     def writeUpdate(self, s:CSharpStringWriter):
         (db, schema, tablename, iid, iid2, iin, iin2, conobjclass) = self.getCommonItems()
@@ -512,6 +482,39 @@ class CSharpDataClassWriter(DataClassWriter):
             for propertyid, property in self.Class.Properties.Data.items(): 
                 if property.IsUnique and not property.IsPrimaryKey and (property.Type == DatatypeString().getType()):
                     s = self.writePersistWhereForProperty(s, property, pk)
+        return s
+
+
+    
+    def writeSelectWhere(self, s:CSharpStringWriter):
+
+        (db, schema, tablename, iid, iid2, iin, iin2, conobjclass) = self.getCommonItems()
+        orderby = self.getOrderByClause()
+        s.w(f"private static string GetSelectAll{self.Class.Name}WhereQuery(string whereclause = \"WHERE 1=1\", int limit = {str(self.Class.PageSize)}, string innerquery = \"{tablename}\"{iid2})").o()
+        s.wln(f"string columns = {self.getDLClassName()}.Get{self.Class.Name}ColumnNames();")
+        #s = self.writeInstanceStr(s)
+        s.wln(f'string selectquery = $"SELECT {db.TOP("{limit}")}{{columns}} FROM {{innerquery}} {{whereclause}}{orderby}{db.LIMIT("{limit}")}{db.EndQuery()}";')
+        s.wln("return selectquery;")
+        s.c().ret()
+
+
+        s.w(f"public static {self.Class.SetDescription} SelectAll{self.Class.Name}Where({conobjclass} config, string whereclause = \"WHERE 1=1\", int limit = {str(self.Class.PageSize)}, string innerquery = \"{tablename}\"{iid2})").o()
+        s.wln("Dictionary<string, Dictionary<string, object>> parameters = new Dictionary<string, Dictionary<string, object>>();")
+        s.wln(f"string selectquery = {self.getDLClassName()}.GetSelectAll{self.Class.Name}WhereQuery(whereclause, limit, innerquery{iin2});")
+        s.wln(f"{self.Class.SetDescription} result = {self.getDLClassName()}.Select{self.Class.SetDescription}(config, selectquery, parameters);")
+        s.wln(f"return result;")
+        s.c()
+        s.ret()
+
+        if self.Class.InheritsFrom is not None:
+            for propertyid, property in self.Class.InheritedProperties.Data.items():
+                if property.IsUnique and not property.IsPrimaryKey and (property.Type == DatatypeString().getType()):
+                    s = self.writeSelectWhereForProperty(s, property)
+
+        for propertyid, property in self.Class.Properties.Data.items(): 
+            if property.IsUnique and not property.IsPrimaryKey and (property.Type == DatatypeString().getType()):
+                s = self.writeSelectWhereForProperty(s, property)
+
         return s
 
     def writeSelectWhereForProperty(self, s:CSharpStringWriter, property):
