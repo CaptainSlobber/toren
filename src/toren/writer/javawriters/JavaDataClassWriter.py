@@ -79,6 +79,7 @@ class JavaDataClassWriter(DataClassWriter):
         lhmdep = "import java.util.LinkedHashMap;"
         hmdep = "import java.util.Map;"
         gsondep = "import com.google.gson.Gson;"
+        bytebufferdep = "import java.nio.ByteBuffer;"
         charsetsdep = "import java.nio.charset.StandardCharsets;"
         if self.Class.Cloneable: 
             dependency_map[uuiddep] = uuiddep
@@ -89,7 +90,7 @@ class JavaDataClassWriter(DataClassWriter):
         if self.hasHigherDimensionalProperty():
             dependency_map[gsondep] = gsondep
             dependency_map[charsetsdep] = charsetsdep
-        
+            dependency_map[bytebufferdep] = bytebufferdep
 
 
 
@@ -531,7 +532,8 @@ class JavaDataClassWriter(DataClassWriter):
             s.wln(f"Connection connection = {self.CommonFunctionsClassName}.GetConnection(config);")
             s.wln(f"{pk.PropertyType(self.Language)} _{pk.Name.lower()} = {self.Class.Name.lower()}.get{pk.Name}();")
             s.wln(f'String whereclause = String.format("WHERE {db.OB()}{pk.Name}{db.CB()} = \'%s\'", _{pk.Name.lower()});')
-            s.wln(f"{self.Class.SetDescription} {self.Class.Name.lower()}_items = {self.getDLClassName()}.SelectAll{self.Class.Name}Where(config, whereclause);")
+            s = self.writeGetTableName(s)
+            s.wln(f"{self.Class.SetDescription} {self.Class.Name.lower()}_items = {self.getDLClassName()}.SelectAll{self.Class.Name}Where(config, whereclause, 10, tableName{iin2});")
             s.w(f"if ({self.Class.Name.lower()}_items.count() == 1)").o()
 
             s.wln(f"String updatequery = {self.getDLClassName()}.Get{self.Class.Name}UpdateQuery({iin});")
@@ -547,6 +549,7 @@ class JavaDataClassWriter(DataClassWriter):
             s.wln(f"return _{pk.Name.lower()};");
             s.c()
             s.ret()
+            # TODO: Implement Persist Where
             # if self.Class.InheritsFrom is not None:
             #     for propertyid, property in self.Class.InheritedProperties.Data.items():
             #         if property.IsUnique and not property.IsPrimaryKey and (property.Type == DatatypeString().getType()):
@@ -586,31 +589,127 @@ class JavaDataClassWriter(DataClassWriter):
         s.ret()
 
 
-        s.w(f"public static {self.Class.SetDescription} Select{self.Class.SetDescription}({conobjclass} config, PreparedStatement statement) ").o()
-        # s.wln(f"Func<{readerclass}, object> translation = {self.getDLClassName()}.Get{self.Class.Name}FromQueryResult;")
-        # s.wln(f"List<{self.Class.Name}> _{self.Class.Name.lower()}_list = {self.CommonFunctionsClassName}.ExecuteFetchAll(config, selectquery, parameters, translation).Cast<{self.Class.Name}>().ToList();;")
-        # s.wln(f"{self.Class.SetDescription} {self.Class.Name.lower()}_list = new {self.Class.SetDescription}().fromList(_{self.Class.Name.lower()}_list);")
+        s.w(f"public static {self.Class.Name} Get{self.Class.Name}FromQueryResult(ResultSet resultset) ").o()
+        s.wln(f"{self.Class.Name} {self.Class.Name.lower()} = null;")
+        s.w("try ").o()
+        if self.hasHigherDimensionalProperty():
+            s.wln("Gson gson = new Gson();")
+        s.wln(f"{self.Class.Name.lower()} = new {self.Class.Name}();")
+        n = 0
+        if self.Class.InheritsFrom is not None:
+            for propertyid, property in self.Class.InheritedProperties.Data.items():
+                n = n + 1
+                converted = property.From(self.Language, self.Database, property.Name)
+                s.wln(f'{self.Class.Name.lower()}.set{property.Name}({converted});')
+        for propertyid, property in self.Class.Properties.Data.items():
+            n = n + 1
+            converted = property.From(self.Language, self.Database, property.Name)
+            s.wln(f'{self.Class.Name.lower()}.set{property.Name}({converted});')
 
-
-        s.wln(f"List<{self.Class.Name}> _{self.Class.Name.lower()}_list = new ArrayList<{self.Class.Name}>();")
-
-        s.wln(f"return {self.Class.Name.lower()}_list;")
+        s = self.writeCloseTry(s)
+        s.wln(f"return {self.Class.Name.lower()};")
         s.c()
         s.ret()
+
+
+        s.w(f"public static {self.Class.SetDescription} Select{self.Class.SetDescription}({conobjclass} config, PreparedStatement statement) ").o()
+        s.wln(f"{self.Class.SetDescription} _{self.Class.Name.lower()}_list = new {self.Class.SetDescription}();")
+        s.w("try ").o()
+        
+        s.wln(f"ResultSet resultset = statement.executeQuery();")
+        s.w("if (resultset.next()) ").o()
+        s.wln(f"{self.Class.Name} {self.Class.Name.lower()} = Get{self.Class.Name}FromQueryResult(resultset);")
+        s.wln(f"_{self.Class.Name.lower()}_list.appendItem({self.Class.Name.lower()});")
+        s.c()
+        s = self.writeCloseTry(s)
+        s.wln(f"return _{self.Class.Name.lower()}_list;")
+        s.c()
+        s.ret()
+        return s
+
+
+    def writeSelectSingleRecordByPK(self, s:JavaStringWriter):
+        (db, schema, tablename, iid, iid2, iin, iin2, conobjclass) = self.getCommonItems()
+        orderby = self.getOrderByClause()
+        
+
+        if self.Class.hasPrimaryKeyPoperty():
+            pk = self.Class.getPrimaryKeyProperty()
+
+            s.w(f'private static String GetSelectSingle{self.Class.Name}By{pk.Name}Query(String innerquery{iid2}) ').o()
+            s = self.writeInstanceStr(s=s, initializevar=False)
+            s.wln(f"String columns = {self.getDLClassName()}.Get{self.Class.Name}ColumnNames();")
+            s.wln(f'String selectquery = String.format("SELECT % FROM % WHERE {db.OB()}{pk.Name}{db.CB()} = {db.GetParameter(self.Language, pk.Name.lower())}{db.EndQuery()}", columns, innerquery);')
+            s.wln("return selectquery;")
+            s.c().ret()
+
+            s.w(f'public static {self.Class.Name} SelectSingle{self.Class.Name}By{pk.Name}({conobjclass} config, {pk.Java_Type()} {pk.Name.lower()}, String innerquery{iid2}) ').o()
+            s.wln(f"{self.Class.Name} {self.Class.Name.lower()} = null;")
+            s.wln(f"Map<String, Map<String, Object>> parameters = new LinkedHashMap<>();")
+            s = self.writeParameterMapKeys(s)
+
+            s.wln(f"Map<String, Object> {pk.Name.lower()}param = new LinkedHashMap<>();")
+            s.wln(f"{pk.Name.lower()}param.put(param_value_key, {pk.Name.lower()});")
+            s.wln(f"{pk.Name.lower()}param.put(param_dbtype_key, {pk.TypeSpec(self.Language, self.Database)});")
+            s.wln(f'parameters.put("{pk.Name.lower()}", {pk.Name.lower()}param);')
+
+            
+            s.wln(f"Connection connection = {self.CommonFunctionsClassName}.GetConnection(config);")
+            s.wln(f"String selectquery = {self.getDLClassName()}.GetSelectSingle{self.Class.Name}By{pk.Name}Query(innerquery{iin2});")
+            s.wln(f"PreparedStatement statement = {self.CommonFunctionsClassName}.PrepareStatement(connection, selectquery, parameters);")
+
+            s.w("try ").o()
+                    
+            s.wln(f"ResultSet resultset = statement.executeQuery();")
+            s.w("if (resultset.next()) ").o()
+            s.wln(f"{self.Class.Name.lower()} = Get{self.Class.Name}FromQueryResult(resultset);")
+            s.c()
+            s = self.writeCloseTry(s)
+            s.wln(f"return {self.Class.Name.lower()};")
+            s.c()
+            s.ret()
+
+        return s
+
+
+    def writeSelectWhere(self, s:JavaStringWriter):
+
+        (db, schema, tablename, iid, iid2, iin, iin2, conobjclass) = self.getCommonItems()
+        orderby = self.getOrderByClause()
+        s.w(f"private static String GetSelectAll{self.Class.Name}WhereQuery(String whereclause, int limit, String innerquery{iid2})").o()
+        s.wln(f"String columns = {self.getDLClassName()}.Get{self.Class.Name}ColumnNames();")
+        s.wln(f'String topstring = String.format("{db.TOP("%d")}", limit);')
+        s.wln(f'String limitstring = String.format("{db.LIMIT("%d")}", limit);')
+        s.wln(f'String selectquery = String.format("SELECT %s%s FROM %s%s{orderby}%s{db.EndQuery()}", topstring, columns, innerquery, whereclause, limitstring);')
+        s.wln("return selectquery;")
+        s.c().ret()
+
+        s.w(f"public static {self.Class.SetDescription} SelectAll{self.Class.Name}Where({conobjclass} config, String whereclause, int limit, String innerquery{iid2})").o()
+        s = self.writeInstanceStr(s=s, initializevar=False)
+        s.wln(f"String selectquery = {self.getDLClassName()}.GetSelectAll{self.Class.Name}WhereQuery(whereclause, limit, innerquery{iin2});")
+        s.wln(f"Connection connection = {self.CommonFunctionsClassName}.GetConnection(config);")
+        s.wln(f"Map<String, Map<String, Object>> parameters = new LinkedHashMap<>();")
+        s.wln(f"PreparedStatement statement = {self.CommonFunctionsClassName}.PrepareStatement(connection, selectquery, parameters);")
+        s.wln(f"{self.Class.SetDescription} result = {self.getDLClassName()}.Select{self.Class.SetDescription}(config, statement);")
+        s.wln(f"return result;")
+        s.c()
+        s.ret()
+
+        # TODO
+        # if self.Class.InheritsFrom is not None:
+        #     for propertyid, property in self.Class.InheritedProperties.Data.items():
+        #         if property.IsUnique and not property.IsPrimaryKey and (property.Type == DatatypeString().getType()):
+        #             s = self.writeSelectWhereForProperty(s, property)
+
+        # for propertyid, property in self.Class.Properties.Data.items(): 
+        #     if property.IsUnique and not property.IsPrimaryKey and (property.Type == DatatypeString().getType()):
+        #         s = self.writeSelectWhereForProperty(s, property)
+
         return s
 
     def writeParameterMapKeys(self, s:JavaStringWriter):
         s.wln("String param_value_key = \"Value\";")
         s.wln("String param_dbtype_key = \"DbType\";")
-        return s
-    
-    def writeDelete(self, s:JavaStringWriter):
-        return s
-    
-    def writeSelectSingleRecordByPK(self, s:JavaStringWriter):
-        return s
-    
-    def writeSelectWhere(self, s:JavaStringWriter):
         return s
 
     def writeDLClassClose(self, s:JavaStringWriter):

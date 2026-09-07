@@ -227,7 +227,7 @@ class DatatypeNetworkAddress(Datatype):
     return "InetAddress"
   
   def Java_Dependencies(self) -> list:
-    return ["import java.net.InetAddress;", "import java.net.UnknownHostException;"] #import java.net.Inet6Address;
+    return ["import java.net.InetAddress;", "import java.net.UnknownHostException;" , "import com.google.common.net.InetAddresses;"] #"import java.net.Inet6Address; , "import com.google.common.net.InetAddresses;"
   
   def Java_DefaultValue(self, *args) -> str:
     if self.hasDefaultValue():
@@ -277,3 +277,39 @@ class DatatypeNetworkAddress(Datatype):
   
   def Java_to_SQLite(self, *args) -> str:
     return self._Java_to_(args)
+
+  def Java_SQLite_Type_Spec(self) -> str:
+    return self.Java_Type_Spec()
+  
+  def Java_PostgreSQL_Type_Spec(self) -> str:
+    return self.Java_Type_Spec()
+  
+  def Java_MicrosoftSQL_Type_Spec(self) -> str:
+    return self.Java_Type_Spec()
+  
+  def Java_Oracle_Type_Spec(self) -> str:
+    return self.Java_Type_Spec()
+
+  def Java_Type_Spec(self) -> str:
+    return "java.sql.Types.BIGINT"
+
+  ##########################################################################
+  # Java methods for converting from various database types
+  ##########################################################################
+
+  def Java_from_Oracle(self, *args) -> str:
+    return self.Java_from_(args[0])
+  
+  def Java_from_MicrosoftSQL(self, *args) -> str:
+    return self.Java_from_(args[0])
+  
+  def Java_from_PostgreSQL(self, *args) -> str:
+    return self.Java_from_(args[0])
+  
+  def Java_from_SQLite(self, *args) -> str:
+    return self.Java_from_(args[0])
+
+  def Java_from_(self, *args) -> str:
+    argt = args
+    #return f'InetAddress.getByAddress(ByteBuffer.allocate(4).putInt(resultset.getInt("{argt[0]}")).array())'
+    return f'InetAddresses.fromInteger(resultset.getInt("{argt[0]}"))' # Google Guava

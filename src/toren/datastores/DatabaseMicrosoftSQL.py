@@ -83,7 +83,11 @@ class DatabaseMicrosoftSQL(Database):
     return ["import pyodbc"]
   
   def JavaDependencies(self):
-    return ["import java.sql.Connection;", "import java.sql.DriverManager;", "import java.sql.SQLException;", "import java.sql.PreparedStatement;"]
+    return ["import java.sql.Connection;", 
+            "import java.sql.DriverManager;", 
+            "import java.sql.SQLException;", 
+            "import java.sql.PreparedStatement;",
+            "import java.sql.ResultSet;"]
   
   def GoDependencies(self):
     return [""]

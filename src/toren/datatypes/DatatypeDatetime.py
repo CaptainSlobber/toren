@@ -269,4 +269,39 @@ class DatatypeDatetime(Datatype):
   
   def Java_to_SQLite(self, *args) -> str:
     return self._Java_to_(args)
+
+  def Java_SQLite_Type_Spec(self) -> str:
+    return self.Java_Type_Spec()
+  
+  def Java_PostgreSQL_Type_Spec(self) -> str:
+    return self.Java_Type_Spec()
+  
+  def Java_MicrosoftSQL_Type_Spec(self) -> str:
+    return self.Java_Type_Spec()
+  
+  def Java_Oracle_Type_Spec(self) -> str:
+    return self.Java_Type_Spec()
+
+  def Java_Type_Spec(self) -> str:
+    return "java.sql.Types.TIMESTAMP"
+
+  ##########################################################################
+  # Java methods for converting from various database types
+  ##########################################################################
+
+  def Java_from_Oracle(self, *args) -> str:
+    return self.Java_from_(args[0])
+  
+  def Java_from_MicrosoftSQL(self, *args) -> str:
+    return self.Java_from_(args[0])
+  
+  def Java_from_PostgreSQL(self, *args) -> str:
+    return self.Java_from_(args[0])
+  
+  def Java_from_SQLite(self, *args) -> str:
+    return self.Java_from_(args[0])
+
+  def Java_from_(self, *args) -> str:
+    argt = args
+    return f'resultset.getTimestamp("{argt[0]}").toLocalDateTime()'
     

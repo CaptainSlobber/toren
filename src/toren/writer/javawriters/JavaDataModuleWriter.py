@@ -164,7 +164,7 @@ class JavaDataModuleWriter(DataModuleWriter):
         return s
 
     def writeCloseTry(self, s:JavaStringWriter):
-        cfn = self.CommonFunctionsClassName
+        cfn = f"{self.getDLPrefix()}{ self.CommonFunctionsClassName}{self.getDLSuffix()}"
         s.b(" catch (SQLException e) ")
         s.wln(f"{cfn}.HandleSQLException(e);")
         s.c()
@@ -184,7 +184,7 @@ class JavaDataModuleWriter(DataModuleWriter):
         s = self.writeParameterMapKeys(s)
         s.wln("int i = 0;")
         s.w("for (Map.Entry<String, Map<String, Object>> entry : parameters.entrySet()) ").o()
-        s.wln("//String parametername = entry.getKey();")
+        #s.wln("//String parametername = entry.getKey();")
         s.wln("Map<String, Object> parameteritems = entry.getValue();")
         s.wln("i = i + 1;")
         s.wln("Object value = parameteritems.get(param_value_key);")

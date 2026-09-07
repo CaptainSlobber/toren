@@ -274,6 +274,27 @@ class DatatypeBigInt(DatatypeNumeric):
       settype = f'"{self.SQLite_Type()}"'
     return f'{{param_value_key, {setval}}}, {{param_dbtype_key, {settype}}}' 
 
+  def CSharp_SQLite_Type_Spec(self) -> str:
+    raise NotImplementedError
+  
+  def CSharp_PostgreSQL_Type_Spec(self) -> str:
+    settype = f'NpgsqlDbType.Bigint'
+    if self.hasHigherDimensionality():
+        settype = f'NpgsqlDbType.Bytea'
+    return settype
+  
+  def CSharp_MicrosoftSQL_Type_Spec(self) -> str:
+    settype = f'SqlDbType.BigInt'
+    if self.hasHigherDimensionality():
+      settype = f'SqlDbType.VarBinary'
+    return settype
+  
+  def CSharp_Oracle_Type_Spec(self) -> str:
+    settype = f'OracleDbType.Int64'
+    if self.hasHigherDimensionality():
+      settype = f'OracleDbType.Blob'
+    return settype
+  
   ##########################################################################
   # C# methods for converting from various database types
   ##########################################################################
@@ -351,3 +372,45 @@ class DatatypeBigInt(DatatypeNumeric):
   
   def Java_to_SQLite(self, *args) -> str:
     return self._Java_to_(args)
+
+  def Java_SQLite_Type_Spec(self) -> str:
+    return self.Java_Type_Spec()
+  
+  def Java_PostgreSQL_Type_Spec(self) -> str:
+    return self.Java_Type_Spec()
+  
+  def Java_MicrosoftSQL_Type_Spec(self) -> str:
+    return self.Java_Type_Spec()
+  
+  def Java_Oracle_Type_Spec(self) -> str:
+    return self.Java_Type_Spec()
+
+  def Java_Type_Spec(self) -> str:
+    if self.hasHigherDimensionality():
+      return "java.sql.Types.BLOB"
+    else:
+      return "java.sql.Types.BIGINT"
+
+  ##########################################################################
+  # Java methods for converting from various database types
+  ##########################################################################
+
+  def Java_from_Oracle(self, *args) -> str:
+    return self.Java_from_(args[0])
+  
+  def Java_from_MicrosoftSQL(self, *args) -> str:
+    return self.Java_from_(args[0])
+  
+  def Java_from_PostgreSQL(self, *args) -> str:
+    return self.Java_from_(args[0])
+  
+  def Java_from_SQLite(self, *args) -> str:
+    return self.Java_from_(args[0])
+
+  def Java_from_(self, *args) -> str:
+    argt = args
+    if self.hasHigherDimensionality():
+      datatype = self.Java_Type()
+      return f'gson.fromJson(new String(resultset.getBytes("{argt[0]}"), java.nio.charset.StandardCharsets.UTF_8), {datatype}.class)'
+    else:
+      return f'resultset.getLong("{argt[0]}")'

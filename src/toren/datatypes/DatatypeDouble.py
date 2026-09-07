@@ -348,3 +348,45 @@ class DatatypeDouble(DatatypeNumeric):
   
   def Java_to_SQLite(self, *args) -> str:
     return self._Java_to_(args)
+
+  def Java_SQLite_Type_Spec(self) -> str:
+    return self.Java_Type_Spec()
+  
+  def Java_PostgreSQL_Type_Spec(self) -> str:
+    return self.Java_Type_Spec()
+  
+  def Java_MicrosoftSQL_Type_Spec(self) -> str:
+    return self.Java_Type_Spec()
+  
+  def Java_Oracle_Type_Spec(self) -> str:
+    return self.Java_Type_Spec()
+
+  def Java_Type_Spec(self) -> str:
+    if self.hasHigherDimensionality():
+      return "java.sql.Types.BLOB"
+    else:
+      return "java.sql.Types.DOUBLE"
+
+  ##########################################################################
+  # Java methods for converting from various database types
+  ##########################################################################
+
+  def Java_from_Oracle(self, *args) -> str:
+    return self.Java_from_(args[0])
+  
+  def Java_from_MicrosoftSQL(self, *args) -> str:
+    return self.Java_from_(args[0])
+  
+  def Java_from_PostgreSQL(self, *args) -> str:
+    return self.Java_from_(args[0])
+  
+  def Java_from_SQLite(self, *args) -> str:
+    return self.Java_from_(args[0])
+
+  def Java_from_(self, *args) -> str:
+    argt = args
+    if self.hasHigherDimensionality():
+      datatype = self.Java_Type()
+      return f'gson.fromJson(new String(resultset.getBytes("{argt[0]}"), java.nio.charset.StandardCharsets.UTF_8), {datatype}.class)'
+    else:
+      return f'resultset.getDouble("{argt[0]}")'

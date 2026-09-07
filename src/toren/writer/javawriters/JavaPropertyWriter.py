@@ -53,7 +53,7 @@ class JavaPropertyWriter(PropertyWriter):
         s.c().ret()
 
 
-        s.wln(f"private {self.Property.Java_Type()} _{self.Property.Name.lower()} = {self.Property.Java_DefaultValue()};").ret()
+        s.wln(f"protected {self.Property.Java_Type()} _{self.Property.Name.lower()} = {self.Property.Java_DefaultValue()};").ret()
         s.w(f"public {self.Property.Java_Type()} get{self.Property.Name}() ").o()
         s.wln(f"return this._{self.Property.Name.lower()};")
         s.c().ret()

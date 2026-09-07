@@ -155,6 +155,18 @@ class JavaClassWriter(ClassWriter):
         s.ret()
         s.c()
         s.ret()
+
+
+
+        s.w(f"public {self.Class.Name}() ").o()
+        if self.Class.InheritsFrom is not None:
+            for propertyid, property in self.Class.InheritedProperties.Data.items():
+                s.wln(f"this._{property.Name.lower()} = {property.Java_DefaultValue()};")
+
+        for propertyid, property in self.Class.Properties.Data.items():
+            s.wln(f"this._{property.Name.lower()} = {property.Java_DefaultValue()};")
+        s.c()
+        s.ret()
         return s
     
     def writePropertyHelperFunctions(self, property, s:JavaStringWriter):

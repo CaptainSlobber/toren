@@ -167,6 +167,42 @@ class Datatype(TorenObject):
   
   def _DoubleQuote(self, val: str)-> str:
     return  f"\"{self._Escape_String(val)}\""
+
+
+  ##########################################################################
+  # Type Spec
+  ##########################################################################
+  def TypeSpec(self, language: Language, database: Database) -> str:
+    _tp = {}
+    _tp[f"{LanguagePython().getID()}{DatabaseSQLite().getID()}"] = self.Python_SQLite_Type_Spec
+    _tp[f"{LanguagePython().getID()}{DatabasePostgreSQL().getID()}"] = self.Python_PostgreSQL_Type_Spec
+    _tp[f"{LanguagePython().getID()}{DatabaseMicrosoftSQL().getID()}"] = self.Python_MicrosoftSQL_Type_Spec
+    _tp[f"{LanguagePython().getID()}{DatabaseOracle().getID()}"] = self.Python_Oracle_Type_Spec
+
+    _tp[f"{LanguageCSharp().getID()}{DatabaseSQLite().getID()}"] = self.CSharp_SQLite_Type_Spec
+    _tp[f"{LanguageCSharp().getID()}{DatabasePostgreSQL().getID()}"] = self.CSharp_PostgreSQL_Type_Spec
+    _tp[f"{LanguageCSharp().getID()}{DatabaseMicrosoftSQL().getID()}"] = self.CSharp_MicrosoftSQL_Type_Spec
+    _tp[f"{LanguageCSharp().getID()}{DatabaseOracle().getID()}"] = self.CSharp_Oracle_Type_Spec
+
+    _tp[f"{LanguageJava().getID()}{DatabaseSQLite().getID()}"] = self.Java_SQLite_Type_Spec
+    _tp[f"{LanguageJava().getID()}{DatabasePostgreSQL().getID()}"] = self.Java_PostgreSQL_Type_Spec
+    _tp[f"{LanguageJava().getID()}{DatabaseMicrosoftSQL().getID()}"] = self.Java_MicrosoftSQL_Type_Spec
+    _tp[f"{LanguageJava().getID()}{DatabaseOracle().getID()}"] = self.Java_Oracle_Type_Spec
+
+    _tp[f"{LanguageGo().getID()}{DatabaseSQLite().getID()}"] = self.Go_SQLite_Type_Spec
+    _tp[f"{LanguageGo().getID()}{DatabasePostgreSQL().getID()}"] = self.Go_PostgreSQL_Type_Spec
+    _tp[f"{LanguageGo().getID()}{DatabaseMicrosoftSQL().getID()}"] = self.Go_MicrosoftSQL_Type_Spec
+    _tp[f"{LanguageGo().getID()}{DatabaseOracle().getID()}"] = self.Go_Oracle_Type_Spec
+
+    _tp[f"{LanguageJavaScript().getID()}{DatabaseSQLite().getID()}"] = self.JavaScript_SQLite_Type_Spec
+    _tp[f"{LanguageJavaScript().getID()}{DatabasePostgreSQL().getID()}"] = self.JavaScript_PostgreSQL_Type_Spec
+    _tp[f"{LanguageJavaScript().getID()}{DatabaseMicrosoftSQL().getID()}"] = self.JavaScriptMicrosoftSQL_Type_Spec
+    _tp[f"{LanguageJavaScript().getID()}{DatabaseOracle().getID()}"] = self.JavaScript_Oracle_Type_Spec
+
+
+    f = _tp[f"{language.getID()}{database.getID()}"]
+
+    return f()
   
   ##########################################################################
   # To
@@ -534,4 +570,66 @@ class Datatype(TorenObject):
   def JavaScript_from_SQLite(self, *args) -> str:
     raise NotImplementedError
   
-
+  #########################################################################
+  # Type Spec
+  ##########################################################################
+  def Python_SQLite_Type_Spec(self) -> str:
+    raise NotImplementedError
+  
+  def Python_PostgreSQL_Type_Spec(self) -> str:
+    raise NotImplementedError
+  
+  def Python_MicrosoftSQL_Type_Spec(self) -> str:
+    raise NotImplementedError
+  
+  def Python_Oracle_Type_Spec(self) -> str:
+    raise NotImplementedError
+  
+  def CSharp_SQLite_Type_Spec(self) -> str:
+    raise NotImplementedError
+  
+  def CSharp_PostgreSQL_Type_Spec(self) -> str:
+    raise NotImplementedError
+  
+  def CSharp_MicrosoftSQL_Type_Spec(self) -> str:
+    raise NotImplementedError
+  
+  def CSharp_Oracle_Type_Spec(self) -> str:
+    raise NotImplementedError
+  
+  def Java_SQLite_Type_Spec(self) -> str:
+    raise NotImplementedError
+  
+  def Java_PostgreSQL_Type_Spec(self) -> str:
+    raise NotImplementedError
+  
+  def Java_MicrosoftSQL_Type_Spec(self) -> str:
+    raise NotImplementedError
+  
+  def Java_Oracle_Type_Spec(self) -> str:
+    raise NotImplementedError
+  
+  def Go_SQLite_Type_Spec(self) -> str:
+    raise NotImplementedError
+  
+  def Go_PostgreSQL_Type_Spec(self) -> str:
+    raise NotImplementedError
+  
+  def Go_MicrosoftSQL_Type_Spec(self) -> str:
+    raise NotImplementedError
+  
+  def Go_Oracle_Type_Spec(self) -> str:
+    raise NotImplementedError
+  
+  def JavaScript_SQLite_Type_Spec(self) -> str:
+    raise NotImplementedError
+  
+  def JavaScript_PostgreSQL_Type_Spec(self) -> str:
+    raise NotImplementedError
+  
+  def JavaScriptMicrosoftSQL_Type_Spec(self) -> str:
+    raise NotImplementedError
+  
+  def JavaScript_Oracle_Type_Spec(self) -> str:
+    raise NotImplementedError
+  
