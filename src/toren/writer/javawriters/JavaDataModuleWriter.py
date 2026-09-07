@@ -69,6 +69,8 @@ class JavaDataModuleWriter(DataModuleWriter):
         
         s.wln(f"import java.nio.charset.StandardCharsets;")
         s.wln(f"import java.util.Base64;")
+        s.wln(f"import java.util.LinkedHashMap;")
+        s.wln(f"import java.util.Map;")
         s.ret()
 
         s.write(f"public class {classname} ").o()
@@ -161,6 +163,40 @@ class JavaDataModuleWriter(DataModuleWriter):
         s.ret()
         return s
 
+    def writeCloseTry(self, s:JavaStringWriter):
+        cfn = self.CommonFunctionsClassName
+        s.b(" catch (SQLException e) ")
+        s.wln(f"{cfn}.HandleSQLException(e);")
+        s.c()
+        return s
+
+    def writeParameterMapKeys(self, s:JavaStringWriter):
+        s.wln("String param_value_key = \"Value\";")
+        s.wln("String param_dbtype_key = \"DbType\";")
+        return s
+
+    def writeCommonPerpareStatement(self, s:JavaStringWriter):
+        s.w(f'public static PreparedStatement PrepareStatement(Connection connection, String query, Map<String, Map<String, Object>> parameters) ').o()
+        s.wln("PreparedStatement statement = null;")
+        s.w("try").o()
+        s.wln("statement = connection.prepareStatement(query);")
+
+        s = self.writeParameterMapKeys(s)
+        s.wln("int i = 0;")
+        s.w("for (Map.Entry<String, Map<String, Object>> entry : parameters.entrySet()) ").o()
+        s.wln("//String parametername = entry.getKey();")
+        s.wln("Map<String, Object> parameteritems = entry.getValue();")
+        s.wln("i = i + 1;")
+        s.wln("Object value = parameteritems.get(param_value_key);")
+        s.wln("int sqltype = (int) parameteritems.get(param_dbtype_key);")
+        s.wln("statement.setObject(i, value, sqltype);")
+        s.c()
+        s = self.writeCloseTry(s)
+        s.wln(f"return statement;")
+        s.c()
+        s.ret()
+        return s
+
     def writeCommonExecuteParameterizedNonQuery(self, s:JavaStringWriter):
         db = self.Database
         cfn = f"{self.getDLPrefix()}{ self.CommonFunctionsClassName}{self.getDLSuffix()}"
@@ -184,9 +220,8 @@ class JavaDataModuleWriter(DataModuleWriter):
     
   
     def closeTry(self, s: JavaStringWriter):
-        cfn = f"{self.getDLPrefix()}{ self.CommonFunctionsClassName}{self.getDLSuffix()}"
         s.b(f" catch (SQLException e) ")
-        s.wln(f"{cfn}.HandleSQLException(e);")
+        s.wln(f"HandleSQLException(e);")
         s.c()
         return s
 

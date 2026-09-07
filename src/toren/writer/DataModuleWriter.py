@@ -223,9 +223,9 @@ class DataModuleWriter(DataWriterObject):
         dependency_map = self.getDataDependencies()
         s = self.writeDataDependencies(dependency_map, s)
         s = self.writeOpenCommonDataFunctions(classname, s)
-
         s = self.writeCommonCreateConnection(s)
         s = self.writeCommonHandleQueryException(s)
+        s = self.writeCommonPerpareStatement(s)
         s = self.writeCommonExecuteNonQuery(s)
         s = self.writeCommonExecuteParameterizedNonQuery(s)
         s = self.writeCommmonFetchOne(s)
@@ -235,6 +235,8 @@ class DataModuleWriter(DataWriterObject):
 
         filename = f"{classname}.{self.Language.DefaultFileExtension}"
         self.writeFile(path, filename, s.toString())
+
+    
 
     def getSchema(self):
         db = self.Database
@@ -282,6 +284,9 @@ class DataModuleWriter(DataWriterObject):
         return s
     
     def writeCommonFetchAll(self, s:StringWriter):
+        return s
+
+    def writeCommonPerpareStatement(self, s:StringWriter):
         return s
 
     def writeCheckSchemaExistence(self, s:StringWriter):
