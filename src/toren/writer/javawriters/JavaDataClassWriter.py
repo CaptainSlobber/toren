@@ -76,12 +76,16 @@ class JavaDataClassWriter(DataClassWriter):
         uuiddep = "import java.util.UUID;"
         listdep = "import java.util.ArrayList;"
         arrlistdep = "import java.util.List;"
+        lhmdep = "import java.util.LinkedHashMap;"
+        hmdep = "import java.util.Map;"
         gsondep = "import com.google.gson.Gson;"
         charsetsdep = "import java.nio.charset.StandardCharsets;"
         if self.Class.Cloneable: 
             dependency_map[uuiddep] = uuiddep
         dependency_map[listdep] = listdep
         dependency_map[arrlistdep] = arrlistdep
+        dependency_map[hmdep] = hmdep
+        dependency_map[lhmdep] = lhmdep
         if self.hasHigherDimensionalProperty():
             dependency_map[gsondep] = gsondep
             dependency_map[charsetsdep] = charsetsdep
@@ -573,22 +577,53 @@ class JavaDataClassWriter(DataClassWriter):
         s.w(f'public static {self.Class.SetDescription} SelectAll{self.Class.Name}({conobjclass} config, int limit, String innerquery{iid2}) ').o()
         s = self.writeInstanceStr(s, initializevar=False)
         s.wln(f"String selectquery = {self.getDLClassName()}.GetSelectAll{self.Class.Name}Query(limit, innerquery{iin2});")
-        s.wln(f"{self.Class.SetDescription} result = {self.getDLClassName()}.Select{self.Class.SetDescription}(config, selectquery);")
+        s.wln(f"Connection connection = {self.CommonFunctionsClassName}.GetConnection(config);")
+        s.wln(f"Map<String, Map<String, Object>> parameters = new LinkedHashMap<>();")
+        s.wln(f"PreparedStatement statement = {self.getDLClassName()}.PrepareStatement(connection, selectquery, parameters);")
+        s.wln(f"{self.Class.SetDescription} result = {self.getDLClassName()}.Select{self.Class.SetDescription}(config, statement);")
         s.wln(f"return result;")
         s.c()
         s.ret()
 
 
-        s.w(f"public static {self.Class.SetDescription} Select{self.Class.SetDescription}({conobjclass} config, String selectquery) ").o()
+        s.w(f'public static PreparedStatement PrepareStatement(Connection connection, String query, Map<String, Map<String, Object>> parameters) ').o()
+        s.wln("PreparedStatement statement = null;")
+        s.w("try").o()
+        s.wln("statement = connection.prepareStatement(query);")
+
+        s = self.writeParameterMapKeys(s)
+        s.wln("int i = 0;")
+        s.w("for (Map.Entry<String, Map<String, Object>> entry : parameters.entrySet()) ").o()
+        s.wln("//String parametername = entry.getKey();")
+        s.wln("Map<String, Object> parameteritems = entry.getValue();")
+        s.wln("i = i + 1;")
+        s.wln("Object value = parameteritems.get(param_value_key);")
+        s.wln("int sqltype = (int) parameteritems.get(param_dbtype_key);")
+        s.wln("statement.setObject(i, value, sqltype);")
+        s.c()
+        s = self.writeCloseTry(s)
+        s.wln(f"return statement;")
+        s.c()
+        s.ret()
+        
+
+        s.w(f"public static {self.Class.SetDescription} Select{self.Class.SetDescription}({conobjclass} config, PreparedStatement statement) ").o()
         # s.wln(f"Func<{readerclass}, object> translation = {self.getDLClassName()}.Get{self.Class.Name}FromQueryResult;")
         # s.wln(f"List<{self.Class.Name}> _{self.Class.Name.lower()}_list = {self.CommonFunctionsClassName}.ExecuteFetchAll(config, selectquery, parameters, translation).Cast<{self.Class.Name}>().ToList();;")
         # s.wln(f"{self.Class.SetDescription} {self.Class.Name.lower()}_list = new {self.Class.SetDescription}().fromList(_{self.Class.Name.lower()}_list);")
+
+
+        s.wln(f"List<{self.Class.Name}> _{self.Class.Name.lower()}_list = new ArrayList<{self.Class.Name}>();")
+
         s.wln(f"return {self.Class.Name.lower()}_list;")
         s.c()
         s.ret()
         return s
 
-    
+    def writeParameterMapKeys(self, s:JavaStringWriter):
+        s.wln("String param_value_key = \"Value\";")
+        s.wln("String param_dbtype_key = \"DbType\";")
+        return s
     
     def writeDelete(self, s:JavaStringWriter):
         return s
