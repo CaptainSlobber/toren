@@ -4,7 +4,6 @@ import os
 from pathlib import Path
 
 from typing import List
-
 from ..DataClassWriter import DataClassWriter
 from .CSharpStringWriter import CSharpStringWriter
 from ...datatypes import *
@@ -714,6 +713,15 @@ class CSharpDataClassWriter(DataClassWriter):
         s.c()
         s.ret()
 
+        if self.Class.InheritsFrom is not None:
+            for propertyid, property in self.Class.InheritedProperties.Data.items():
+                if property.IsUnique and not property.IsPrimaryKey and (property.Type == DatatypeString().getType()):
+                    s = self.writeSelectPagedWhereForProperty(s, property)
+
+        for propertyid, property in self.Class.Properties.Data.items(): 
+            if property.IsUnique and not property.IsPrimaryKey and (property.Type == DatatypeString().getType()):
+                s = self.writeSelectPagedWhereForProperty(s, property)
+
         return s
 
     def writeSelectPagedWhereForProperty(self, s:CSharpStringWriter, property):
@@ -721,9 +729,10 @@ class CSharpDataClassWriter(DataClassWriter):
 
 
         s.wln(f'public static {self.Class.SetDescription} SelectPaged{self.Class.Name}Where{property.Name}Like({conobjclass} config, string val, int pageno=1, int limit={str(self.Class.PageSize)}, string innerquery="{tablename}"{iid2}) ').o()
-        s.wln(f'string whereclause = "WHERE {db.OB()}{property.Name}{db.CB()} LIKE \'%{{val}}%\'";')
+        s.wln("Dictionary<string, Dictionary<string, object>> parameters = new Dictionary<string, Dictionary<string, object>>();")
+        s.wln(f'string whereclause = $"WHERE {db.OB()}{property.Name}{db.CB()} LIKE \'%{{val}}%\'";')
         s.wln(f"string selectquery = {self.getDLClassName()}.GetSelectPaged{self.Class.Name}WhereQuery(whereclause, pageno, limit, innerquery{iin2});")
-        s.wln(f"{self.Class.SetDescription} result = {self.getDLClassName()}.Select{self.Class.SetDescription}(config, selectquery, params);")
+        s.wln(f"{self.Class.SetDescription} result = {self.getDLClassName()}.Select{self.Class.SetDescription}(config, selectquery, parameters);")
         s.wln(f"return result;")
         s.c()
         s.ret()

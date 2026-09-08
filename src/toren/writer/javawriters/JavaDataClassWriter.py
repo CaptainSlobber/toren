@@ -6,6 +6,7 @@ from pathlib import Path
 from typing import List
 from ..DataClassWriter import DataClassWriter
 from .JavaStringWriter import JavaStringWriter
+from ...datatypes import *
 from ...datastores.Database import Database
 from ...Project import Project
 from ...Module import Module
@@ -549,15 +550,64 @@ class JavaDataClassWriter(DataClassWriter):
             s.wln(f"return _{pk.Name.lower()};");
             s.c()
             s.ret()
-            # TODO: Implement Persist Where
-            # if self.Class.InheritsFrom is not None:
-            #     for propertyid, property in self.Class.InheritedProperties.Data.items():
-            #         if property.IsUnique and not property.IsPrimaryKey and (property.Type == DatatypeString().getType()):
-            #             s = self.writePersistWhereForProperty(s, property, pk)
+            if self.Class.InheritsFrom is not None:
+                for propertyid, property in self.Class.InheritedProperties.Data.items():
+                    if property.IsUnique and not property.IsPrimaryKey and (property.Type == DatatypeString().getType()):
+                        s = self.writePersistWhereForProperty(s, property, pk)
 
-            # for propertyid, property in self.Class.Properties.Data.items(): 
-            #     if property.IsUnique and not property.IsPrimaryKey and (property.Type == DatatypeString().getType()):
-            #         s = self.writePersistWhereForProperty(s, property, pk)
+            for propertyid, property in self.Class.Properties.Data.items(): 
+                if property.IsUnique and not property.IsPrimaryKey and (property.Type == DatatypeString().getType()):
+                    s = self.writePersistWhereForProperty(s, property, pk)
+        return s
+
+
+    def writePersistWhereForProperty(self, s:JavaStringWriter, property, pk):
+    
+        (db, schema, tablename, iid, iid2, iin, iin2, conobjclass) = self.getCommonItems()
+
+
+        s.w(f"private static String Get{self.Class.Name}UpdateWhere{property.Name}EqualsQuery({iid2}) ").o()
+
+        s.wln(f'String whereclause = " WHERE {db.OB()}{property.Name}{db.CB()} = {db.GetParameter(self.Language, property.Name.lower())}{db.EndQuery()}";')
+        s = self.writeInstanceStr(s, "\"" + tablename + "\"")
+        s.wln(f'String updatequery = String.format("UPDATE %s SET ", innerquery);')
+        if self.Class.InheritsFrom is not None:
+            for propertyid, _property in self.Class.InheritedProperties.Data.items():
+                if not _property.IsPrimaryKey: 
+                    if _property.ID != property.ID:
+                        s.wln(f'updatequery += "{db.OB()}{_property.Name}{db.CB()} = {db.GetParameter(self.Language, _property.Name.lower())},";')
+        for propertyid, _property in self.Class.Properties.Data.items():
+            if not _property.IsPrimaryKey:
+                if _property.ID != property.ID:
+                    s.wln(f'updatequery += "{db.OB()}{_property.Name}{db.CB()} = {db.GetParameter(self.Language, _property.Name.lower())},";')
+        s.wln(f'updatequery = updatequery.substring(0, updatequery.length() - 1) + " " + whereclause;')
+        s.wln("return updatequery;")
+        s.c().ret()
+
+
+        s.w(f"public static {pk.PropertyType(self.Language)} Persist{self.Class.Name}Where{property.Name}Equals({conobjclass} config, {self.Class.Name} {self.Class.Name.lower()}) ").o()
+        s.wln(f"Connection connection = {self.CommonFunctionsClassName}.GetConnection(config);")
+        s.wln(f'String whereclause = String.format("WHERE {db.OB()}{property.Name}{db.CB()} = \'%s\'", {self.Class.Name.lower()}.get{property.Name}());');
+        s.wln(f"{pk.PropertyType(self.Language)} _{pk.Name.lower()} = {self.Class.Name.lower()}.get{pk.Name}();")
+        s = self.writeGetTableName(s)
+        s.wln(f"{self.Class.SetDescription} {self.Class.Name.lower()}_items = {self.getDLClassName()}.SelectAll{self.Class.Name}Where(config, whereclause, 10, tableName{iin2});")
+        s.w(f"if ({self.Class.Name.lower()}_items.count() == 1)").o()
+
+        s.wln(f"String updatequery = {self.getDLClassName()}.Get{self.Class.Name}UpdateQuery({iin});")
+        s.wln(f"PreparedStatement statement = {self.getDLClassName()}.GetPreparedStatementFrom{self.Class.Name}(connection, {self.Class.Name.lower()}, updatequery);")
+        s.wln(f"int affectedRows = {self.CommonFunctionsClassName}.ExecuteParameterizedNonQuery(connection, statement);")
+        s.wln(f"_{pk.Name.lower()} = ({pk.PropertyType(self.Language)}) {self.Class.Name.lower()}_items.toArray()[0].get{pk.Name}();")
+        s.b("else")
+        
+        s.wln(f"String insertquery = {self.getDLClassName()}.Get{self.Class.Name}InsertQuery({iin});")
+        s.wln(f"PreparedStatement statement = {self.getDLClassName()}.GetPreparedStatementFrom{self.Class.Name}(connection, {self.Class.Name.lower()}, insertquery);")
+        s.wln(f"int affectedRows = {self.CommonFunctionsClassName}.ExecuteParameterizedNonQuery(connection, statement);")
+        s.c()
+        s.wln(f"return _{pk.Name.lower()};")
+        s.c()
+        s.ret()
+    
+    
         return s
 
 
@@ -569,13 +619,18 @@ class JavaDataClassWriter(DataClassWriter):
         #limit={str(self.Class.PageSize)}
         s = self.writeInstanceStr(s, initializevar=False)
         s.wln(f"String columns = {self.getDLClassName()}.Get{self.Class.Name}ColumnNames();")
-
         s.wln(f'String topstring = String.format("{db.TOP("%d")}", limit);')
         s.wln(f'String limitstring = String.format("{db.LIMIT("%d")}", limit);')
         s.wln(f'String selectquery = String.format("SELECT %s%s FROM %s{orderby}%s{db.EndQuery()}", topstring, columns, innerquery, limitstring);')
         s.wln("return selectquery;")
         s.c().ret()
 
+        s.w(f'public static {self.Class.SetDescription} SelectAll{self.Class.Name}({conobjclass} config{iid2}) ').o()
+        s.wln(f'int limit = {str(self.Class.PageSize)};')
+        s = self.writeGetTableName(s)
+        s.wln(f'return {self.getDLClassName()}.SelectAll{self.Class.Name}(config, limit, tableName{iin2});')
+        s.c()
+        s.ret()
 
         s.w(f'public static {self.Class.SetDescription} SelectAll{self.Class.Name}({conobjclass} config, int limit, String innerquery{iid2}) ').o()
         s = self.writeInstanceStr(s, initializevar=False)
@@ -643,6 +698,12 @@ class JavaDataClassWriter(DataClassWriter):
             s.wln("return selectquery;")
             s.c().ret()
 
+            s.w(f'public static {self.Class.Name} SelectSingle{self.Class.Name}By{pk.Name}({conobjclass} config, {pk.Java_Type()} {pk.Name.lower()}{iid2}) ').o()
+            s = self.writeGetTableName(s)
+            s.wln(f'return {self.getDLClassName()}.SelectSingle{self.Class.Name}By{pk.Name}(config, {pk.Name.lower()}, tableName{iin2});')
+            s.c()
+            s.ret()
+
             s.w(f'public static {self.Class.Name} SelectSingle{self.Class.Name}By{pk.Name}({conobjclass} config, {pk.Java_Type()} {pk.Name.lower()}, String innerquery{iid2}) ').o()
             s.wln(f"{self.Class.Name} {self.Class.Name.lower()} = null;")
             s.wln(f"Map<String, Map<String, Object>> parameters = new LinkedHashMap<>();")
@@ -684,7 +745,15 @@ class JavaDataClassWriter(DataClassWriter):
         s.wln("return selectquery;")
         s.c().ret()
 
-        s.w(f"public static {self.Class.SetDescription} SelectAll{self.Class.Name}Where({conobjclass} config, String whereclause, int limit, String innerquery{iid2})").o()
+
+        s.w(f"public static {self.Class.SetDescription} SelectAll{self.Class.Name}Where({conobjclass} config, String whereclause{iid2}) ").o()
+        s.wln(f'int limit = {str(self.Class.PageSize)};')
+        s = self.writeGetTableName(s)
+        s.wln(f'return {self.getDLClassName()}.SelectAll{self.Class.Name}Where(config, whereclause, limit, tableName{iin2});')
+        s.c()
+        s.ret()
+
+        s.w(f"public static {self.Class.SetDescription} SelectAll{self.Class.Name}Where({conobjclass} config, String whereclause, int limit, String innerquery{iid2}) ").o()
         s = self.writeInstanceStr(s=s, initializevar=False)
         s.wln(f"String selectquery = {self.getDLClassName()}.GetSelectAll{self.Class.Name}WhereQuery(whereclause, limit, innerquery{iin2});")
         s.wln(f"Connection connection = {self.CommonFunctionsClassName}.GetConnection(config);")
@@ -695,17 +764,167 @@ class JavaDataClassWriter(DataClassWriter):
         s.c()
         s.ret()
 
-        # TODO
-        # if self.Class.InheritsFrom is not None:
-        #     for propertyid, property in self.Class.InheritedProperties.Data.items():
-        #         if property.IsUnique and not property.IsPrimaryKey and (property.Type == DatatypeString().getType()):
-        #             s = self.writeSelectWhereForProperty(s, property)
+        if self.Class.InheritsFrom is not None:
+            for propertyid, property in self.Class.InheritedProperties.Data.items():
+                if property.IsUnique and not property.IsPrimaryKey and (property.Type == DatatypeString().getType()):
+                    s = self.writeSelectWhereForProperty(s, property)
 
-        # for propertyid, property in self.Class.Properties.Data.items(): 
-        #     if property.IsUnique and not property.IsPrimaryKey and (property.Type == DatatypeString().getType()):
-        #         s = self.writeSelectWhereForProperty(s, property)
+        for propertyid, property in self.Class.Properties.Data.items(): 
+            if property.IsUnique and not property.IsPrimaryKey and (property.Type == DatatypeString().getType()):
+                s = self.writeSelectWhereForProperty(s, property)
 
         return s
+
+    def writeSelectWhereForProperty(self, s:JavaStringWriter, property):
+        (db, schema, tablename, iid, iid2, iin, iin2, conobjclass) = self.getCommonItems()
+
+        s.w(f'public static {self.Class.SetDescription} SelectAll{self.Class.Name}Where{property.Name}Like({conobjclass} config, String val{iid2}) ').o()
+        s.wln(f'int limit = {str(self.Class.PageSize)};')
+        s = self.writeGetTableName(s)
+        s.wln(f'return {self.getDLClassName()}.SelectAll{self.Class.Name}Where{property.Name}Like(config, val, limit, tableName{iin2});')
+        s.c()
+        s.ret()
+
+        s.w(f'public static {self.Class.SetDescription} SelectAll{self.Class.Name}Where{property.Name}Like({conobjclass} config, String val, int limit, String innerquery{iid2}) ').o()
+        s.wln(f'String whereclause = String.format("WHERE {db.OB()}{property.Name}{db.CB()} LIKE \'%%s%\'", val);') # 
+        s.wln(f"String selectquery = {self.getDLClassName()}.GetSelectAll{self.Class.Name}WhereQuery(whereclause, limit, innerquery{iin2});")
+        s.wln(f"Connection connection = {self.CommonFunctionsClassName}.GetConnection(config);")
+        s.wln(f"Map<String, Map<String, Object>> parameters = new LinkedHashMap<>();")
+        s.wln(f"PreparedStatement statement = {self.CommonFunctionsClassName}.PrepareStatement(connection, selectquery, parameters);")
+        s.wln(f"{self.Class.SetDescription} result = {self.getDLClassName()}.Select{self.Class.SetDescription}(config, statement);")
+        s.wln(f"return result;")
+        s.c()
+        s.ret()
+        return s
+
+
+    def writeSelectPage(self, s:JavaStringWriter):
+        (db, schema, tablename, iid, iid2, iin, iin2, conobjclass) = self.getCommonItems()
+        orderby = self.getOrderByClause()
+
+
+        s.w(f'private static String GetSelectPaged{self.Class.Name}Query(int pageno, int limit, String innerquery{iid2}) ').o()
+        s.wln(f"int offset = (pageno - 1) * limit;")
+        s.wln(f"String columns = {self.getDLClassName()}.Get{self.Class.Name}ColumnNames();")
+        s = self.writeInstanceStr(s=s, initializevar=False)
+        s.wln(f'String selectquery = String.format("SELECT %s FROM %s{orderby}{db.LIMIT_OFFSET("%d","%d")}{db.EndQuery()}", columns, innerquery, offset, limit);') # TODO: Test Limit/Offset
+        s.wln("return selectquery;")
+        s.c().ret()
+
+        s.w(f'public static {self.Class.SetDescription} SelectPaged{self.Class.Name}({conobjclass} config, int pageno{iid2}) ').o()
+        s.wln(f'int limit = {str(self.Class.PageSize)};')
+        s = self.writeGetTableName(s)
+        s.wln(f"return {self.getDLClassName()}.SelectPaged{self.Class.Name}(config, pageno, limit, tableName{iin2});")
+        s.c().ret()
+
+        s.w(f'public static {self.Class.SetDescription} SelectPaged{self.Class.Name}({conobjclass} config, int pageno, int limit, String innerquery{iid2}) ').o()
+        s.wln(f"Connection connection = {self.CommonFunctionsClassName}.GetConnection(config);")
+        s.wln(f"Map<String, Map<String, Object>> parameters = new LinkedHashMap<>();")
+        s.wln(f"String selectquery = {self.getDLClassName()}.GetSelectPaged{self.Class.Name}Query(pageno, limit, innerquery{iin2});")
+        s.wln(f"PreparedStatement statement = {self.CommonFunctionsClassName}.PrepareStatement(connection, selectquery, parameters);")
+        s.wln(f"{self.Class.SetDescription} result = {self.getDLClassName()}.Select{self.Class.SetDescription}(config, statement);")
+        s.wln(f"return result;")
+        s.c()
+        s.ret()
+        return s
+
+    def writeSelectPageWhere(self, s:JavaStringWriter):
+        (db, schema, tablename, iid, iid2, iin, iin2, conobjclass) = self.getCommonItems()
+        orderby = self.getOrderByClause()
+
+        s.w(f'private static String GetSelectPaged{self.Class.Name}WhereQuery(String whereclause, int pageno, int limit, String innerquery{iid2}) ').o()
+        s.wln(f"int offset = (pageno - 1) * limit;")
+        s.wln(f"String columns = {self.getDLClassName()}.Get{self.Class.Name}ColumnNames();")
+        s = self.writeInstanceStr(s=s, initializevar=False)
+        s.wln(f'String selectquery = String.format("SELECT %s FROM %s %s{orderby}{db.LIMIT_OFFSET("%d","%d")}{db.EndQuery()}", columns, innerquery, whereclause, offset, limit);') # TODO: Test Limit/Offset
+        s.wln("return selectquery;")
+        s.c().ret()
+
+        s.w(f'public static {self.Class.SetDescription} SelectPaged{self.Class.Name}Where({conobjclass} config, String whereclause, int pageno{iid2}) ').o()        
+        s.wln(f'int limit = {str(self.Class.PageSize)};')
+        s = self.writeGetTableName(s)
+        s.wln(f"return {self.getDLClassName()}.SelectPaged{self.Class.Name}Where(config, whereclause, pageno, limit, tableName{iin2});")
+        s.c().ret()
+
+        s.w(f'public static {self.Class.SetDescription} SelectPaged{self.Class.Name}Where({conobjclass} config, String whereclause, int pageno, int limit, String innerquery{iid2}) ').o()
+        s.wln(f"Connection connection = {self.CommonFunctionsClassName}.GetConnection(config);")
+        s.wln(f"Map<String, Map<String, Object>> parameters = new LinkedHashMap<>();")
+        s.wln(f"String selectquery = {self.getDLClassName()}.GetSelectPaged{self.Class.Name}WhereQuery(whereclause, pageno, limit, innerquery{iin2});")
+        s.wln(f"PreparedStatement statement = {self.CommonFunctionsClassName}.PrepareStatement(connection, selectquery, parameters);")
+        s.wln(f"{self.Class.SetDescription} result = {self.getDLClassName()}.Select{self.Class.SetDescription}(config, statement);")
+        s.wln(f"return result;")
+        s.c()
+        s.ret()
+
+        if self.Class.InheritsFrom is not None:
+            for propertyid, property in self.Class.InheritedProperties.Data.items():
+                if property.IsUnique and not property.IsPrimaryKey and (property.Type == DatatypeString().getType()):
+                    s = self.writeSelectPagedWhereForProperty(s, property)
+
+        for propertyid, property in self.Class.Properties.Data.items(): 
+            if property.IsUnique and not property.IsPrimaryKey and (property.Type == DatatypeString().getType()):
+                s = self.writeSelectPagedWhereForProperty(s, property)
+
+        return s
+
+
+    def writeSelectPagedWhereForProperty(self, s:JavaStringWriter, property):
+        (db, schema, tablename, iid, iid2, iin, iin2, conobjclass) = self.getCommonItems()
+        orderby = self.getOrderByClause()
+
+        s.w(f'public static {self.Class.SetDescription} SelectPaged{self.Class.Name}Where{property.Name}Like({conobjclass} config, String val, int pageno{iid2}) ').o()        
+        s.wln(f'int limit = {str(self.Class.PageSize)};')
+        s = self.writeGetTableName(s)
+        s.wln(f"return {self.getDLClassName()}.SelectPaged{self.Class.Name}Where{property.Name}Like(config, val, pageno, limit, tableName{iin2});")
+        s.c().ret()
+        
+        s.w(f'public static {self.Class.SetDescription} SelectPaged{self.Class.Name}Where{property.Name}Like({conobjclass} config, String val, int pageno, int limit, String innerquery{iid2}) ').o()
+        s.wln(f"Connection connection = {self.CommonFunctionsClassName}.GetConnection(config);")
+        s.wln(f'string whereclause = String.format("WHERE {db.OB()}{property.Name}{db.CB()} LIKE \'%%s%\'", val);')        
+        s.wln(f"Map<String, Map<String, Object>> parameters = new LinkedHashMap<>();")
+        s.wln(f"String selectquery = {self.getDLClassName()}.GetSelectPaged{self.Class.Name}WhereQuery(whereclause, pageno, limit, innerquery{iin2});")
+        s.wln(f"PreparedStatement statement = {self.CommonFunctionsClassName}.PrepareStatement(connection, selectquery, parameters);")
+        s.wln(f"{self.Class.SetDescription} result = {self.getDLClassName()}.Select{self.Class.SetDescription}(config, statement);")
+        s.wln(f"return result;")
+        s.c()
+        s.ret()
+
+        return s
+    
+    
+    def writeDelete(self, s:JavaStringWriter):
+        (db, schema, tablename, iid, iid2, iin, iin2, conobjclass) = self.getCommonItems()
+        if self.Class.hasPrimaryKeyPoperty():
+            pk = self.Class.getPrimaryKeyProperty()
+
+            s.w(f"private static String Get{self.Class.Name}DeleteQuery({iid}) ").o()
+            s = self.writeInstanceStr(s, "\"" + tablename + "\"")
+            s.wln(f'String deletequery = String.format("DELETE FROM %s WHERE {db.OB()}{pk.Name}{db.CB()} = {db.GetParameter(self.Language, pk.Name.lower())}{db.EndQuery()}", innerquery);')
+            s.wln("return deletequery;")
+            s.c().ret()
+
+            s.w(f"public static void DeleteSingle{self.Class.Name}By{pk.Name}({conobjclass} config, {pk.CSharp_Type()} {pk.Name.lower()}{iid2}) ").o()
+            s.wln(f"Map<String, Map<String, Object>> parameters = new LinkedHashMap<>();")
+            s = self.writeParameterMapKeys(s)
+            
+            s.wln(f"Map<String, Object> {pk.Name.lower()}param = new LinkedHashMap<>();")
+            s.wln(f"{pk.Name.lower()}param.put(param_value_key, {pk.Name.lower()});")
+            s.wln(f"{pk.Name.lower()}param.put(param_dbtype_key, {pk.TypeSpec(self.Language, self.Database)});")
+            s.wln(f'parameters.put("{pk.Name.lower()}", {pk.Name.lower()}param);')
+            s.wln(f"Connection connection = {self.CommonFunctionsClassName}.GetConnection(config);")
+            s.wln(f"String deletequery = {self.getDLClassName()}.Get{self.Class.Name}DeleteQuery({iin});")                        
+            s.wln(f"PreparedStatement statement = {self.CommonFunctionsClassName}.PrepareStatement(connection, deletequery, parameters);")
+
+            s.wln(f"{self.CommonFunctionsClassName}.ExecuteParameterizedNonQuery(connection, statement);")
+            s.c()
+            s.ret()
+
+            s.w(f"public static void DeleteSingle{self.Class.Name}({conobjclass} config, {self.Class.Name} {self.Class.Name.lower()}{iid2}) ").o()
+            s.wln(f"{self.getDLClassName()}.DeleteSingle{self.Class.Name}By{pk.Name}(config, {self.Class.Name.lower()}.get{pk.Name}(){iin2});")
+            s.c()
+            s.ret()
+        return s
+
 
     def writeParameterMapKeys(self, s:JavaStringWriter):
         s.wln("String param_value_key = \"Value\";")
