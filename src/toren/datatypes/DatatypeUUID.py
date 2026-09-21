@@ -252,7 +252,7 @@ class DatatypeUUID(Datatype):
     return self._Java_to_(args)
 
   def Java_SQLite_Type_Spec(self) -> str:
-    return "java.sql.Types.STRING"
+    return "java.sql.Types.NVARCHAR"
   
   def Java_PostgreSQL_Type_Spec(self) -> str:
     return self.Java_Type_Spec()
@@ -261,7 +261,7 @@ class DatatypeUUID(Datatype):
     return self.Java_Type_Spec()
   
   def Java_Oracle_Type_Spec(self) -> str:
-    return "java.sql.Types.STRING"
+    return "java.sql.Types.NVARCHAR"
 
   def Java_Type_Spec(self) -> str:
     return "java.sql.Types.JAVA_OBJECT" #OTHER

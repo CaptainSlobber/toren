@@ -473,14 +473,7 @@ class CSharpDataClassWriter(DataClassWriter):
             s.wln(f"return _{pk.Name.lower()};");
             s.c()
             s.ret()
-            if self.Class.InheritsFrom is not None:
-                for propertyid, property in self.Class.InheritedProperties.Data.items():
-                    if property.IsUnique and not property.IsPrimaryKey and (property.Type == DatatypeString().getType()):
-                        s = self.writePersistWhereForProperty(s, property, pk)
 
-            for propertyid, property in self.Class.Properties.Data.items(): 
-                if property.IsUnique and not property.IsPrimaryKey and (property.Type == DatatypeString().getType()):
-                    s = self.writePersistWhereForProperty(s, property, pk)
         return s
 
 
@@ -505,26 +498,12 @@ class CSharpDataClassWriter(DataClassWriter):
         s.c()
         s.ret()
 
-        if self.Class.InheritsFrom is not None:
-            for propertyid, property in self.Class.InheritedProperties.Data.items():
-                if property.IsUnique and not property.IsPrimaryKey and (property.Type == DatatypeString().getType()):
-                    s = self.writeSelectWhereForProperty(s, property)
-
-        for propertyid, property in self.Class.Properties.Data.items(): 
-            if property.IsUnique and not property.IsPrimaryKey and (property.Type == DatatypeString().getType()):
-                s = self.writeSelectWhereForProperty(s, property)
-
         return s
 
     def writeSelectWhereForProperty(self, s:CSharpStringWriter, property):
         (db, schema, tablename, iid, iid2, iin, iin2, conobjclass) = self.getCommonItems()
 
-        s.wln(f'public static {self.Class.SetDescription} SelectAll{self.Class.Name}Where{property.Name}Like({conobjclass} config, string val, int limit = {str(self.Class.PageSize)}, string innerquery="{tablename}"{iid2}) ').o()
-        # if db.UsesNamedParameters(self.Language):
-        #     s.wln(f"params = {{ '{property.Name.lower()}': '%' + val + '%'}}")
-        # else:  
-        #     s.wln(f"params = ['%' + val + '%']")
-        # s.wln(f'string whereclause = "WHERE {db.OB()}{property.Name}{db.CB()} LIKE {db.GetParameter(self.Language, property.Name.lower())}";')
+        s.w(f'public static {self.Class.SetDescription} SelectAll{self.Class.Name}Where{property.Name}Like({conobjclass} config, string val, int limit = {str(self.Class.PageSize)}, string innerquery="{tablename}"{iid2}) ').o()
         s.wln(f'string whereclause = $"WHERE {db.OB()}{property.Name}{db.CB()} LIKE \'%{{val}}%\'";')
         s.wln(f"string selectquery = {self.getDLClassName()}.GetSelectAll{self.Class.Name}WhereQuery(whereclause, limit, innerquery{iin2});")
         s.wln("Dictionary<string, Dictionary<string, object>> parameters = new Dictionary<string, Dictionary<string, object>>();")
@@ -599,10 +578,6 @@ class CSharpDataClassWriter(DataClassWriter):
 
 
         s.w(f'public static {self.Class.SetDescription} SelectAll{self.Class.Name}({conobjclass} config, int limit={str(self.Class.PageSize)}, string innerquery="{tablename}"{iid2}) ').o()
-        # if db.UsesNamedParameters(self.Language):
-        #     s.wln(f"parameters = {{ }}")
-        # else:  
-        #     s.wln(f"parameters = []")
         s.wln("Dictionary<string, Dictionary<string, object>> parameters = new Dictionary<string, Dictionary<string, object>>();")
         s.wln(f"string selectquery = {self.getDLClassName()}.GetSelectAll{self.Class.Name}Query(limit, innerquery{iin2});")
         s.wln(f"{self.Class.SetDescription} result = {self.getDLClassName()}.Select{self.Class.SetDescription}(config, selectquery, parameters);")
@@ -697,7 +672,7 @@ class CSharpDataClassWriter(DataClassWriter):
         (db, schema, tablename, iid, iid2, iin, iin2, conobjclass) = self.getCommonItems()
         orderby = self.getOrderByClause()
 
-        s.wln(f'private static string GetSelectPaged{self.Class.Name}WhereQuery(string whereclause="WHERE 1=1", int pageno=1, int limit={str(self.Class.PageSize)}, string innerquery="{tablename}"{iid2}) ').o()
+        s.w(f'private static string GetSelectPaged{self.Class.Name}WhereQuery(string whereclause="WHERE 1=1", int pageno=1, int limit={str(self.Class.PageSize)}, string innerquery="{tablename}"{iid2}) ').o()
         s.wln(f"int offset = (pageno - 1) * limit;")
         s.wln(f"string columns = {self.getDLClassName()}.Get{self.Class.Name}ColumnNames();")
         s = self.writeInstanceStr(s=s, initializevar=False)
@@ -705,7 +680,7 @@ class CSharpDataClassWriter(DataClassWriter):
         s.wln("return selectquery;")
         s.c().ret()
 
-        s.wln(f'public static {self.Class.SetDescription} SelectPaged{self.Class.Name}Where({conobjclass} config, string whereclause="WHERE 1=1", int pageno=1, int limit={str(self.Class.PageSize)}, string innerquery="{tablename}"{iid2}) ').o()
+        s.w(f'public static {self.Class.SetDescription} SelectPaged{self.Class.Name}Where({conobjclass} config, string whereclause="WHERE 1=1", int pageno=1, int limit={str(self.Class.PageSize)}, string innerquery="{tablename}"{iid2}) ').o()
         s.wln("Dictionary<string, Dictionary<string, object>> parameters = new Dictionary<string, Dictionary<string, object>>();")
         s.wln(f"string selectquery = {self.getDLClassName()}.GetSelectPaged{self.Class.Name}WhereQuery(whereclause, pageno, limit, innerquery{iin2});")
         s.wln(f"{self.Class.SetDescription} result = {self.getDLClassName()}.Select{self.Class.SetDescription}(config, selectquery, parameters);")
@@ -713,22 +688,13 @@ class CSharpDataClassWriter(DataClassWriter):
         s.c()
         s.ret()
 
-        if self.Class.InheritsFrom is not None:
-            for propertyid, property in self.Class.InheritedProperties.Data.items():
-                if property.IsUnique and not property.IsPrimaryKey and (property.Type == DatatypeString().getType()):
-                    s = self.writeSelectPagedWhereForProperty(s, property)
-
-        for propertyid, property in self.Class.Properties.Data.items(): 
-            if property.IsUnique and not property.IsPrimaryKey and (property.Type == DatatypeString().getType()):
-                s = self.writeSelectPagedWhereForProperty(s, property)
-
         return s
 
-    def writeSelectPagedWhereForProperty(self, s:CSharpStringWriter, property):
+    def writeSelectPageWhereForProperty(self, s:CSharpStringWriter, property):
         (db, schema, tablename, iid, iid2, iin, iin2, conobjclass) = self.getCommonItems()
 
 
-        s.wln(f'public static {self.Class.SetDescription} SelectPaged{self.Class.Name}Where{property.Name}Like({conobjclass} config, string val, int pageno=1, int limit={str(self.Class.PageSize)}, string innerquery="{tablename}"{iid2}) ').o()
+        s.w(f'public static {self.Class.SetDescription} SelectPaged{self.Class.Name}Where{property.Name}Like({conobjclass} config, string val, int pageno=1, int limit={str(self.Class.PageSize)}, string innerquery="{tablename}"{iid2}) ').o()
         s.wln("Dictionary<string, Dictionary<string, object>> parameters = new Dictionary<string, Dictionary<string, object>>();")
         s.wln(f'string whereclause = $"WHERE {db.OB()}{property.Name}{db.CB()} LIKE \'%{{val}}%\'";')
         s.wln(f"string selectquery = {self.getDLClassName()}.GetSelectPaged{self.Class.Name}WhereQuery(whereclause, pageno, limit, innerquery{iin2});")
@@ -773,3 +739,75 @@ class CSharpDataClassWriter(DataClassWriter):
             s.c()
             s.ret()
         return s
+
+    def writeSelectChildObjects(self, s:CSharpStringWriter):
+        (db, schema, tablename, iid, iid2, iin, iin2, conobjclass) = self.getCommonItems()
+        s.w(f"public static {self.Class.Name} Select{self.Class.Name}ChildObjects({conobjclass} config, {self.Class.Name} {self.Class.Name.lower()}) ").o()
+
+
+        mapped_collections = {}
+           
+        for _classid, _class in self.Module.Classes.Data.items():
+            for _propertyid, _property in _class.Properties.Data.items():
+                if _property.ForeignKey is not None:
+                    if _property.ForeignKey.FKClassID == self.Class.ID:
+                        if not _class.ID in mapped_collections:
+                            s = self.writeSetChildObjects(_property.ForeignKey.FKClass, _property.ForeignKey.FKClassProperty, _class, _property, s)
+                        mapped_collections[_class.ID] = _class.Name
+
+        s.wln(f"return {self.Class.Name.lower()}; ")
+        s.c()
+        s.ret()
+
+
+        return s
+
+
+    def writeSetChildObjects(self, parentclass, parentproperty, childclass, childproperty, s:CSharpStringWriter):
+
+        (db, schema, tablename, iid, iid2, iin, iin2, conobjclass) = self.getCommonItems()
+
+        dlchildclassname = f"{self.getDLPrefix()}{childclass.Name}{self.getDLSuffix()}"
+        s.wln(f"{childclass.SetDescription} _{childclass.PluralName.lower()} = {dlchildclassname}.SelectAll{childclass.Name}Where{childproperty.Name}Equals(config, {self.Class.Name.lower()}.{parentproperty.Name});")
+        s.wln(f"{self.Class.Name.lower()}.{childclass.PluralName} = {dlchildclassname}.Select{childclass.SetDescription}ChildObjects(config, _{childclass.PluralName.lower()});")
+        return s
+    
+    def writeSelectCollectionChildObjects(self, s:CSharpStringWriter):
+        (db, schema, tablename, iid, iid2, iin, iin2, conobjclass) = self.getCommonItems()
+        s.w(f"public static {self.Class.SetDescription} Select{self.Class.SetDescription}ChildObjects({conobjclass} config, {self.Class.SetDescription} {self.Class.Name.lower()}_list) ").o()
+        s.wln(f"{self.Class.SetDescription} _{self.Class.Name.lower()}_list = new {self.Class.SetDescription}();")
+        s.w(f"foreach ({self.Class.Name} {self.Class.Name.lower()} in {self.Class.Name.lower()}_list.toList()) ").o() 
+        s.wln(f"_{self.Class.Name.lower()}_list.appendItem({self.getDLClassName()}.Select{self.Class.Name}ChildObjects(config, {self.Class.Name.lower()}));")
+        s.c()
+        s.wln(f"return _{self.Class.Name.lower()}_list;")       
+        s.c()
+        return s
+
+    def writeSelectAllForFK(self, foreignkeyprop, s:CSharpStringWriter):
+        (db, schema, tablename, iid, iid2, iin, iin2, conobjclass) = self.getCommonItems()
+
+
+
+        s.w(f'public static {self.Class.SetDescription} SelectAll{self.Class.Name}Where{foreignkeyprop.Name}Equals({conobjclass} config, {foreignkeyprop.CSharp_Type()} {foreignkeyprop.Name.lower()}, int limit = {str(self.Class.PageSize)}, string innerquery="{tablename}"{iid2}) ').o()
+
+        s = self.writeParameterMapKeys(s)
+        s.wln("Dictionary<string, Dictionary<string, object>> parameters = new Dictionary<string, Dictionary<string, object>>();")
+        
+        fkconverted = foreignkeyprop.To(self.Language, self.Database, 1, "", foreignkeyprop.Name.lower())
+        fkparameter_name = f"{db.GetParameter(self.Language, foreignkeyprop.Name.lower(), 1)}"
+        fkparameter_name = foreignkeyprop.Name.lower()
+        s.wln(f'parameters.Add("{fkparameter_name}", new Dictionary<string, object>() {{ {fkconverted} }});')
+
+        s.wln(f'string whereclause = $"WHERE {db.OB()}{foreignkeyprop.Name}{db.CB()} = {db.GetParameter(self.Language, foreignkeyprop.Name.lower())}";')
+        s.wln(f"string selectquery = {self.getDLClassName()}.GetSelectAll{self.Class.Name}WhereQuery(whereclause, limit, innerquery{iin2});")
+        s.wln(f"{self.Class.SetDescription} result = {self.getDLClassName()}.Select{self.Class.SetDescription}(config, selectquery, parameters);")
+        s.wln(f"return result;")
+        s.c()
+        s.ret()
+
+        return s
+
+
+
+
+

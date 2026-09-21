@@ -104,7 +104,22 @@ class JavaDataClassWriter(DataClassWriter):
                 dependency_map[dependency] = dependency
 
         dependency_map[object_import] = object_import
-        dependency_map[object_set_import] = object_set_import       
+        dependency_map[object_set_import] = object_set_import 
+
+
+
+        mapped_collections = {}
+                   
+        for _classid, _class in self.Module.Classes.Data.items():
+            for _propertyid, _property in _class.Properties.Data.items():
+                if _property.ForeignKey is not None:
+                    if _property.ForeignKey.FKClassID == self.Class.ID:
+                        if not _class.ID in mapped_collections:
+
+                            childset = f"import {t}.{e}.{p}.{_class.ParentModule.Name.lower()}.{_class.SetDescription};"
+                            dependency_map[childset] = childset
+                        mapped_collections[_class.ID] = _class.Name
+        
         return dependency_map
     
     def writeDLPackage(self, s:JavaStringWriter):
@@ -550,14 +565,7 @@ class JavaDataClassWriter(DataClassWriter):
             s.wln(f"return _{pk.Name.lower()};");
             s.c()
             s.ret()
-            if self.Class.InheritsFrom is not None:
-                for propertyid, property in self.Class.InheritedProperties.Data.items():
-                    if property.IsUnique and not property.IsPrimaryKey and (property.Type == DatatypeString().getType()):
-                        s = self.writePersistWhereForProperty(s, property, pk)
 
-            for propertyid, property in self.Class.Properties.Data.items(): 
-                if property.IsUnique and not property.IsPrimaryKey and (property.Type == DatatypeString().getType()):
-                    s = self.writePersistWhereForProperty(s, property, pk)
         return s
 
 
@@ -764,15 +772,6 @@ class JavaDataClassWriter(DataClassWriter):
         s.c()
         s.ret()
 
-        if self.Class.InheritsFrom is not None:
-            for propertyid, property in self.Class.InheritedProperties.Data.items():
-                if property.IsUnique and not property.IsPrimaryKey and (property.Type == DatatypeString().getType()):
-                    s = self.writeSelectWhereForProperty(s, property)
-
-        for propertyid, property in self.Class.Properties.Data.items(): 
-            if property.IsUnique and not property.IsPrimaryKey and (property.Type == DatatypeString().getType()):
-                s = self.writeSelectWhereForProperty(s, property)
-
         return s
 
     def writeSelectWhereForProperty(self, s:JavaStringWriter, property):
@@ -856,19 +855,10 @@ class JavaDataClassWriter(DataClassWriter):
         s.c()
         s.ret()
 
-        if self.Class.InheritsFrom is not None:
-            for propertyid, property in self.Class.InheritedProperties.Data.items():
-                if property.IsUnique and not property.IsPrimaryKey and (property.Type == DatatypeString().getType()):
-                    s = self.writeSelectPagedWhereForProperty(s, property)
-
-        for propertyid, property in self.Class.Properties.Data.items(): 
-            if property.IsUnique and not property.IsPrimaryKey and (property.Type == DatatypeString().getType()):
-                s = self.writeSelectPagedWhereForProperty(s, property)
-
         return s
 
 
-    def writeSelectPagedWhereForProperty(self, s:JavaStringWriter, property):
+    def writeSelectPageWhereForProperty(self, s:JavaStringWriter, property):
         (db, schema, tablename, iid, iid2, iin, iin2, conobjclass) = self.getCommonItems()
         orderby = self.getOrderByClause()
 
@@ -880,7 +870,7 @@ class JavaDataClassWriter(DataClassWriter):
         
         s.w(f'public static {self.Class.SetDescription} SelectPaged{self.Class.Name}Where{property.Name}Like({conobjclass} config, String val, int pageno, int limit, String innerquery{iid2}) ').o()
         s.wln(f"Connection connection = {self.CommonFunctionsClassName}.GetConnection(config);")
-        s.wln(f'string whereclause = String.format("WHERE {db.OB()}{property.Name}{db.CB()} LIKE \'%%s%\'", val);')        
+        s.wln(f'String whereclause = String.format("WHERE {db.OB()}{property.Name}{db.CB()} LIKE \'%%s%\'", val);')        
         s.wln(f"Map<String, Map<String, Object>> parameters = new LinkedHashMap<>();")
         s.wln(f"String selectquery = {self.getDLClassName()}.GetSelectPaged{self.Class.Name}WhereQuery(whereclause, pageno, limit, innerquery{iin2});")
         s.wln(f"PreparedStatement statement = {self.CommonFunctionsClassName}.PrepareStatement(connection, selectquery, parameters);")
@@ -903,7 +893,7 @@ class JavaDataClassWriter(DataClassWriter):
             s.wln("return deletequery;")
             s.c().ret()
 
-            s.w(f"public static void DeleteSingle{self.Class.Name}By{pk.Name}({conobjclass} config, {pk.CSharp_Type()} {pk.Name.lower()}{iid2}) ").o()
+            s.w(f"public static void DeleteSingle{self.Class.Name}By{pk.Name}({conobjclass} config, {pk.Java_Type()} {pk.Name.lower()}{iid2}) ").o()
             s.wln(f"Map<String, Map<String, Object>> parameters = new LinkedHashMap<>();")
             s = self.writeParameterMapKeys(s)
             
@@ -933,4 +923,79 @@ class JavaDataClassWriter(DataClassWriter):
 
     def writeDLClassClose(self, s:JavaStringWriter):
         s.c()
+        return s
+
+
+    def writeSelectChildObjects(self, s:JavaStringWriter):
+        (db, schema, tablename, iid, iid2, iin, iin2, conobjclass) = self.getCommonItems()
+        s.w(f"public static {self.Class.Name} Select{self.Class.Name}ChildObjects({conobjclass} config, {self.Class.Name} {self.Class.Name.lower()}) ").o()
+
+
+        mapped_collections = {}
+           
+        for _classid, _class in self.Module.Classes.Data.items():
+            for _propertyid, _property in _class.Properties.Data.items():
+                if _property.ForeignKey is not None:
+                    if _property.ForeignKey.FKClassID == self.Class.ID:
+                        if not _class.ID in mapped_collections:
+                            s = self.writeSetChildObjects(_property.ForeignKey.FKClass, _property.ForeignKey.FKClassProperty, _class, _property, s)
+                        mapped_collections[_class.ID] = _class.Name
+
+        s.wln(f"return {self.Class.Name.lower()}; ")
+        s.c()
+        s.ret()
+
+
+        return s
+
+
+    def writeSetChildObjects(self, parentclass, parentproperty, childclass, childproperty, s:JavaStringWriter):
+
+        (db, schema, tablename, iid, iid2, iin, iin2, conobjclass) = self.getCommonItems()
+
+        dlchildclassname = f"{self.getDLPrefix()}{childclass.Name}{self.getDLSuffix()}"
+        s.wln(f"{childclass.SetDescription} _{childclass.PluralName.lower()} = {dlchildclassname}.SelectAll{childclass.Name}Where{childproperty.Name}Equals(config, {self.Class.Name.lower()}.get{parentproperty.Name}());")
+        s.wln(f"{self.Class.Name.lower()}.set{childclass.PluralName}({dlchildclassname}.Select{childclass.SetDescription}ChildObjects(config, _{childclass.PluralName.lower()}));")
+        return s
+    
+    def writeSelectCollectionChildObjects(self, s:JavaStringWriter):
+        (db, schema, tablename, iid, iid2, iin, iin2, conobjclass) = self.getCommonItems()
+        s.w(f"public static {self.Class.SetDescription} Select{self.Class.SetDescription}ChildObjects({conobjclass} config, {self.Class.SetDescription} {self.Class.Name.lower()}_list) ").o()
+        s.wln(f"{self.Class.SetDescription} _{self.Class.Name.lower()}_list = new {self.Class.SetDescription}();")
+        s.w(f"for ({self.Class.Name} {self.Class.Name.lower()}: {self.Class.Name.lower()}_list.toList()) ").o() 
+        s.wln(f"_{self.Class.Name.lower()}_list.appendItem({self.getDLClassName()}.Select{self.Class.Name}ChildObjects(config, {self.Class.Name.lower()}));")
+        s.c()
+        s.wln(f"return _{self.Class.Name.lower()}_list;")       
+        s.c()
+        return s
+
+    def writeSelectAllForFK(self, foreignkeyprop, s:JavaStringWriter):
+
+        (db, schema, tablename, iid, iid2, iin, iin2, conobjclass) = self.getCommonItems()
+
+        s.w(f'public static {self.Class.SetDescription} SelectAll{self.Class.Name}Where{foreignkeyprop.Name}Equals({conobjclass} config, {foreignkeyprop.Java_Type()} {foreignkeyprop.Name.lower()}{iid2}) ').o()
+        s.wln(f'return {self.getDLClassName()}.SelectAll{self.Class.Name}Where{foreignkeyprop.Name}Equals(config, {foreignkeyprop.Name.lower()}, {str(self.Class.PageSize)}, "{tablename}"{iin2});')
+        s.c()
+        s.ret()
+        
+        
+        s.w(f'public static {self.Class.SetDescription} SelectAll{self.Class.Name}Where{foreignkeyprop.Name}Equals({conobjclass} config, {foreignkeyprop.Java_Type()} {foreignkeyprop.Name.lower()}, int limit, String innerquery{iid2}) ').o()
+        s.wln(f"Map<String, Map<String, Object>> parameters = new LinkedHashMap<>();")
+        s = self.writeParameterMapKeys(s)
+                    
+        s.wln(f"Map<String, Object> {foreignkeyprop.Name.lower()}param = new LinkedHashMap<>();")
+        s.wln(f"{foreignkeyprop.Name.lower()}param.put(param_value_key, {foreignkeyprop.Name.lower()});")
+        s.wln(f"{foreignkeyprop.Name.lower()}param.put(param_dbtype_key, {foreignkeyprop.TypeSpec(self.Language, self.Database)});")
+        s.wln(f'parameters.put("{foreignkeyprop.Name.lower()}", {foreignkeyprop.Name.lower()}param);')
+        s.wln(f"Connection connection = {self.CommonFunctionsClassName}.GetConnection(config);")
+        s.wln(f'String whereclause = "WHERE {db.OB()}{foreignkeyprop.Name}{db.CB()} = {db.GetParameter(self.Language, foreignkeyprop.Name.lower())}{db.EndQuery()}";')
+
+
+        s.wln(f"String selectquery = {self.getDLClassName()}.GetSelectAll{self.Class.Name}WhereQuery(whereclause, limit, innerquery{iin2});")
+        s.wln(f"PreparedStatement statement = {self.CommonFunctionsClassName}.PrepareStatement(connection, selectquery, parameters);")
+        s.wln(f"{self.Class.SetDescription} result = {self.getDLClassName()}.Select{self.Class.SetDescription}(config, statement);")
+        s.wln(f"return result;")
+        s.c()
+        s.ret()
+        
         return s

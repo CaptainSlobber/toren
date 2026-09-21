@@ -64,7 +64,7 @@ class Class(TorenObject):
                  inheritsfrom = None,
                  children = {},
                  pluralname = None,
-                 pageSize: int = 100,
+                 pageSize: int = 1000,
                  cloneable: bool = False):
     self.Type = "toren.Class"
     self.IsInReservedNames(name)

@@ -270,7 +270,7 @@ class DatatypeString(Datatype):
     return self.Java_Type_Spec()
 
   def Java_Type_Spec(self) -> str:
-    return "java.sql.Types.STRING"
+    return "java.sql.Types.NVARCHAR"
 
   ##########################################################################
   # Java methods for converting from various database types

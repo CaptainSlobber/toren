@@ -68,6 +68,15 @@ class PythonDataClassWriter(DataClassWriter):
         for dependency in self.Database.PythonDependencies():
             dependency_map[dependency] = dependency
 
+        for _classid, _class in self.Module.Classes.Data.items():
+            for _propertyid, _property in _class.Properties.Data.items():
+                if _property.ForeignKey is not None:
+                    if _property.ForeignKey.FKClassID == self.Class.ID:
+                        if _class.ID != self.Class.ID:
+                            dlclassname = f"{self.getDLPrefix()}{_class.Name}{self.getDLSuffix()}"
+                            dldep = f"from .{dlclassname} import {dlclassname}"
+                            dependency_map[dldep] = dldep
+
         if self.Class.Cloneable:
             dependency_map["import uuid"] = "import uuid"
         p = self.Class.ParentModule.ParentProject.Name
@@ -94,6 +103,11 @@ class PythonDataClassWriter(DataClassWriter):
         s.wln(f"from ..{m}.{c} import {c}")
         s.wln(f"from .{con} import {con}")
         s.wln(f"from .{cfn} import {cfn}")
+
+
+
+
+
         s.ret()
         s.write(f"class {d}:").o()
         s.ret()
@@ -518,14 +532,7 @@ class PythonDataClassWriter(DataClassWriter):
             s.wln(f"return _{pk.Name.lower()}")
             s.c()
             s.ret()
-            if self.Class.InheritsFrom is not None:
-                for propertyid, property in self.Class.InheritedProperties.Data.items():
-                    if property.IsUnique and not property.IsPrimaryKey and (property.Type == DatatypeString().getType()):
-                        s = self.writePersistWhereForProperty(s, property, pk)
 
-            for propertyid, property in self.Class.Properties.Data.items(): 
-                if property.IsUnique and not property.IsPrimaryKey and (property.Type == DatatypeString().getType()):
-                    s = self.writePersistWhereForProperty(s, property, pk)
         return s
     
     def writeUpdate(self, s:PythonStringWriter):
@@ -675,15 +682,6 @@ class PythonDataClassWriter(DataClassWriter):
         s.c()
         s.ret()
 
-        if self.Class.InheritsFrom is not None:
-            for propertyid, property in self.Class.InheritedProperties.Data.items():
-                if property.IsUnique and not property.IsPrimaryKey and (property.Type == DatatypeString().getType()):
-                    s = self.writeSelectWhereForProperty(s, property)
-
-        for propertyid, property in self.Class.Properties.Data.items(): 
-            if property.IsUnique and not property.IsPrimaryKey and (property.Type == DatatypeString().getType()):
-                s = self.writeSelectWhereForProperty(s, property)
-
         return s
     
     def writeSelectWhereForProperty(self, s:PythonStringWriter, property):
@@ -792,15 +790,6 @@ class PythonDataClassWriter(DataClassWriter):
         s.c()
         s.ret()
 
-        if self.Class.InheritsFrom is not None:
-            for propertyid, property in self.Class.InheritedProperties.Data.items():
-                if property.IsUnique and not property.IsPrimaryKey and (property.Type == DatatypeString().getType()):
-                    s = self.writeSelectPagedWhereForProperty(s, property)
-
-        for propertyid, property in self.Class.Properties.Data.items(): 
-            if property.IsUnique and not property.IsPrimaryKey and (property.Type == DatatypeString().getType()):
-                s = self.writeSelectPagedWhereForProperty(s, property)
-
         return s
     
     def writeFilterPage(self, s:PythonStringWriter):
@@ -825,7 +814,7 @@ class PythonDataClassWriter(DataClassWriter):
         return s
 
 
-    def writeSelectPagedWhereForProperty(self, s:PythonStringWriter, property):
+    def writeSelectPageWhereForProperty(self, s:PythonStringWriter, property):
         (db, schema, tablename, iid, iid2, iin, iin2) = self.getCommonItems()
 
         s.wln("@staticmethod")
@@ -844,4 +833,77 @@ class PythonDataClassWriter(DataClassWriter):
 
     def writeDLClassClose(self, s:PythonStringWriter):
         s.c()
+        return s
+
+
+
+    def writeSelectChildObjects(self, s:PythonStringWriter):
+        (db, schema, tablename, iid, iid2, iin, iin2) = self.getCommonItems()
+        s.wln("@staticmethod")
+        s.wln(f"def Select{self.Class.Name}ChildObjects(config, {self.Class.Name.lower()}: {self.Class.Name}) -> {self.Class.Name}:").o()
+
+
+        mapped_collections = {}
+           
+        for _classid, _class in self.Module.Classes.Data.items():
+            for _propertyid, _property in _class.Properties.Data.items():
+                if _property.ForeignKey is not None:
+                    if _property.ForeignKey.FKClassID == self.Class.ID:
+                        if not _class.ID in mapped_collections:
+                            s = self.writeSetChildObjects(_property.ForeignKey.FKClass, _property.ForeignKey.FKClassProperty, _class, _property, s)
+                        mapped_collections[_class.ID] = _class.Name
+
+        s.wln(f"return {self.Class.Name.lower()}")
+        s.c()
+        s.ret()
+        return s
+
+
+    def writeSetChildObjects(self, parentclass, parentproperty, childclass, childproperty, s:PythonStringWriter):
+
+        (db, schema, tablename, iid, iid2, iin, iin2) = self.getCommonItems()
+
+        dlchildclassname = f"{self.getDLPrefix()}{childclass.Name}{self.getDLSuffix()}"
+        s.wln(f"_{childclass.PluralName.lower()} = {dlchildclassname}.SelectAll{childclass.Name}Where{childproperty.Name}Equals(config, {self.Class.Name.lower()}.{parentproperty.Name})")
+        s.wln(f"{self.Class.Name.lower()}.{childclass.PluralName} = {dlchildclassname}.Select{childclass.SetDescription}ChildObjects(config, _{childclass.PluralName.lower()})")
+        return s
+    
+    def writeSelectCollectionChildObjects(self, s:PythonStringWriter):
+        (db, schema, tablename, iid, iid2, iin, iin2) = self.getCommonItems()
+        s.wln("@staticmethod")
+        s.wln(f"def Select{self.Class.SetDescription}ChildObjects(config, {self.Class.Name.lower()}_list: {self.Class.SetDescription}) -> {self.Class.SetDescription}:").o()
+        s.wln(f"_{self.Class.Name.lower()}_list = {self.Class.SetDescription}()")
+        s.wln(f"for {self.Class.Name.lower()} in {self.Class.Name.lower()}_list.toList():").o() 
+        s.wln(f"_{self.Class.Name.lower()}_list.appendItem({self.getDLClassName()}.Select{self.Class.Name}ChildObjects(config, {self.Class.Name.lower()}))")
+        s.c()
+        s.wln(f"return _{self.Class.Name.lower()}_list")       
+        s.c()
+        return s
+
+    def writeSelectAllForFK(self, foreignkeyprop, s:PythonStringWriter):
+        (db, schema, tablename, iid, iid2, iin, iin2) = self.getCommonItems()
+
+
+        s.wln("@staticmethod")
+        s.wln(f'def SelectAll{self.Class.Name}Where{foreignkeyprop.Name}Equals(config, {foreignkeyprop.Name.lower()}: {foreignkeyprop.Python_Type()}, limit = {str(self.Class.PageSize)}, innerquery:str="{tablename}"{iid2}) -> {self.Class.SetDescription}:').o()
+        #fkconverted = foreignkeyprop.To(self.Language, self.Database, 1, "", foreignkeyprop.Name.lower())
+        #fkparameter_name = f"{db.GetParameter(self.Language, foreignkeyprop.Name.lower(), 1)}"
+        fkparameter_name = foreignkeyprop.Name.lower()
+
+
+        converted = foreignkeyprop.To(self.Language, self.Database, fkparameter_name)
+        if db.UsesNamedParameters(self.Language):
+            s.wln(f"params = {{ }}")
+            s.wln(f"params['{fkparameter_name}'] = {converted}")
+        else:
+            s.wln(f"params = []")
+            s.wln(f"params.append({converted})")    
+
+        s.wln(f'whereclause = f"WHERE {db.OB()}{foreignkeyprop.Name}{db.CB()} = {db.GetParameter(self.Language, foreignkeyprop.Name.lower())}"')
+        s.wln(f"selectquery = {self.getDLClassName()}.GetSelectAll{self.Class.Name}WhereQuery(whereclause, limit, innerquery{iin2})")
+        s.wln(f"result = {self.getDLClassName()}.Select{self.Class.SetDescription}(config, selectquery, params)")
+        s.wln(f"return result")
+        s.c()
+        s.ret()
+
         return s

@@ -157,7 +157,7 @@ class DatabaseMicrosoftSQL(Database):
     s.wln("password = base64.b64decode(credential.encode('utf-8')).decode('utf-8')")
     s.wln('connectionstr= (')
     s.wln('f"DRIVER={config.Driver};"')
-    s.wln('f"SERVER={config.InstanceName};"')
+    s.wln('f"SERVER={config.InstanceName},{str(config.PortNumber)};"')
     s.wln('f"DATABASE={config.Database};"')
     s.wln('f"UID={config.Username};"')
     s.wln('f"PWD={password}"')
@@ -174,7 +174,7 @@ class DatabaseMicrosoftSQL(Database):
     s.wln('String database = config.getDatabase();')
     s.wln('String instance = config.getInstanceName();')
     s.wln('int portno = config.getPortNumber();')
-    s.wln('String connectionformat = "jdbc:sqlserver://%s:%d;databaseName=%s;user=%s;password=%s;encrypt=true;trustServerCertificate=true;";')
+    s.wln('String connectionformat = "jdbc:sqlserver://%s:%d;databaseName=%s;user=%s;password=%s;";') #encrypt=true;trustServerCertificate=true;
     s.wln('String connectionstr = String.format(connectionformat, instance, portno, database, username, password);')
     s.w('try ').o()
     s.wln('connection = DriverManager.getConnection(connectionstr);')

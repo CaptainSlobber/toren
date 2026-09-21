@@ -257,7 +257,7 @@ class DatatypeCharacter(Datatype):
     return self.Java_Type_Spec()
 
   def Java_Type_Spec(self) -> str:
-    return "java.sql.Types.STRING" #CHAR
+    return "java.sql.Types.NVARCHAR" #CHAR
 
   ##########################################################################
   # Java methods for converting from various database types

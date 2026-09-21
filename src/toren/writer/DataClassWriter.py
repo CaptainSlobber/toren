@@ -9,6 +9,7 @@ from .PropertyWriter import PropertyWriter
 from .StringWriter import StringWriter
 from ..Project import Project
 from ..datastores.Database import Database
+from ..datatypes import *
 from ..Module import Module
 from ..Class import Class
 from ..languages import *
@@ -92,13 +93,63 @@ class DataClassWriter(DataWriterObject):
         s = self.writeInsertCollection(s)
         s = self.writeUpdate(s) 
         s = self.writePersistRecord(s)
+        s = self.writePersistRecordForProperties(s)
         s = self.writeDelete(s)
         s = self.writeSelectSingleRecordByPK(s)
         s = self.writeSelectWhere(s)
+        s = self.writeSelectWhereForProperties(s)
         s = self.writeSelectAll(s)
+        s = self.writeSelectAllForFKs(s)
         s = self.writeSelectPage(s)
         s = self.writeSelectPageWhere(s)
+        s = self.writeSelectPageWhereForProperties(s)
         s = self.writeFilterPage(s)
+        s = self.writeSelectChildObjects(s)
+        s = self.writeSelectCollectionChildObjects(s)
+        return s
+
+    def writePersistRecordForProperties(self, s:StringWriter):
+        if self.Class.hasPrimaryKeyPoperty():
+            pk = self.Class.getPrimaryKeyProperty()
+            if self.Class.InheritsFrom is not None:
+                for propertyid, property in self.Class.InheritedProperties.Data.items():
+                    if property.IsUnique and not property.IsPrimaryKey and (property.Type == DatatypeString().getType()):
+                        s = self.writePersistWhereForProperty(s, property, pk)
+            for propertyid, property in self.Class.Properties.Data.items(): 
+                if property.IsUnique and not property.IsPrimaryKey and (property.Type == DatatypeString().getType()):
+                    s = self.writePersistWhereForProperty(s, property, pk)
+
+        return s
+
+    def writePersistWhereForProperty(self, s:StringWriter, property, pk):
+        return s
+
+    def writeSelectPageWhereForProperties(self, s:StringWriter):
+        if self.Class.InheritsFrom is not None:
+            for propertyid, property in self.Class.InheritedProperties.Data.items():
+                if property.IsUnique and not property.IsPrimaryKey and (property.Type == DatatypeString().getType()):
+                    s = self.writeSelectPageWhereForProperty(s, property)
+        for propertyid, property in self.Class.Properties.Data.items(): 
+            if property.IsUnique and not property.IsPrimaryKey and (property.Type == DatatypeString().getType()):
+                s = self.writeSelectPageWhereForProperty(s, property)
+        return s
+
+    def writeSelectPageWhereForProperty(self, s:StringWriter, property):
+        return s
+
+    def writeSelectWhereForProperties(self, s:StringWriter):
+        if self.Class.InheritsFrom is not None:
+            for propertyid, property in self.Class.InheritedProperties.Data.items():
+                if property.IsUnique and not property.IsPrimaryKey and (property.Type == DatatypeString().getType()):
+                    s = self.writeSelectWhereForProperty(s, property)
+
+        for propertyid, property in self.Class.Properties.Data.items(): 
+            if property.IsUnique and not property.IsPrimaryKey and (property.Type == DatatypeString().getType()):
+                s = self.writeSelectWhereForProperty(s, property)
+
+        return s
+
+    def writeSelectWhereForProperty(self, s:StringWriter, property):
         return s
 
     def writeCreateForeignKeys(self, s:StringWriter):
@@ -109,6 +160,27 @@ class DataClassWriter(DataWriterObject):
         if db.HasSchema():
             return f"{db.OB()}{self.Class.ParentModule.Name}{db.CB()}."
         return ""
+
+    def writeSelectAllForFKs(self, s:StringWriter):
+        if self.Class.InheritsFrom is not None:
+            for propertyid, _property in self.Class.InheritedProperties.Data.items():
+                if (_property.ForeignKey is not None) and (not _property.IsPrimaryKey):
+                    s = self.writeSelectAllForFK(_property, s)
+        for propertyid, _property in self.Class.Properties.Data.items():
+            if (_property.ForeignKey is not None) and (not _property.IsPrimaryKey):
+                s = self.writeSelectAllForFK(_property, s)
+        return s
+
+
+    def writeSelectAllForFK(self, foreignkeyprop, s:StringWriter):
+        return s
+
+
+    def writeSelectChildObjects(self, s:StringWriter):
+        return s
+    
+    def writeSelectCollectionChildObjects(self, s:StringWriter):
+        return s
 
     def writeClearTable(self, s:StringWriter):
         return s
