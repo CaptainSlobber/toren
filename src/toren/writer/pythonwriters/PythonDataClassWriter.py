@@ -495,13 +495,30 @@ class PythonDataClassWriter(DataClassWriter):
         s.c()
         s.ret()
 
-
-
-
-
         return s
 
 
+    def writeUpdateChildObject(self, parentclass, parentproperty, childclass, childproperty, s:PythonStringWriter):
+        (db, schema, tablename, iid, iid2, iin, iin2) = self.getCommonItems()
+        dlchildclassname = f"{self.getDLPrefix()}{childclass.Name}{self.getDLSuffix()}"
+        s.wln(f"for _{childclass.Name.lower()} in {self.Class.Name.lower()}.{childclass.PluralName}.toList():").o()
+        s.wln(f"{dlchildclassname}.Persist{childclass.Name}AndChildObjects(config, _{childclass.Name.lower()})")
+        s.c()
+        return s
+
+
+    def writePersistRecordAndChildObjects(self, s:PythonStringWriter):
+        (db, schema, tablename, iid, iid2, iin, iin2) = self.getCommonItems()
+        if self.Class.hasPrimaryKeyPoperty():
+            pk = self.Class.getPrimaryKeyProperty()
+            s.wln("@staticmethod")
+            s.wln(f"def Persist{self.Class.Name}AndChildObjects(config, {self.Class.Name.lower()}: {self.Class.Name}{iid2}):").o()
+            s.wln(f"_{pk.Name.lower()} = {self.getDLClassName()}.PersistSingle{self.Class.Name}(config, {self.Class.Name.lower()}{iin2})")
+            s = self.writeUpdateChildObjects(s)
+            s.wln(f"return _{pk.Name.lower()}")
+            s.c()
+            s.ret()
+        return s
 
     def writePersistRecord(self, s:PythonStringWriter):
         (db, schema, tablename, iid, iid2, iin, iin2) = self.getCommonItems()
@@ -513,16 +530,10 @@ class PythonDataClassWriter(DataClassWriter):
 
             s.wln(f"_{pk.Name.lower()} = {self.Class.Name.lower()}.{pk.Name}")
             s.wln(f"{self.Class.Name.lower()}_items = {self.getDLClassName()}.SelectAll{self.Class.Name}Where(config, whereclause)")
-            #s.wln(f'innerquery = "{tablename}"')
-            #s.wln(f"_{self.Class.Name.lower()} = {self.getDLClassName()}.SelectSingle{self.Class.Name}By{pk.Name}(config, {self.Class.Name.lower()}.{pk.Name}, innerquery{iin2})")
-            #s.wln(f"if _{self.Class.Name.lower()} is not None:").o()
-
-            s.wln(f"if len({self.Class.Name.lower()}_items.Data.keys()) == 1:").o()
-            
+            s.wln(f"if len({self.Class.Name.lower()}_items.Data.keys()) == 1:").o()            
             s.wln(f"params = {self.getDLClassName()}.Parameterize{self.Class.Name}({self.Class.Name.lower()})")
             s.wln(f"updatequery = {self.getDLClassName()}.Get{self.Class.Name}UpdateQuery({iin})")
             s.wln(f"{self.CommonFunctionsClassName}.ExecuteParameterizedNonQuery(config, updatequery, params)")
-            #s.wln(f"_{pk.Name.lower()} = _{self.Class.Name.lower()}.{pk.Name}").c()
             s.wln(f"_{pk.Name.lower()} = list({self.Class.Name.lower()}_items.Data.keys())[0]").c()
             s.wln("else:").o()
             s.wln(f"params = {self.getDLClassName()}.Parameterize{self.Class.Name}({self.Class.Name.lower()})")
@@ -835,8 +846,6 @@ class PythonDataClassWriter(DataClassWriter):
         s.c()
         return s
 
-
-
     def writeSelectChildObjects(self, s:PythonStringWriter):
         (db, schema, tablename, iid, iid2, iin, iin2) = self.getCommonItems()
         s.wln("@staticmethod")
@@ -886,11 +895,8 @@ class PythonDataClassWriter(DataClassWriter):
 
         s.wln("@staticmethod")
         s.wln(f'def SelectAll{self.Class.Name}Where{foreignkeyprop.Name}Equals(config, {foreignkeyprop.Name.lower()}: {foreignkeyprop.Python_Type()}, limit = {str(self.Class.PageSize)}, innerquery:str="{tablename}"{iid2}) -> {self.Class.SetDescription}:').o()
-        #fkconverted = foreignkeyprop.To(self.Language, self.Database, 1, "", foreignkeyprop.Name.lower())
-        #fkparameter_name = f"{db.GetParameter(self.Language, foreignkeyprop.Name.lower(), 1)}"
+
         fkparameter_name = foreignkeyprop.Name.lower()
-
-
         converted = foreignkeyprop.To(self.Language, self.Database, fkparameter_name)
         if db.UsesNamedParameters(self.Language):
             s.wln(f"params = {{ }}")

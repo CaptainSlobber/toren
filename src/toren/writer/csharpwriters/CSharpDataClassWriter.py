@@ -364,7 +364,7 @@ class CSharpDataClassWriter(DataClassWriter):
         s.c().ret()
 
 
-        s.wln(f"private static Dictionary<string, Dictionary<string, object>> Parameterize{self.Class.Name}({self.Class.Name} {self.Class.Name.lower()})").o()
+        s.w(f"private static Dictionary<string, Dictionary<string, object>> Parameterize{self.Class.Name}({self.Class.Name} {self.Class.Name.lower()}) ").o()
         s.wln("Dictionary<string, Dictionary<string, object>> parameters = new Dictionary<string, Dictionary<string, object>>();")
         s = self.writeParameterMapKeys(s)
         n = 0
@@ -400,13 +400,13 @@ class CSharpDataClassWriter(DataClassWriter):
     def writeInsertCollection(self, s:CSharpStringWriter):
         (db, schema, tablename, iid, iid2, iin, iin2, conobjclass) = self.getCommonItems()
     
-        s.w(f"public static int Insert{self.Class.SetDescription}({conobjclass} config, {self.Class.SetDescription} {self.Class.SetDescription.lower()}{iid2})").o()
+        s.w(f"public static int Insert{self.Class.SetDescription}({conobjclass} config, {self.Class.SetDescription} {self.Class.SetDescription.lower()}{iid2}) ").o()
         s.wln(f"List<{self.Class.Name}> {self.Class.Name.lower()}list = {self.Class.SetDescription.lower()}.toList();")
         s.wln(f"return {self.getDLClassName()}.Insert{self.Class.Name}List(config, {self.Class.Name.lower()}list{iin2});")
         s.c()
         s.ret()
             
-        s.w(f"public static int Insert{self.Class.Name}List({conobjclass} config, List<{self.Class.Name}> {self.Class.Name.lower()}list{iid2})").o()
+        s.w(f"public static int Insert{self.Class.Name}List({conobjclass} config, List<{self.Class.Name}> {self.Class.Name.lower()}list{iid2}) ").o()
         s.wln(f"int affectedRows = 0;")
         s.w(f"foreach({self.Class.Name} {self.Class.Name.lower()} in {self.Class.Name.lower()}list)").o()
         s.wln(f"affectedRows += {self.getDLClassName()}.InsertSingle{self.Class.Name}(config, {self.Class.Name.lower()}{iin2});")
@@ -421,7 +421,7 @@ class CSharpDataClassWriter(DataClassWriter):
         (db, schema, tablename, iid, iid2, iin, iin2, conobjclass) = self.getCommonItems()
         if self.Class.hasPrimaryKeyPoperty():
             pk = self.Class.getPrimaryKeyProperty()
-            s.w(f"private static string Get{self.Class.Name}UpdateQuery({iid})").o()
+            s.w(f"private static string Get{self.Class.Name}UpdateQuery({iid}) ").o()
             s.wln(f'string whereclause = " WHERE {db.OB()}{pk.Name}{db.CB()} = {db.GetParameter(self.Language, pk.Name.lower())}{db.EndQuery()}";')
             s = self.writeGetTableName(s)
             s.wln(f'string updatequery = $"UPDATE {{tableName}} SET ";')
@@ -436,7 +436,7 @@ class CSharpDataClassWriter(DataClassWriter):
             s.wln("return updatequery;")
             s.c().ret()
 
-            s.w(f"public static int UpdateSingle{self.Class.Name}({conobjclass} config, {self.Class.Name} {self.Class.Name.lower()}{iid2})").o()
+            s.w(f"public static int UpdateSingle{self.Class.Name}({conobjclass} config, {self.Class.Name} {self.Class.Name.lower()}{iid2}) ").o()
             s.wln(f"Dictionary<string, Dictionary<string, object>> parameters = {self.getDLClassName()}.Parameterize{self.Class.Name}({self.Class.Name.lower()});")
             s.wln(f"string updatequery = {self.getDLClassName()}.Get{self.Class.Name}UpdateQuery({iin});")
             s.wln(f"return {self.CommonFunctionsClassName}.ExecuteParameterizedNonQuery(config, updatequery, parameters);")
@@ -446,12 +446,33 @@ class CSharpDataClassWriter(DataClassWriter):
 
         return s
 
+    def writeUpdateChildObject(self, parentclass, parentproperty, childclass, childproperty, s:CSharpStringWriter):
+        (db, schema, tablename, iid, iid2, iin, iin2, conobjclass) = self.getCommonItems()
+        dlchildclassname = f"{self.getDLPrefix()}{childclass.Name}{self.getDLSuffix()}"
+        s.w(f"foreach({childclass.Name} _{childclass.Name.lower()} in {self.Class.Name.lower()}.{childclass.PluralName}.toList())").o()
+        s.wln(f"{dlchildclassname}.Persist{childclass.Name}AndChildObjects(config, _{childclass.Name.lower()});")
+        s.c()
+        return s
+
+
+    def writePersistRecordAndChildObjects(self, s:CSharpStringWriter):
+        (db, schema, tablename, iid, iid2, iin, iin2, conobjclass) = self.getCommonItems()
+        if self.Class.hasPrimaryKeyPoperty():
+            pk = self.Class.getPrimaryKeyProperty()
+            s.w(f"public static {pk.PropertyType(self.Language)} Persist{self.Class.Name}AndChildObjects({conobjclass} config, {self.Class.Name} {self.Class.Name.lower()}{iid2}) ").o()
+            s.wln(f"{pk.PropertyType(self.Language)} _{pk.Name.lower()} = {self.getDLClassName()}.PersistSingle{self.Class.Name}(config, {self.Class.Name.lower()}{iin2});")
+            s = self.writeUpdateChildObjects(s)
+            s.wln(f"return _{pk.Name.lower()};")
+            s.c()
+            s.ret()
+        return s
+
     def writePersistRecord(self, s:CSharpStringWriter):
         (db, schema, tablename, iid, iid2, iin, iin2, conobjclass) = self.getCommonItems()
         if self.Class.hasPrimaryKeyPoperty():
             pk = self.Class.getPrimaryKeyProperty()
 
-            s.w(f"public static {pk.PropertyType(self.Language)} PersistSingle{self.Class.Name}({conobjclass} config, {self.Class.Name} {self.Class.Name.lower()}{iid2})").o()
+            s.w(f"public static {pk.PropertyType(self.Language)} PersistSingle{self.Class.Name}({conobjclass} config, {self.Class.Name} {self.Class.Name.lower()}{iid2}) ").o()
             
 
             s.wln(f"{pk.PropertyType(self.Language)} _{pk.Name.lower()} = {self.Class.Name.lower()}.{pk.Name};")
@@ -482,7 +503,7 @@ class CSharpDataClassWriter(DataClassWriter):
 
         (db, schema, tablename, iid, iid2, iin, iin2, conobjclass) = self.getCommonItems()
         orderby = self.getOrderByClause()
-        s.w(f"private static string GetSelectAll{self.Class.Name}WhereQuery(string whereclause = \"WHERE 1=1\", int limit = {str(self.Class.PageSize)}, string innerquery = \"{tablename}\"{iid2})").o()
+        s.w(f"private static string GetSelectAll{self.Class.Name}WhereQuery(string whereclause = \"WHERE 1=1\", int limit = {str(self.Class.PageSize)}, string innerquery = \"{tablename}\"{iid2}) ").o()
         s.wln(f"string columns = {self.getDLClassName()}.Get{self.Class.Name}ColumnNames();")
         #s = self.writeInstanceStr(s)
         s.wln(f'string selectquery = $"SELECT {db.TOP("{limit}")}{{columns}} FROM {{innerquery}} {{whereclause}}{orderby}{db.LIMIT("{limit}")}{db.EndQuery()}";')
@@ -490,7 +511,7 @@ class CSharpDataClassWriter(DataClassWriter):
         s.c().ret()
 
 
-        s.w(f"public static {self.Class.SetDescription} SelectAll{self.Class.Name}Where({conobjclass} config, string whereclause = \"WHERE 1=1\", int limit = {str(self.Class.PageSize)}, string innerquery = \"{tablename}\"{iid2})").o()
+        s.w(f"public static {self.Class.SetDescription} SelectAll{self.Class.Name}Where({conobjclass} config, string whereclause = \"WHERE 1=1\", int limit = {str(self.Class.PageSize)}, string innerquery = \"{tablename}\"{iid2}) ").o()
         s.wln("Dictionary<string, Dictionary<string, object>> parameters = new Dictionary<string, Dictionary<string, object>>();")
         s.wln(f"string selectquery = {self.getDLClassName()}.GetSelectAll{self.Class.Name}WhereQuery(whereclause, limit, innerquery{iin2});")
         s.wln(f"{self.Class.SetDescription} result = {self.getDLClassName()}.Select{self.Class.SetDescription}(config, selectquery, parameters);")

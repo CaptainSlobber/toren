@@ -93,6 +93,7 @@ class DataClassWriter(DataWriterObject):
         s = self.writeInsertCollection(s)
         s = self.writeUpdate(s) 
         s = self.writePersistRecord(s)
+        s = self.writePersistRecordAndChildObjects(s)
         s = self.writePersistRecordForProperties(s)
         s = self.writeDelete(s)
         s = self.writeSelectSingleRecordByPK(s)
@@ -108,6 +109,10 @@ class DataClassWriter(DataWriterObject):
         s = self.writeSelectCollectionChildObjects(s)
         return s
 
+
+    def writePersistRecordAndChildObjects(self, s:StringWriter):
+        return s
+
     def writePersistRecordForProperties(self, s:StringWriter):
         if self.Class.hasPrimaryKeyPoperty():
             pk = self.Class.getPrimaryKeyProperty()
@@ -119,6 +124,26 @@ class DataClassWriter(DataWriterObject):
                 if property.IsUnique and not property.IsPrimaryKey and (property.Type == DatatypeString().getType()):
                     s = self.writePersistWhereForProperty(s, property, pk)
 
+        return s
+
+    def writeUpdateChildObjects(self, s:StringWriter):
+
+        mapped_collections = {}
+                   
+        for _classid, _class in self.Module.Classes.Data.items():
+            for _propertyid, _property in _class.Properties.Data.items():
+                if _property.ForeignKey is not None:
+                    if _property.ForeignKey.FKClassID == self.Class.ID:
+                        if not _class.ID in mapped_collections:
+                            s = self.writeUpdateChildObject(_property.ForeignKey.FKClass, _property.ForeignKey.FKClassProperty, _class, _property, s)
+
+
+                        mapped_collections[_class.ID] = _class.Name
+
+        return s
+
+
+    def writeUpdateChildObject(self, parentclass, parentproperty, childclass, childproperty, s:StringWriter):
         return s
 
     def writePersistWhereForProperty(self, s:StringWriter, property, pk):

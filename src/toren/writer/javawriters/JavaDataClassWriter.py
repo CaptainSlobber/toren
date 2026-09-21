@@ -115,8 +115,9 @@ class JavaDataClassWriter(DataClassWriter):
                 if _property.ForeignKey is not None:
                     if _property.ForeignKey.FKClassID == self.Class.ID:
                         if not _class.ID in mapped_collections:
-
+                            child = f"import {t}.{e}.{p}.{_class.ParentModule.Name.lower()}.{_class.Name};"
                             childset = f"import {t}.{e}.{p}.{_class.ParentModule.Name.lower()}.{_class.SetDescription};"
+                            dependency_map[child] = child
                             dependency_map[childset] = childset
                         mapped_collections[_class.ID] = _class.Name
         
@@ -533,6 +534,27 @@ class JavaDataClassWriter(DataClassWriter):
             s.wln(f"PreparedStatement statement = {self.getDLClassName()}.GetPreparedStatementFrom{self.Class.Name}(connection, {self.Class.Name.lower()}, updatequery);")
             s.wln(f"int affectedRows = {self.CommonFunctionsClassName}.ExecuteParameterizedNonQuery(connection, statement);")
             s.wln("return affectedRows;")
+            s.c()
+            s.ret()
+        return s
+
+    def writeUpdateChildObject(self, parentclass, parentproperty, childclass, childproperty, s:JavaStringWriter):
+        (db, schema, tablename, iid, iid2, iin, iin2, conobjclass) = self.getCommonItems()
+        dlchildclassname = f"{self.getDLPrefix()}{childclass.Name}{self.getDLSuffix()}"
+        s.w(f"for({childclass.Name} _{childclass.Name.lower()}: {self.Class.Name.lower()}.get{childclass.PluralName}().toList())").o()
+        s.wln(f"{dlchildclassname}.Persist{childclass.Name}AndChildObjects(config, _{childclass.Name.lower()});")
+        s.c()
+        return s
+
+
+    def writePersistRecordAndChildObjects(self, s:JavaStringWriter):
+        (db, schema, tablename, iid, iid2, iin, iin2, conobjclass) = self.getCommonItems()
+        if self.Class.hasPrimaryKeyPoperty():
+            pk = self.Class.getPrimaryKeyProperty()
+            s.w(f"public static {pk.PropertyType(self.Language)} Persist{self.Class.Name}AndChildObjects({conobjclass} config, {self.Class.Name} {self.Class.Name.lower()}{iid2})").o()
+            s.wln(f"{pk.PropertyType(self.Language)} _{pk.Name.lower()} = {self.getDLClassName()}.PersistSingle{self.Class.Name}(config, {self.Class.Name.lower()}{iin2});")
+            s = self.writeUpdateChildObjects(s)
+            s.wln(f"return _{pk.Name.lower()};")
             s.c()
             s.ret()
         return s
