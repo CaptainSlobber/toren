@@ -446,7 +446,7 @@ class CSharpDataClassWriter(DataClassWriter):
 
         return s
 
-    def writeUpdateChildObject(self, parentclass, parentproperty, childclass, childproperty, s:CSharpStringWriter):
+    def writeUpdateChildObject(self, childclass, s:CSharpStringWriter):
         (db, schema, tablename, iid, iid2, iin, iin2, conobjclass) = self.getCommonItems()
         dlchildclassname = f"{self.getDLPrefix()}{childclass.Name}{self.getDLSuffix()}"
         s.w(f"foreach({childclass.Name} _{childclass.Name.lower()} in {self.Class.Name.lower()}.{childclass.PluralName}.toList())").o()
@@ -765,16 +765,8 @@ class CSharpDataClassWriter(DataClassWriter):
         (db, schema, tablename, iid, iid2, iin, iin2, conobjclass) = self.getCommonItems()
         s.w(f"public static {self.Class.Name} Select{self.Class.Name}ChildObjects({conobjclass} config, {self.Class.Name} {self.Class.Name.lower()}) ").o()
 
-
-        mapped_collections = {}
-           
-        for _classid, _class in self.Module.Classes.Data.items():
-            for _propertyid, _property in _class.Properties.Data.items():
-                if _property.ForeignKey is not None:
-                    if _property.ForeignKey.FKClassID == self.Class.ID:
-                        if not _class.ID in mapped_collections:
-                            s = self.writeSetChildObjects(_property.ForeignKey.FKClass, _property.ForeignKey.FKClassProperty, _class, _property, s)
-                        mapped_collections[_class.ID] = _class.Name
+        for _property in list(self.Class.get_linked_foreign_keys(False).values()):
+            s = self.writeSetChildObjects(_property.ForeignKey.FKClass, _property.ForeignKey.FKClassProperty, _property.ParentClass, _property, s)
 
         s.wln(f"return {self.Class.Name.lower()}; ")
         s.c()

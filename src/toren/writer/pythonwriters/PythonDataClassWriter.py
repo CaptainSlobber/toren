@@ -498,7 +498,7 @@ class PythonDataClassWriter(DataClassWriter):
         return s
 
 
-    def writeUpdateChildObject(self, parentclass, parentproperty, childclass, childproperty, s:PythonStringWriter):
+    def writeUpdateChildObject(self, childclass, s:PythonStringWriter):
         (db, schema, tablename, iid, iid2, iin, iin2) = self.getCommonItems()
         dlchildclassname = f"{self.getDLPrefix()}{childclass.Name}{self.getDLSuffix()}"
         s.wln(f"for _{childclass.Name.lower()} in {self.Class.Name.lower()}.{childclass.PluralName}.toList():").o()
@@ -526,10 +526,20 @@ class PythonDataClassWriter(DataClassWriter):
             pk = self.Class.getPrimaryKeyProperty()
             s.wln("@staticmethod")
             s.wln(f"def PersistSingle{self.Class.Name}(config, {self.Class.Name.lower()}: {self.Class.Name}{iid2}):").o()
-            s.wln(f'whereclause = "WHERE {db.OB()}{pk.Name}{db.CB()} = {db.GetParameter(self.Language, pk.Name.lower())}{db.EndQuery()}"')
-
+            s.wln(f'whereclause = "WHERE {db.OB()}{pk.Name}{db.CB()} = {db.GetParameter(self.Language, pk.Name.lower())}"')
             s.wln(f"_{pk.Name.lower()} = {self.Class.Name.lower()}.{pk.Name}")
-            s.wln(f"{self.Class.Name.lower()}_items = {self.getDLClassName()}.SelectAll{self.Class.Name}Where(config, whereclause)")
+            fkparameter_name = pk.Name.lower()
+            converted = pk.To(self.Language, self.Database, f"_{pk.Name.lower()}")
+            if db.UsesNamedParameters(self.Language):
+                s.wln(f"params = {{ }}")
+                s.wln(f"params['{fkparameter_name}'] = {converted}")
+            else:
+                s.wln(f"params = []")
+                s.wln(f"params.append({converted})")
+            s = self.writeInstanceStr(s, "\"" + tablename + "\"")    
+            s.wln(f"selectquery = {self.getDLClassName()}.GetSelectAll{self.Class.Name}WhereQuery(whereclause, 10, innerquery{iin2})")
+            s.wln(f"{self.Class.Name.lower()}_items = {self.getDLClassName()}.Select{self.Class.SetDescription}(config, selectquery, params)")
+            #s.wln(f"{self.Class.Name.lower()}_items = {self.getDLClassName()}.SelectAll{self.Class.Name}Where(config, whereclause)")
             s.wln(f"if len({self.Class.Name.lower()}_items.Data.keys()) == 1:").o()            
             s.wln(f"params = {self.getDLClassName()}.Parameterize{self.Class.Name}({self.Class.Name.lower()})")
             s.wln(f"updatequery = {self.getDLClassName()}.Get{self.Class.Name}UpdateQuery({iin})")
@@ -851,16 +861,8 @@ class PythonDataClassWriter(DataClassWriter):
         s.wln("@staticmethod")
         s.wln(f"def Select{self.Class.Name}ChildObjects(config, {self.Class.Name.lower()}: {self.Class.Name}) -> {self.Class.Name}:").o()
 
-
-        mapped_collections = {}
-           
-        for _classid, _class in self.Module.Classes.Data.items():
-            for _propertyid, _property in _class.Properties.Data.items():
-                if _property.ForeignKey is not None:
-                    if _property.ForeignKey.FKClassID == self.Class.ID:
-                        if not _class.ID in mapped_collections:
-                            s = self.writeSetChildObjects(_property.ForeignKey.FKClass, _property.ForeignKey.FKClassProperty, _class, _property, s)
-                        mapped_collections[_class.ID] = _class.Name
+        for _property in list(self.Class.get_linked_foreign_keys(False).values()):
+            s = self.writeSetChildObjects(_property.ForeignKey.FKClass, _property.ForeignKey.FKClassProperty, _property.ParentClass, _property, s)
 
         s.wln(f"return {self.Class.Name.lower()}")
         s.c()

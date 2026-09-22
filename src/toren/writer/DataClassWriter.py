@@ -127,23 +127,13 @@ class DataClassWriter(DataWriterObject):
         return s
 
     def writeUpdateChildObjects(self, s:StringWriter):
-
-        mapped_collections = {}
-                   
-        for _classid, _class in self.Module.Classes.Data.items():
-            for _propertyid, _property in _class.Properties.Data.items():
-                if _property.ForeignKey is not None:
-                    if _property.ForeignKey.FKClassID == self.Class.ID:
-                        if not _class.ID in mapped_collections:
-                            s = self.writeUpdateChildObject(_property.ForeignKey.FKClass, _property.ForeignKey.FKClassProperty, _class, _property, s)
-
-
-                        mapped_collections[_class.ID] = _class.Name
+        for _class in list(self.Class.get_linked_foreign_key_classes(False).values()):
+            s = self.writeUpdateChildObject(_class, s)
 
         return s
 
 
-    def writeUpdateChildObject(self, parentclass, parentproperty, childclass, childproperty, s:StringWriter):
+    def writeUpdateChildObject(self, childclass, s:StringWriter):
         return s
 
     def writePersistWhereForProperty(self, s:StringWriter, property, pk):
@@ -189,10 +179,10 @@ class DataClassWriter(DataWriterObject):
     def writeSelectAllForFKs(self, s:StringWriter):
         if self.Class.InheritsFrom is not None:
             for propertyid, _property in self.Class.InheritedProperties.Data.items():
-                if (_property.ForeignKey is not None) and (not _property.IsPrimaryKey):
+                if (_property.ForeignKey is not None):
                     s = self.writeSelectAllForFK(_property, s)
         for propertyid, _property in self.Class.Properties.Data.items():
-            if (_property.ForeignKey is not None) and (not _property.IsPrimaryKey):
+            if (_property.ForeignKey is not None):
                 s = self.writeSelectAllForFK(_property, s)
         return s
 

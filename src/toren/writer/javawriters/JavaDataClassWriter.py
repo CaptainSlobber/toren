@@ -106,20 +106,13 @@ class JavaDataClassWriter(DataClassWriter):
         dependency_map[object_import] = object_import
         dependency_map[object_set_import] = object_set_import 
 
+        for _class in list(self.Class.get_linked_foreign_key_classes(False).values()):
+            child = f"import {t}.{e}.{p}.{_class.ParentModule.Name.lower()}.{_class.Name};"
+            childset = f"import {t}.{e}.{p}.{_class.ParentModule.Name.lower()}.{_class.SetDescription};"
+            dependency_map[child] = child
+            dependency_map[childset] = childset
 
-
-        mapped_collections = {}
-                   
-        for _classid, _class in self.Module.Classes.Data.items():
-            for _propertyid, _property in _class.Properties.Data.items():
-                if _property.ForeignKey is not None:
-                    if _property.ForeignKey.FKClassID == self.Class.ID:
-                        if not _class.ID in mapped_collections:
-                            child = f"import {t}.{e}.{p}.{_class.ParentModule.Name.lower()}.{_class.Name};"
-                            childset = f"import {t}.{e}.{p}.{_class.ParentModule.Name.lower()}.{_class.SetDescription};"
-                            dependency_map[child] = child
-                            dependency_map[childset] = childset
-                        mapped_collections[_class.ID] = _class.Name
+        
         
         return dependency_map
     
@@ -538,7 +531,7 @@ class JavaDataClassWriter(DataClassWriter):
             s.ret()
         return s
 
-    def writeUpdateChildObject(self, parentclass, parentproperty, childclass, childproperty, s:JavaStringWriter):
+    def writeUpdateChildObject(self, childclass, s:JavaStringWriter):
         (db, schema, tablename, iid, iid2, iin, iin2, conobjclass) = self.getCommonItems()
         dlchildclassname = f"{self.getDLPrefix()}{childclass.Name}{self.getDLSuffix()}"
         s.w(f"for({childclass.Name} _{childclass.Name.lower()}: {self.Class.Name.lower()}.get{childclass.PluralName}().toList())").o()
@@ -953,15 +946,8 @@ class JavaDataClassWriter(DataClassWriter):
         s.w(f"public static {self.Class.Name} Select{self.Class.Name}ChildObjects({conobjclass} config, {self.Class.Name} {self.Class.Name.lower()}) ").o()
 
 
-        mapped_collections = {}
-           
-        for _classid, _class in self.Module.Classes.Data.items():
-            for _propertyid, _property in _class.Properties.Data.items():
-                if _property.ForeignKey is not None:
-                    if _property.ForeignKey.FKClassID == self.Class.ID:
-                        if not _class.ID in mapped_collections:
-                            s = self.writeSetChildObjects(_property.ForeignKey.FKClass, _property.ForeignKey.FKClassProperty, _class, _property, s)
-                        mapped_collections[_class.ID] = _class.Name
+        for _property in list(self.Class.get_linked_foreign_keys(False).values()):
+            s = self.writeSetChildObjects(_property.ForeignKey.FKClass, _property.ForeignKey.FKClassProperty, _property.ParentClass, _property, s)
 
         s.wln(f"return {self.Class.Name.lower()}; ")
         s.c()

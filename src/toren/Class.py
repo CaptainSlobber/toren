@@ -43,7 +43,6 @@ class Class(TorenObject):
     self.ID = ""
     self.ParentModule = None
     self.Properties = DatatypeCollection()
-    self.Children = {}
     self.setInheritsFrom(None)
     self.PluralName = self.getDefaultPluralName(self.Name, None)
     
@@ -62,7 +61,6 @@ class Class(TorenObject):
                  id: str,
                  properties: List[Datatype] = None,
                  inheritsfrom = None,
-                 children = {},
                  pluralname = None,
                  pageSize: int = 1000,
                  cloneable: bool = False):
@@ -76,7 +74,6 @@ class Class(TorenObject):
     self.ParentModule = None
     self.setInheritsFrom(inheritsfrom)
     self.Properties = DatatypeCollection().initialize(properties, self) #self.setProperties(properties)
-    self.Children = children
     self.PageSize = pageSize
     self.Cloneable = cloneable
     return self
@@ -141,7 +138,6 @@ class Class(TorenObject):
   def setInheritsFrom(self, inheritsFromClass):
 
     if inheritsFromClass is not None:
-      inheritsFromClass.Children[self.ID] = self
       self.InheritsFrom = inheritsFromClass
       self.InheritsFromID = inheritsFromClass.ID
       self.InheritedProperties = self.getInheritedProperties(self, DatatypeCollection())
@@ -191,3 +187,50 @@ class Class(TorenObject):
     self.Cloneable = bool(_class[self.PropertName.CLONEABLE])
     self.Properties = DatatypeCollection().initialize(_class[self.PropertName.PROPERTIES], self)
     return self
+
+
+  def get_sub_classes(self, _sub_classes={}):
+    for _classid, _class in self.ParentModule.Classes.Data.items():
+        if _class.InheritsFromID == self.ID:
+            _sub_classes[_class.ID] = _class
+            _sub_classes = _class.get_sub_classes(_sub_classes)
+    
+    return _sub_classes
+      
+     
+
+  def get_linked_foreign_keys(self, includedinheritance=False):
+    _linked_foreign_keys = collections.OrderedDict() 
+               
+    for _classid, _class in self.ParentModule.Classes.Data.items():
+        for _propertyid, _property in _class.Properties.Data.items():
+            if _property.ForeignKey is not None:
+                if _property.ForeignKey.FKClassID == self.ID:
+                    _linked_foreign_keys[_property.ID] = _property
+
+    if includedinheritance:
+      for _classid, _class in self.ParentModule.Classes.Data.items():
+          for _propertyid, _property in _class.InheritedProperties.Data.items():
+              if _property.ForeignKey is not None:
+                  if _property.ForeignKey.FKClassID == self.ID:
+                      _linked_foreign_keys[_property.ID] = _property
+
+    return _linked_foreign_keys
+
+  def get_linked_foreign_key_classes(self, includedinheritance=False):
+    _linked_foreign_key_classes = collections.OrderedDict() 
+               
+    for _classid, _class in self.ParentModule.Classes.Data.items():
+        for _propertyid, _property in _class.Properties.Data.items():
+            if _property.ForeignKey is not None:
+                if _property.ForeignKey.FKClassID == self.ID:
+                    _linked_foreign_key_classes[_class.ID] = _class
+
+    if includedinheritance:
+      for _classid, _class in self.ParentModule.Classes.Data.items():
+          for _propertyid, _property in _class.InheritedProperties.Data.items():
+              if _property.ForeignKey is not None:
+                  if _property.ForeignKey.FKClassID == self.ID:
+                      _linked_foreign_key_classes[_class.ID] = _class
+
+    return _linked_foreign_key_classes

@@ -188,6 +188,9 @@ class CSharpClassWriter(ClassWriter):
     def writeClassReferenceCollection(self, _class, s: CSharpStringWriter):
         s.wln("/*")
         s.wln(f" property: {_class.PluralName} ({_class.Name} Collection)")
+
+        # for cls in list(_class.get_sub_classes().values()):
+        #     s.wln(f" >> {cls.Name}")
         s.wln("*/")
 
         s.wln(f"private {_class.SetDescription} _{_class.PluralName.lower()};").ret()
