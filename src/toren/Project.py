@@ -111,6 +111,7 @@ class Project(TorenObject):
     return self
   
   def to_file(self, path:str):
+    self.checkForIDConflicts()
     with open(path, "w") as projectfile:
       json.dump(self.to_dict(), projectfile, indent=2)
 
@@ -118,6 +119,7 @@ class Project(TorenObject):
     with open(path, 'r') as projectfile:
       projectjson = projectfile.read()
       self.from_json(projectjson)
+      self.checkForIDConflicts()
     return self
   
   def setInheritence(self):
@@ -152,4 +154,35 @@ class Project(TorenObject):
           if _propertyid == propertyid:
             return _property
     return None
+
+  def checkForIDConflicts(self):
+    class_ids = set()
+    property_ids = set()
+    module_ids = set()
+    _ids = set()
+
+    for _moduleid, _module in self.Modules.Data.items():
+      if _moduleid in module_ids:
+        raise ValueError(f"Duplicate ID found for module: {_module.Name} ({_moduleid})")
+      if _moduleid in _ids:
+        raise ValueError(f"Duplicate ID found for module: {_module.Name} ({_moduleid})")
+      module_ids.add(_moduleid)
+      _ids.add(_moduleid)
+
+      for _classid, _class in _module.Classes.Data.items():
+        if _classid in class_ids:
+          raise ValueError(f"Duplicate ID found for class: {_class.Name} ({_classid})")
+        if _classid in _ids:
+          raise ValueError(f"Duplicate ID found for class: {_class.Name} ({_classid})")
+        class_ids.add(_classid)
+        _ids.add(_classid)
+
+      for _classid, _class in _module.Classes.Data.items():
+        for _propertyid, _property in _class.Properties.Data.items():
+          if _propertyid in property_ids:
+            raise ValueError(f"Duplicate ID found for property: {_property.Name} ({_propertyid})")
+          if _property.ID in _ids:
+            raise ValueError(f"Duplicate ID found for property: {_property.Name} ({_property.ID})")
+          property_ids.add(_propertyid)
+          _ids.add(_property.ID)
 

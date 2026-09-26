@@ -113,12 +113,12 @@ class ClassWriter(WriterObject):
     def writeClassReferenceCollections(self, s:StringWriter):
         s.ret()
 
-        for _class in list(self.Class.get_linked_foreign_key_classes(False).values()):
-            s = self.writeClassReferenceCollection(_class, s)
+        for _property in list(self.Class.get_linked_foreign_keys(False).values()):
+            s = self.writeClassReferenceCollection(_property, s)
 
         return s
 
-    def writeClassReferenceCollection(self, _class, s:StringWriter):
+    def writeClassReferenceCollection(self, _property, s:StringWriter):
         return s
 
 

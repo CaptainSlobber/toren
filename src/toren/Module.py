@@ -39,6 +39,7 @@ class Module(TorenObject):
                  description: str, 
                  id: str,
                  classes: List[Class] = None):
+    self.checkForIDConflicts(classes)
     self.Type = "toren.Module"
     self.IsInReservedNames(name)
     self.Name = name
@@ -47,6 +48,15 @@ class Module(TorenObject):
     self.ParentProject = None
     self.Classes = ClassCollection().initialize(classes, self)
     return self
+
+
+  def checkForIDConflicts(self, classes):
+    if classes:
+      class_ids = set()
+      for  _class in classes:
+        if _class.ID in class_ids:
+          raise ValueError(f"Duplicate ID found for class: {_class.Name} ({_class.ID})")
+        class_ids.add(_class.ID)
   
   def IsInReservedNames(self, name):
     if name in self.ReservedModuleNames():

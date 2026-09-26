@@ -185,18 +185,18 @@ class CSharpClassWriter(ClassWriter):
         s = property.CSharp_Helper_Functions(s)
         return s
 
-    def writeClassReferenceCollection(self, _class, s: CSharpStringWriter):
-        s.wln("/*")
-        s.wln(f" property: {_class.PluralName} ({_class.Name} Collection)")
+    def writeClassReferenceCollection(self, _property, s: CSharpStringWriter):
 
-        # for cls in list(_class.get_sub_classes().values()):
-        #     s.wln(f" >> {cls.Name}")
+        _class = _property.ParentClass
+        
+        s.wln("/*")
+        s.wln(f" property: {_class.PluralName}_{_property.Name} ({_class.Name} Collection)")
         s.wln("*/")
 
-        s.wln(f"private {_class.SetDescription} _{_class.PluralName.lower()};").ret()
-        s.w(f"public {_class.SetDescription} {_class.PluralName} ").o()
-        s.wln(f"get {{ return this._{_class.PluralName.lower()}; }}")
-        s.wln(f"set {{ this._{_class.PluralName.lower()} = value; }}")
+        s.wln(f"private {_class.SetDescription} _{_class.PluralName.lower()}_{_property.Name.lower()};").ret()
+        s.w(f"public {_class.SetDescription} {_class.PluralName}_{_property.Name} ").o()
+        s.wln(f"get {{ return this._{_class.PluralName.lower()}_{_property.Name.lower()}; }}")
+        s.wln(f"set {{ this._{_class.PluralName.lower()}_{_property.Name.lower()} = value; }}")
         s.c().ret()
 
         return s

@@ -235,7 +235,8 @@ class PythonClassWriter(ClassWriter):
         return dependency_map
     
 
-    def writeClassReferenceCollection(self, _class, s: PythonStringWriter):
+    def writeClassReferenceCollection(self, _property, s: PythonStringWriter):
+        _class = _property.ParentClass
         s.wln("\"\"\"")
         s.wln(f" property: {_class.PluralName} ({_class.Name} Collection)")
         s.wln("\"\"\"")

@@ -498,7 +498,8 @@ class PythonDataClassWriter(DataClassWriter):
         return s
 
 
-    def writeUpdateChildObject(self, childclass, s:PythonStringWriter):
+    def writeUpdateChildObject(self, childclassproperty, s:PythonStringWriter):
+        childclass = childclassproperty.ParentClass
         (db, schema, tablename, iid, iid2, iin, iin2) = self.getCommonItems()
         dlchildclassname = f"{self.getDLPrefix()}{childclass.Name}{self.getDLSuffix()}"
         s.wln(f"for _{childclass.Name.lower()} in {self.Class.Name.lower()}.{childclass.PluralName}.toList():").o()

@@ -446,11 +446,32 @@ class CSharpDataClassWriter(DataClassWriter):
 
         return s
 
-    def writeUpdateChildObject(self, childclass, s:CSharpStringWriter):
+    def writeUpdateChildObject(self, childclassproperty, s:CSharpStringWriter):
+        childclass = childclassproperty.ParentClass
         (db, schema, tablename, iid, iid2, iin, iin2, conobjclass) = self.getCommonItems()
         dlchildclassname = f"{self.getDLPrefix()}{childclass.Name}{self.getDLSuffix()}"
-        s.w(f"foreach({childclass.Name} _{childclass.Name.lower()} in {self.Class.Name.lower()}.{childclass.PluralName}.toList())").o()
-        s.wln(f"{dlchildclassname}.Persist{childclass.Name}AndChildObjects(config, _{childclass.Name.lower()});")
+        s.w(f"foreach({childclass.Name} _{childclass.Name.lower()} in {self.Class.Name.lower()}.{childclass.PluralName}_{childclassproperty.Name}.toList())").o()
+
+
+        inheritance_tree_flag = False
+        child_class_list = list(childclass.get_sub_classes().values())[::-1]
+        for cls in child_class_list:
+
+            dlclsname = f"{self.getDLPrefix()}{cls.Name}{self.getDLSuffix()}"
+            if not inheritance_tree_flag:
+                s.w(f"if (_{childclass.Name.lower()}.GetType() == typeof({cls.Name})) ").o()
+                s.wln(f"{dlclsname}.Persist{cls.Name}AndChildObjects(config, ({cls.Name})_{childclass.Name.lower()});")
+            else:
+                s.b(f" else if (_{childclass.Name.lower()}.GetType() == typeof({cls.Name})) ")
+                s.wln(f"{dlclsname}.Persist{cls.Name}AndChildObjects(config, ({cls.Name})_{childclass.Name.lower()});")
+            inheritance_tree_flag = True
+
+        if inheritance_tree_flag:
+            s.b(f" else ")
+            s.wln(f"{dlchildclassname}.Persist{childclass.Name}AndChildObjects(config, _{childclass.Name.lower()});")
+            s.c()
+        else:
+            s.wln(f"{dlchildclassname}.Persist{childclass.Name}AndChildObjects(config, _{childclass.Name.lower()});")
         s.c()
         return s
 
@@ -781,8 +802,16 @@ class CSharpDataClassWriter(DataClassWriter):
         (db, schema, tablename, iid, iid2, iin, iin2, conobjclass) = self.getCommonItems()
 
         dlchildclassname = f"{self.getDLPrefix()}{childclass.Name}{self.getDLSuffix()}"
-        s.wln(f"{childclass.SetDescription} _{childclass.PluralName.lower()} = {dlchildclassname}.SelectAll{childclass.Name}Where{childproperty.Name}Equals(config, {self.Class.Name.lower()}.{parentproperty.Name});")
-        s.wln(f"{self.Class.Name.lower()}.{childclass.PluralName} = {dlchildclassname}.Select{childclass.SetDescription}ChildObjects(config, _{childclass.PluralName.lower()});")
+        s.wln(f"{childclass.SetDescription} _{childclass.PluralName.lower()}_{childproperty.Name.lower()} = {dlchildclassname}.SelectAll{childclass.Name}Where{childproperty.Name}Equals(config, {self.Class.Name.lower()}.{parentproperty.Name});")
+
+
+        for cls in list(childclass.get_sub_classes().values()):
+            dlclsname = f"{self.getDLPrefix()}{cls.Name}{self.getDLSuffix()}"
+            s.w(f"foreach({cls.Name} {cls.Name.lower()} in {dlclsname}.SelectAll{cls.Name}Where{childproperty.Name}Equals(config, {self.Class.Name.lower()}.{parentproperty.Name}).toList())" ).o()
+            s.wln(f"_{childclass.PluralName.lower()}_{childproperty.Name.lower()}.appendItem({cls.Name.lower()}); ")
+            s.c()
+
+        s.wln(f"{self.Class.Name.lower()}.{childclass.PluralName}_{childproperty.Name} = {dlchildclassname}.Select{childclass.SetDescription}ChildObjects(config, _{childclass.PluralName.lower()}_{childproperty.Name.lower()});")
         return s
     
     def writeSelectCollectionChildObjects(self, s:CSharpStringWriter):

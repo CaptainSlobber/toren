@@ -127,13 +127,13 @@ class DataClassWriter(DataWriterObject):
         return s
 
     def writeUpdateChildObjects(self, s:StringWriter):
-        for _class in list(self.Class.get_linked_foreign_key_classes(False).values()):
-            s = self.writeUpdateChildObject(_class, s)
+        for _property in list(self.Class.get_linked_foreign_keys(False).values()):
+            s = self.writeUpdateChildObject(_property, s)
 
         return s
 
 
-    def writeUpdateChildObject(self, childclass, s:StringWriter):
+    def writeUpdateChildObject(self, childclassproperty, s:StringWriter):
         return s
 
     def writePersistWhereForProperty(self, s:StringWriter, property, pk):

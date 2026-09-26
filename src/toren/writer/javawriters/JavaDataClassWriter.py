@@ -106,7 +106,7 @@ class JavaDataClassWriter(DataClassWriter):
         dependency_map[object_import] = object_import
         dependency_map[object_set_import] = object_set_import 
 
-        for _class in list(self.Class.get_linked_foreign_key_classes(False).values()):
+        for _class in list(self.Class.get_linked_foreign_key_classes__(False).values()):
             child = f"import {t}.{e}.{p}.{_class.ParentModule.Name.lower()}.{_class.Name};"
             childset = f"import {t}.{e}.{p}.{_class.ParentModule.Name.lower()}.{_class.SetDescription};"
             dependency_map[child] = child
@@ -531,7 +531,8 @@ class JavaDataClassWriter(DataClassWriter):
             s.ret()
         return s
 
-    def writeUpdateChildObject(self, childclass, s:JavaStringWriter):
+    def writeUpdateChildObject(self, childclassproperty, s:JavaStringWriter):
+        childclass = childclassproperty.ParentClass
         (db, schema, tablename, iid, iid2, iin, iin2, conobjclass) = self.getCommonItems()
         dlchildclassname = f"{self.getDLPrefix()}{childclass.Name}{self.getDLSuffix()}"
         s.w(f"for({childclass.Name} _{childclass.Name.lower()}: {self.Class.Name.lower()}.get{childclass.PluralName}().toList())").o()

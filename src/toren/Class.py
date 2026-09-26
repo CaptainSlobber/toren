@@ -64,6 +64,8 @@ class Class(TorenObject):
                  pluralname = None,
                  pageSize: int = 1000,
                  cloneable: bool = False):
+
+    self.checkForIDConflicts(properties)
     self.Type = "toren.Class"
     self.IsInReservedNames(name)
     self.Name = name
@@ -77,7 +79,16 @@ class Class(TorenObject):
     self.PageSize = pageSize
     self.Cloneable = cloneable
     return self
-  
+
+
+  def checkForIDConflicts(self, properties):
+    if properties:
+      property_ids = set()
+      for  _property in properties:
+        if _property.ID in property_ids:
+          raise ValueError(f"Duplicate ID found for property: {_property.Name} ({_property.ID})")
+        property_ids.add(_property.ID)
+
   def getInheritedProperties_(self, _class, _properties):
     if _class.InheritsFrom is not None:
       _properties = _properties.addCollection(_class.InheritsFrom.Properties)
@@ -189,12 +200,23 @@ class Class(TorenObject):
     return self
 
 
-  def get_sub_classes(self, _sub_classes={}):
-    for _classid, _class in self.ParentModule.Classes.Data.items():
-        if _class.InheritsFromID == self.ID:
-            _sub_classes[_class.ID] = _class
-            _sub_classes = _class.get_sub_classes(_sub_classes)
+  def get_sub_classes(self, source_class=None, _sub_classes=None, include_self=False):
+    if not source_class:
+       source_class = self
+       if include_self:
+          _sub_classes[self.ID] = self
+    if not _sub_classes:
+       _sub_classes = {}
     
+    for _classid, _class in source_class.ParentModule.Classes.Data.items():
+
+        if _class.ID not in _sub_classes:
+          if _class.ID != source_class.ID:
+            if _class.ID != self.ID:
+              if _class.InheritsFromID == self.ID:
+                _sub_classes[_class.ID] = _class
+                _sub_classes = _class.get_sub_classes(source_class, _sub_classes)
+ 
     return _sub_classes
       
      
@@ -217,7 +239,7 @@ class Class(TorenObject):
 
     return _linked_foreign_keys
 
-  def get_linked_foreign_key_classes(self, includedinheritance=False):
+  def get_linked_foreign_key_classes__(self, includedinheritance=False):
     _linked_foreign_key_classes = collections.OrderedDict() 
                
     for _classid, _class in self.ParentModule.Classes.Data.items():
